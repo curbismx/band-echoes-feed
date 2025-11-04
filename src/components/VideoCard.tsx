@@ -98,7 +98,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
         {/* Bottom Content */}
         <div className="mt-auto flex items-end justify-between pointer-events-auto">
           {/* Artist Info */}
-          <div className={`pb-[0px] transition-all duration-300 ${showDock ? '-translate-y-[70px]' : ''}`}>
+          <div className={`pb-[0px] transition-all duration-300 ${showDock ? '-translate-y-[70px]' : '-translate-y-[20px]'}`}>
             <h2 className="text-2xl font-bold text-white drop-shadow-lg">
               The Rising Stars
             </h2>
