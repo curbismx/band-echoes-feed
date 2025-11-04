@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import starIcon from "@/assets/star.png";
 import heartIcon from "@/assets/heart.png";
 import menuIcon from "@/assets/menu.png";
@@ -13,6 +13,7 @@ interface ActionButtonsProps {
   onRate: (rating: number) => void;
   showDock: boolean;
   onMenuClick: (pos: { dockTop?: number; menuLabelBottom?: number; menuCenterY?: number; menuCenterX?: number }) => void;
+  onButtonsMeasure?: (pos: { menuCenterY?: number; accountCenterY?: number; menuCenterX?: number }) => void;
 }
 
 export const ActionButtons = ({
@@ -23,12 +24,32 @@ export const ActionButtons = ({
   onRate,
   showDock,
   onMenuClick,
+  onButtonsMeasure,
 }: ActionButtonsProps) => {
   const [showRating, setShowRating] = useState(false);
   const circleRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLButtonElement>(null);
   const menuLabelRef = useRef<HTMLSpanElement>(null);
+  const accountRef = useRef<HTMLButtonElement>(null);
 
+  useEffect(() => {
+    const measure = () => {
+      const pos: { menuCenterY?: number; accountCenterY?: number; menuCenterX?: number } = {};
+      if (menuRef.current) {
+        const rect = menuRef.current.getBoundingClientRect();
+        pos.menuCenterY = rect.top + rect.height / 2;
+        pos.menuCenterX = rect.left + rect.width / 2;
+      }
+      if (accountRef.current) {
+        const rect = accountRef.current.getBoundingClientRect();
+        pos.accountCenterY = rect.top + rect.height / 2;
+      }
+      onButtonsMeasure?.(pos);
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [onButtonsMeasure]);
   const formatNumber = (num: number) => {
     if (num >= 1000) {
       return (num / 1000).toFixed(1) + "k";
@@ -91,7 +112,7 @@ export const ActionButtons = ({
       </button>
 
       {/* Account */}
-      <button className="action-button flex flex-col items-center gap-1 mt-[40px]">
+      <button className="action-button flex flex-col items-center gap-1 mt-[40px]" ref={accountRef}>
         <img src={accountIcon} alt="Account" className="h-[30px] w-[30px]" />
         <span className="text-xs font-semibold text-white drop-shadow-lg">
           account

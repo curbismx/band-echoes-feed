@@ -33,6 +33,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
   const [dockTop, setDockTop] = useState<number | null>(null);
   const [menuLabelBottom, setMenuLabelBottom] = useState<number | null>(null);
   const [menuCenterY, setMenuCenterY] = useState<number | null>(null);
+  const [accountCenterY, setAccountCenterY] = useState<number | null>(null);
   const [menuCenterX, setMenuCenterX] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -112,6 +113,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
             onRate={handleRate}
             showDock={showDock}
             onMenuClick={(pos) => { if (pos?.dockTop !== undefined) setDockTop(pos.dockTop!); if (pos?.menuLabelBottom !== undefined) setMenuLabelBottom(pos.menuLabelBottom!); if (pos?.menuCenterY !== undefined) setMenuCenterY(pos.menuCenterY!); if (pos?.menuCenterX !== undefined) setMenuCenterX(pos.menuCenterX!); setShowDock(!showDock); }}
+            onButtonsMeasure={(pos) => { if (pos?.menuCenterY !== undefined) setMenuCenterY(pos.menuCenterY!); if (pos?.accountCenterY !== undefined) setAccountCenterY(pos.accountCenterY!); if (pos?.menuCenterX !== undefined) setMenuCenterX(pos.menuCenterX!); }}
           />
         </div>
 
@@ -119,8 +121,16 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
         <button
           onClick={handleFollow}
           className={`absolute flex items-center pointer-events-auto transition-all duration-300 ${
-            showDock ? 'bottom-[230px] left-[28px]' : 'bottom-[90px] left-[16px]'
+            (showDock ? accountCenterY : menuCenterY) !== null
+              ? `${showDock ? 'left-[28px]' : 'left-[16px]'}`
+              : `${showDock ? 'bottom-[230px] left-[28px]' : 'bottom-[90px] left-[16px]'}`
           }`}
+          style={{
+            top:
+              (showDock ? accountCenterY : menuCenterY) !== null
+                ? `${(((showDock ? accountCenterY : menuCenterY) as number) - 15)}px`
+                : undefined,
+          }}
         >
           <img src={followIcon} alt="Follow" className="h-[30px]" />
         </button>
