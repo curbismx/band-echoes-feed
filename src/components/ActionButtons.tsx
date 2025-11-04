@@ -16,6 +16,7 @@ interface ActionButtonsProps {
   userRating: number | null;
   onLike: () => void;
   onRate: (rating: number) => void;
+  artistAvatar?: string;
 }
 
 export const ActionButtons = ({
@@ -25,6 +26,7 @@ export const ActionButtons = ({
   userRating,
   onLike,
   onRate,
+  artistAvatar,
 }: ActionButtonsProps) => {
   const navigate = useNavigate();
   const [showRating, setShowRating] = useState(false);
@@ -161,7 +163,15 @@ export const ActionButtons = ({
       {/* Upload/Camera */}
       <div className="relative h-[30px] mt-[50px]">
         <button className="action-button flex items-center justify-center">
-          <img src={circleIcon} alt="Upload" className="h-[30px] w-[30px]" />
+          {artistAvatar ? (
+            <img 
+              src={artistAvatar} 
+              alt="Artist" 
+              className="h-[30px] w-[30px] rounded-full object-cover border-2 border-white"
+            />
+          ) : (
+            <img src={circleIcon} alt="Upload" className="h-[30px] w-[30px]" />
+          )}
         </button>
       </div>
     </div>

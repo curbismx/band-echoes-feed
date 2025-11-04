@@ -27,9 +27,27 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
   const [isLiked, setIsLiked] = useState(false);
   const [likes, setLikes] = useState(video.likes);
   const [isPaused, setIsPaused] = useState(false);
+  const [artistAvatar, setArtistAvatar] = useState<string>("");
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const { averageRating, userRating, submitRating } = useVideoRatings(video.id);
+
+  // Fetch artist profile avatar
+  useEffect(() => {
+    const fetchArtistProfile = async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("avatar_url")
+        .eq("id", video.artistUserId)
+        .maybeSingle();
+      
+      if (data?.avatar_url) {
+        setArtistAvatar(data.avatar_url);
+      }
+    };
+
+    fetchArtistProfile();
+  }, [video.artistUserId]);
 
   useEffect(() => {
     if (videoRef.current) {
@@ -154,14 +172,15 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
         {/* Bottom Content */}
         <div className="mt-auto flex items-end justify-end pointer-events-auto">
           {/* Action Buttons */}
-          <ActionButtons
-            likes={likes}
-            isLiked={isLiked}
-            averageRating={averageRating}
-            userRating={userRating}
-            onLike={handleLike}
-            onRate={handleRate}
-          />
+      <ActionButtons
+        likes={likes}
+        isLiked={isLiked}
+        averageRating={averageRating}
+        userRating={userRating}
+        onLike={handleLike}
+        onRate={handleRate}
+        artistAvatar={artistAvatar}
+      />
         </div>
 
       </div>
