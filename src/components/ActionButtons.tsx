@@ -10,7 +10,8 @@ import starRatingIcon from "@/assets/star-rating-icon.png";
 interface ActionButtonsProps {
   likes: number;
   isLiked: boolean;
-  rating: number;
+  averageRating: number;
+  userRating: number | null;
   onLike: () => void;
   onRate: (rating: number) => void;
   showDock: boolean;
@@ -21,7 +22,8 @@ interface ActionButtonsProps {
 export const ActionButtons = ({
   likes,
   isLiked,
-  rating,
+  averageRating,
+  userRating,
   onLike,
   onRate,
   showDock,
@@ -29,12 +31,12 @@ export const ActionButtons = ({
   onButtonsMeasure,
 }: ActionButtonsProps) => {
   const [showRating, setShowRating] = useState(false);
-  const [hasRated, setHasRated] = useState(false);
-  const [currentRating, setCurrentRating] = useState(0);
   const circleRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLButtonElement>(null);
   const menuLabelRef = useRef<HTMLSpanElement>(null);
   const accountRef = useRef<HTMLButtonElement>(null);
+
+  const hasRated = userRating !== null;
 
   useEffect(() => {
     const measure = () => {
@@ -79,8 +81,6 @@ export const ActionButtons = ({
   };
 
   const handleStarClick = (starRating: number) => {
-    setCurrentRating(starRating);
-    setHasRated(true);
     setShowRating(false);
     onRate(starRating);
   };
@@ -119,7 +119,7 @@ export const ActionButtons = ({
           )}
         </div>
         <span className="text-xs font-semibold text-white drop-shadow-lg">
-          {hasRated ? currentRating : rating.toFixed(1)}
+          {averageRating > 0 ? averageRating.toFixed(1) : "0.0"}
         </span>
       </button>
 

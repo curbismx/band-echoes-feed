@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { ActionButtons } from "./ActionButtons";
+import { useVideoRatings } from "@/hooks/useVideoRatings";
 import followIcon from "@/assets/follow-new.png";
 import heart2Icon from "@/assets/heart_2-2.png";
 import plusIcon from "@/assets/plus-2.png";
@@ -29,7 +30,6 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
   const [isFollowing, setIsFollowing] = useState(video.isFollowing);
   const [isLiked, setIsLiked] = useState(false);
   const [likes, setLikes] = useState(video.likes);
-  const [rating, setRating] = useState(video.rating);
   const [isPaused, setIsPaused] = useState(false);
   const [showDock, setShowDock] = useState(false);
   const [dockTop, setDockTop] = useState<number | null>(null);
@@ -39,6 +39,8 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
   const [menuCenterX, setMenuCenterX] = useState<number | null>(null);
   const [circleCenterY, setCircleCenterY] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  const { averageRating, userRating, submitRating } = useVideoRatings(video.id);
 
   useEffect(() => {
     if (videoRef.current) {
@@ -88,7 +90,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
   };
 
   const handleRate = (newRating: number) => {
-    setRating(newRating);
+    submitRating(newRating);
   };
 
   return (
@@ -158,7 +160,8 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
           <ActionButtons
             likes={likes}
             isLiked={isLiked}
-            rating={rating}
+            averageRating={averageRating}
+            userRating={userRating}
             onLike={handleLike}
             onRate={handleRate}
             showDock={showDock}
