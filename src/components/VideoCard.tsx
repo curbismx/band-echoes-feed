@@ -127,7 +127,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
           </div>
           
           {/* Add Icon */}
-          <div className="absolute left-[33%]" style={{ top: menuCenterY !== null && dockTop !== null ? `${menuCenterY - dockTop}px` : '0px', transform: 'translate(-50%, -50%)' }}>
+          <div className="absolute" style={{ left: 'calc(40px + (100% - 70px) / 3)', top: menuCenterY !== null && dockTop !== null ? `${menuCenterY - dockTop}px` : '0px', transform: 'translate(-50%, -50%)' }}>
             <button className="flex flex-col items-center gap-1">
               <img src={addIcon} alt="Add" className="h-[30px] w-[30px]" />
               <span className="text-xs font-semibold text-white drop-shadow-lg">add</span>
@@ -135,7 +135,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
           </div>
           
           {/* Share Icon */}
-          <div className="absolute left-[60%]" style={{ top: menuCenterY !== null && dockTop !== null ? `${menuCenterY - dockTop}px` : '0px', transform: 'translate(-50%, -50%)' }}>
+          <div className="absolute" style={{ left: 'calc(40px + 2 * (100% - 70px) / 3)', top: menuCenterY !== null && dockTop !== null ? `${menuCenterY - dockTop}px` : '0px', transform: 'translate(-50%, -50%)' }}>
             <button className="flex flex-col items-center gap-1">
               <img src={shareNewIcon} alt="Share" className="h-[30px] w-[30px]" />
               <span className="text-xs font-semibold text-white drop-shadow-lg">share</span>
