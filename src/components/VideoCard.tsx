@@ -57,20 +57,23 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
   }, [isActive, isPaused, showDock]);
 
   const handleVideoClick = () => {
-    if (videoRef.current) {
-      // Unmute on first interaction
-      if (isMuted) {
-        videoRef.current.muted = false;
-        setIsMuted(false);
-      }
-      
-      if (isPaused) {
-        videoRef.current.play();
-        setIsPaused(false);
-      } else {
-        videoRef.current.pause();
-        setIsPaused(true);
-      }
+    if (!videoRef.current) return;
+
+    // On first interaction: unmute and ensure playback without pausing
+    if (isMuted) {
+      videoRef.current.muted = false;
+      setIsMuted(false);
+      videoRef.current.play().catch(() => {});
+      setIsPaused(false);
+      return;
+    }
+
+    if (isPaused) {
+      videoRef.current.play();
+      setIsPaused(false);
+    } else {
+      videoRef.current.pause();
+      setIsPaused(true);
     }
   };
 
@@ -96,7 +99,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
         className="absolute inset-0 w-[100vw] h-[100vh] object-cover cursor-pointer"
         loop
         playsInline
-        muted
+        muted={isMuted}
         onClick={handleVideoClick}
       />
 
