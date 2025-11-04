@@ -118,7 +118,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
         {/* Follow Button - positioned independently */}
         <button
           onClick={handleFollow}
-          className={`absolute left-[40px] flex items-center pointer-events-auto transition-all duration-300 ${
+          className={`absolute left-[28px] flex items-center pointer-events-auto transition-all duration-300 ${
             showDock ? 'bottom-[270px]' : 'bottom-[130px]'
           }`}
         >
