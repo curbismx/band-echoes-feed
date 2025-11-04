@@ -167,13 +167,15 @@ export const ActionButtons = ({
               ref={sliderRef}
               src={starRatingSlider} 
               alt="Rating" 
-              className="absolute bottom-[-8px] left-1/2 -translate-x-1/2 animate-slide-up-from-star w-[47px] h-auto"
+              className="absolute bottom-[-8px] left-1/2 -translate-x-1/2 animate-slide-up-from-star"
               draggable={false}
               onTouchStart={(e) => handleSliderStart(e.touches[0].clientY)}
               onMouseDown={(e) => handleSliderStart(e.clientY)}
               style={{
                 touchAction: 'none',
                 zIndex: 10,
+                width: '47px',
+                height: 'auto',
               }}
             />
           )}
