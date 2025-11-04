@@ -35,7 +35,7 @@ export const ActionButtons = ({
   const menuRef = useRef<HTMLButtonElement>(null);
   const menuLabelRef = useRef<HTMLSpanElement>(null);
   const accountRef = useRef<HTMLButtonElement>(null);
-  const sliderRef = useRef<HTMLDivElement>(null);
+  const sliderRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
     const measure = () => {
@@ -163,25 +163,19 @@ export const ActionButtons = ({
           
           {/* Star Rating Slider */}
           {showRating && (
-            <div 
+            <img 
               ref={sliderRef}
-              className="absolute top-[-10px] left-1/2 -translate-x-1/2 animate-slide-up-from-star"
+              src={starsSlider} 
+              alt="Rating" 
+              className="absolute top-[-10px] left-1/2 -translate-x-1/2 animate-slide-up-from-star w-[50px] h-auto pointer-events-auto"
+              draggable={false}
               onTouchStart={(e) => handleSliderStart(e.touches[0].clientY)}
               onMouseDown={(e) => handleSliderStart(e.clientY)}
               style={{
                 touchAction: 'none',
                 zIndex: -1,
               }}
-            >
-              <div className="relative w-[50px] h-[250px] rounded-full bg-black/70 backdrop-blur-md flex items-center justify-center">
-                <img 
-                  src={starsSlider} 
-                  alt="Rating" 
-                  className="w-[30px] h-auto pointer-events-none"
-                  draggable={false}
-                />
-              </div>
-            </div>
+            />
           )}
         </div>
         <span className="text-xs font-semibold text-white drop-shadow-lg">
