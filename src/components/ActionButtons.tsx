@@ -99,7 +99,7 @@ export const ActionButtons = ({
                     <button
                       onClick={() => handleStarClick(star)}
                       className={`relative transition-all duration-300 ${
-                        selectedStar === star ? "scale-[2.5] z-50" : "hover:scale-110"
+                        selectedStar === star ? "scale-150 z-50" : "hover:scale-110"
                       }`}
                     >
                       <img
