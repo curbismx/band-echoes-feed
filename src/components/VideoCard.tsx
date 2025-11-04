@@ -124,28 +124,38 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
           className={`absolute left-0 right-0 bottom-0 bg-black/70 backdrop-blur-md transition-transform duration-300 ${showDock ? 'translate-y-0' : 'translate-y-full'}`}
           style={{ height: dockTop !== null ? `calc(100vh - ${dockTop}px)` : '0px' }}
         >
-          {/* Favs Icon */}
-          <div className="absolute" style={{ left: '40px', top: menuCenterY !== null && dockTop !== null ? `${menuCenterY - dockTop}px` : '0px', transform: 'translateY(-50%)' }}>
-            <button className="flex flex-col items-center gap-1">
-              <img src={favsIcon} alt="Favs" className="h-[30px] w-[30px]" />
-              <span className="text-xs font-semibold text-white drop-shadow-lg">favs</span>
-            </button>
-          </div>
-          
-          {/* Add Icon */}
-          <div className="absolute" style={{ left: menuCenterX !== null ? `${(40 + 15) + (menuCenterX - (40 + 15)) / 3 - 15}px` : 'calc(40px + (100vw - 70px) / 3)', top: menuCenterY !== null && dockTop !== null ? `${menuCenterY - dockTop}px` : '0px', transform: 'translateY(-50%)' }}>
-            <button className="flex flex-col items-center gap-1">
-              <img src={addIcon} alt="Add" className="h-[30px] w-[30px]" />
-              <span className="text-xs font-semibold text-white drop-shadow-lg">add</span>
-            </button>
-          </div>
-          
-          {/* Share Icon */}
-          <div className="absolute" style={{ left: 'calc(40px + 2 * (100vw - 70px) / 3)', top: menuCenterY !== null && dockTop !== null ? `${menuCenterY - dockTop}px` : '0px', transform: 'translateY(-50%)' }}>
-            <button className="flex flex-col items-center gap-1">
-              <img src={shareNewIcon} alt="Share" className="h-[30px] w-[30px]" />
-              <span className="text-xs font-semibold text-white drop-shadow-lg">share</span>
-            </button>
+          {/* Dock icons row aligned to fixed Menu position */}
+          <div
+            className="absolute"
+            style={{
+              left: '40px',
+              width: menuCenterX !== null ? `${menuCenterX + 15 - 40}px` : 'calc(100vw - 110px)',
+              top: menuCenterY !== null && dockTop !== null ? `${menuCenterY - dockTop}px` : '0px',
+              transform: 'translateY(-50%)',
+            }}
+          >
+            <div className="flex items-center justify-between">
+              {/* Favs */}
+              <button className="flex flex-col items-center gap-1 action-button">
+                <img src={favsIcon} alt="Favorites" className="h-[30px] w-[30px]" />
+                <span className="text-xs font-semibold text-white drop-shadow-lg">favs</span>
+              </button>
+
+              {/* Add */}
+              <button className="flex flex-col items-center gap-1 action-button">
+                <img src={addIcon} alt="Add" className="h-[30px] w-[30px]" />
+                <span className="text-xs font-semibold text-white drop-shadow-lg">add</span>
+              </button>
+
+              {/* Share */}
+              <button className="flex flex-col items-center gap-1 action-button">
+                <img src={shareNewIcon} alt="Share" className="h-[30px] w-[30px]" />
+                <span className="text-xs font-semibold text-white drop-shadow-lg">share</span>
+              </button>
+
+              {/* Invisible placeholder matching Menu width (keeps spacing equal) */}
+              <div aria-hidden="true" className="h-[30px]" style={{ width: '30px' }} />
+            </div>
           </div>
         </div>
       </div>
