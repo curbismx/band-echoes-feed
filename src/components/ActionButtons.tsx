@@ -96,6 +96,14 @@ export const ActionButtons = ({
     }, 600);
   };
 
+  const handleLikeClick = () => {
+    // Haptic feedback on mobile
+    if ('vibrate' in navigator) {
+      navigator.vibrate(50); // Short vibration (50ms)
+    }
+    onLike();
+  };
+
   return (
     <div className="flex flex-col items-center relative z-10">
       {/* Star Rating */}
@@ -145,7 +153,7 @@ export const ActionButtons = ({
 
       {/* Heart/Like */}
       <button
-        onClick={onLike}
+        onClick={handleLikeClick}
         className="action-button flex flex-col items-center gap-1 mt-[40px]"
       >
         <img
