@@ -74,7 +74,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
         onClick={handleVideoClick}
       />
 
-      <div className="absolute inset-0 flex flex-col justify-between p-4 pb-8">
+      <div className="absolute inset-0 flex flex-col justify-between p-4 pb-8 pr-[30px]">
         {/* Bottom Content */}
         <div className="mt-auto flex items-end justify-between">
           {/* Artist Info */}
