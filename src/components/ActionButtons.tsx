@@ -2,8 +2,8 @@ import { useState } from "react";
 import starIcon from "@/assets/star.png";
 import heartIcon from "@/assets/heart.png";
 import menuIcon from "@/assets/menu.png";
-import accountIcon from "@/assets/account.png";
-import circleIcon from "@/assets/circle.png";
+import followIcon from "@/assets/follow.png";
+import circleIcon from "@/assets/circle-2.png";
 
 interface ActionButtonsProps {
   likes: number;
@@ -91,16 +91,13 @@ export const ActionButtons = ({
         </span>
       </button>
 
-      {/* Account */}
+      {/* Follow */}
       <button className="action-button flex flex-col items-center gap-1">
-        <img src={accountIcon} alt="Account" className="h-[30px] w-[30px]" />
-        <span className="text-xs font-semibold text-white drop-shadow-lg">
-          account
-        </span>
+        <img src={followIcon} alt="Follow" className="h-[30px] w-[30px]" />
       </button>
 
       {/* Upload/Camera Button */}
-      <button className="action-button mt-2 flex h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg shadow-primary/50">
+      <button className="action-button mt-2">
         <img src={circleIcon} alt="Upload" className="h-[30px] w-[30px]" />
       </button>
     </div>
