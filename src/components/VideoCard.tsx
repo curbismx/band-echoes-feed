@@ -35,6 +35,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
   const [menuCenterY, setMenuCenterY] = useState<number | null>(null);
   const [accountCenterY, setAccountCenterY] = useState<number | null>(null);
   const [menuCenterX, setMenuCenterX] = useState<number | null>(null);
+  const [circleCenterY, setCircleCenterY] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -94,6 +95,30 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
       {/* Click area for video pause/play */}
       <div className="absolute inset-0 pointer-events-auto" onClick={handleVideoClick} />
       
+      {/* Follow Button - Left Side */}
+      {((showDock && circleCenterY !== null) || (!showDock && menuCenterY !== null)) && (
+        <button
+          onClick={handleFollow}
+          className="absolute flex flex-col items-center gap-1 action-button pointer-events-auto z-20"
+          style={{
+            left: '30px',
+            top: showDock ? `${circleCenterY}px` : `${menuCenterY}px`,
+            transform: 'translateY(-50%)',
+          }}
+        >
+          <img
+            src={followIcon}
+            alt="Follow"
+            className={`h-[30px] w-[30px] transition-all ${
+              isFollowing ? "opacity-50" : ""
+            }`}
+          />
+          <span className="text-xs font-semibold text-white drop-shadow-lg">
+            {isFollowing ? "following" : "follow"}
+          </span>
+        </button>
+      )}
+      
       <div className="absolute inset-0 flex flex-col justify-between p-4 pb-8 pr-[30px] pointer-events-none">
         {/* Bottom Content */}
         <div className="mt-auto flex items-end justify-end pointer-events-auto">
@@ -106,7 +131,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
             onRate={handleRate}
             showDock={showDock}
             onMenuClick={(pos) => { if (pos?.dockTop !== undefined) setDockTop(pos.dockTop!); if (pos?.menuLabelBottom !== undefined) setMenuLabelBottom(pos.menuLabelBottom!); if (pos?.menuCenterY !== undefined) setMenuCenterY(pos.menuCenterY!); if (pos?.menuCenterX !== undefined) setMenuCenterX(pos.menuCenterX!); setShowDock(!showDock); }}
-            onButtonsMeasure={(pos) => { if (pos?.menuCenterY !== undefined) setMenuCenterY(pos.menuCenterY!); if (pos?.accountCenterY !== undefined) setAccountCenterY(pos.accountCenterY!); if (pos?.menuCenterX !== undefined) setMenuCenterX(pos.menuCenterX!); }}
+            onButtonsMeasure={(pos) => { if (pos?.menuCenterY !== undefined) setMenuCenterY(pos.menuCenterY!); if (pos?.accountCenterY !== undefined) setAccountCenterY(pos.accountCenterY!); if (pos?.menuCenterX !== undefined) setMenuCenterX(pos.menuCenterX!); if (pos?.circleCenterY !== undefined) setCircleCenterY(pos.circleCenterY!); }}
           />
         </div>
 

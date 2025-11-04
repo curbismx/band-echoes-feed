@@ -13,7 +13,7 @@ interface ActionButtonsProps {
   onRate: (rating: number) => void;
   showDock: boolean;
   onMenuClick: (pos: { dockTop?: number; menuLabelBottom?: number; menuCenterY?: number; menuCenterX?: number }) => void;
-  onButtonsMeasure?: (pos: { menuCenterY?: number; accountCenterY?: number; menuCenterX?: number }) => void;
+  onButtonsMeasure?: (pos: { menuCenterY?: number; accountCenterY?: number; menuCenterX?: number; circleCenterY?: number }) => void;
 }
 
 export const ActionButtons = ({
@@ -34,7 +34,7 @@ export const ActionButtons = ({
 
   useEffect(() => {
     const measure = () => {
-      const pos: { menuCenterY?: number; accountCenterY?: number; menuCenterX?: number } = {};
+      const pos: { menuCenterY?: number; accountCenterY?: number; menuCenterX?: number; circleCenterY?: number } = {};
       if (menuRef.current) {
         const rect = menuRef.current.getBoundingClientRect();
         pos.menuCenterY = rect.top + rect.height / 2;
@@ -43,6 +43,10 @@ export const ActionButtons = ({
       if (accountRef.current) {
         const rect = accountRef.current.getBoundingClientRect();
         pos.accountCenterY = rect.top + rect.height / 2;
+      }
+      if (circleRef.current) {
+        const rect = circleRef.current.getBoundingClientRect();
+        pos.circleCenterY = rect.top + rect.height / 2;
       }
       onButtonsMeasure?.(pos);
     };
