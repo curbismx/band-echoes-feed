@@ -119,6 +119,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
           <div className="absolute left-[30px]" style={{ top: menuCenterY !== null && dockTop !== null ? `${menuCenterY - dockTop - 10}px` : '0px', transform: 'translateY(-50%)' }}>
             <button className="flex flex-col items-center gap-1">
               <img src={favsIcon} alt="Favs" className="h-[30px] w-[30px]" />
+              <span className="text-xs font-semibold text-white drop-shadow-lg">favs</span>
             </button>
           </div>
         </div>
