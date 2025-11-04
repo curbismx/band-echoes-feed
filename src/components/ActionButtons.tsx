@@ -98,18 +98,12 @@ export const ActionButtons = ({
                     )}
                     <button
                       onClick={() => handleStarClick(star)}
-                      className={`relative transition-all duration-300 ${
-                        selectedStar === star ? "scale-150 z-50" : "hover:scale-110"
-                      }`}
+                      className={`relative ${selectedStar === star ? "z-50" : ""}`}
                     >
                       <img
                         src={starRatingIcon}
                         alt={`${star} stars`}
-                        className={`h-[30px] w-[30px] transition-all duration-300 ${
-                          selectedStar === star
-                            ? "brightness-0 saturate-100 invert-[.65] sepia-100 hue-rotate-[10deg]"
-                            : ""
-                        }`}
+                        className="h-[18px] w-[18px]"
                         style={{ filter: selectedStar === star ? "drop-shadow(0 0 16px gold)" : "none" }}
                       />
                     </button>
