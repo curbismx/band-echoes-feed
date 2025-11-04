@@ -39,7 +39,7 @@ export const ActionButtons = ({
   };
 
   return (
-    <div className="flex flex-col items-center gap-6">
+    <div className="flex flex-col items-center gap-10">
       {/* Star Rating */}
       <button
         onClick={handleRateClick}
