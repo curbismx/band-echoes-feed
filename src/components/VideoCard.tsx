@@ -128,7 +128,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
           style={{
             top:
               (showDock ? accountCenterY : menuCenterY) !== null
-                ? `${(((showDock ? accountCenterY : menuCenterY) as number) - 15)}px`
+                ? `${(((showDock ? accountCenterY : menuCenterY) as number) - (showDock ? 15 : 65))}px`
                 : undefined,
           }}
         >
