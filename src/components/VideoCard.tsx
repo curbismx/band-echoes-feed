@@ -96,11 +96,19 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
       <div className="absolute inset-0 flex flex-col justify-between p-4 pb-8 pr-[30px] pointer-events-none">
         {/* Bottom Content */}
         <div className="mt-auto flex items-end justify-between pointer-events-auto">
-          {/* Artist Info */}
-          <div className={`pb-[0px] transition-all duration-300 ${showDock ? '-translate-y-[70px]' : ''}`}>
-            <h2 className="text-2xl font-bold text-white drop-shadow-lg">
+          {/* Left side: Artist Info + Follow Button */}
+          <div className={`flex flex-col gap-2 transition-all duration-300 ${
+            showDock ? 'bottom-[190px]' : 'bottom-[50px]'
+          }`}>
+            <h2 className="text-2xl font-bold text-white drop-shadow-lg mb-2">
               The Rising Stars
             </h2>
+            <button
+              onClick={handleFollow}
+              className="flex items-center"
+            >
+              <img src={followIcon} alt="Follow" className="h-[30px]" />
+            </button>
           </div>
 
           {/* Action Buttons */}
@@ -114,16 +122,6 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
             onMenuClick={(pos) => { if (pos?.dockTop !== undefined) setDockTop(pos.dockTop!); if (pos?.menuLabelBottom !== undefined) setMenuLabelBottom(pos.menuLabelBottom!); if (pos?.menuCenterY !== undefined) setMenuCenterY(pos.menuCenterY!); if (pos?.menuCenterX !== undefined) setMenuCenterX(pos.menuCenterX!); setShowDock(!showDock); }}
           />
         </div>
-
-        {/* Follow Button - positioned independently */}
-        <button
-          onClick={handleFollow}
-          className={`absolute flex items-center pointer-events-auto transition-all duration-300 ${
-            showDock ? 'bottom-[230px] left-[28px]' : 'bottom-[90px] left-[16px]'
-          }`}
-        >
-          <img src={followIcon} alt="Follow" className="h-[30px]" />
-        </button>
 
         {/* Bottom Dock */}
         <div
