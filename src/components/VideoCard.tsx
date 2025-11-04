@@ -95,6 +95,22 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
       {/* Click area for video pause/play */}
       <div className="absolute inset-0 pointer-events-auto" onClick={handleVideoClick} />
       
+      {/* Artist/Song Text - Above Follow Button */}
+      {((showDock && circleCenterY !== null) || (!showDock && menuCenterY !== null)) && (
+        <div
+          className="absolute pointer-events-none z-20"
+          style={{
+            left: '30px',
+            bottom: showDock 
+              ? `calc(100vh - ${circleCenterY}px + 15px + 30px)` 
+              : `calc(100vh - ${menuCenterY! - 10}px + 15px + 30px)`,
+          }}
+        >
+          <div className="font-bold text-white drop-shadow-lg">The Bands Name</div>
+          <div className="font-medium text-white drop-shadow-lg">The songs name</div>
+        </div>
+      )}
+
       {/* Follow Button - Left Side */}
       {((showDock && circleCenterY !== null) || (!showDock && menuCenterY !== null)) && (
         <button
