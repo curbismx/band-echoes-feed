@@ -83,6 +83,11 @@ export const ActionButtons = ({
   };
 
   const handleStarClick = (starRating: number) => {
+    // Haptic feedback on mobile
+    if ('vibrate' in navigator) {
+      navigator.vibrate(50); // Short vibration (50ms)
+    }
+    
     setSelectedStar(starRating);
     setTimeout(() => {
       setShowRating(false);
