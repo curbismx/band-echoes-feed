@@ -80,12 +80,12 @@ export const ActionButtons = ({
   };
 
   return (
-    <div className="flex flex-col items-center relative z-10 -translate-y-[15px]">
+    <div className="flex flex-col items-center relative z-40 -translate-y-[15px]">
       {/* Star Rating */}
       <div className="relative h-[30px] mt-0">
         <button
           onClick={handleRateClick}
-          className={`action-button flex items-center justify-center relative z-10 ${showRating ? 'pointer-events-none' : ''}`}
+          className={`action-button flex items-center justify-center relative z-40 ${showRating ? 'pointer-events-none' : ''}`}
           aria-expanded={showRating}
         >
             <img
@@ -117,10 +117,10 @@ export const ActionButtons = ({
                     <img
                       src={starRatingIcon}
                       alt={`${star} stars`}
-                      className="w-auto h-auto transition-all duration-200"
+                      className="h-[22px] w-[22px] transition-all duration-200"
                       style={{ 
-                        filter: (selectedStar !== null && star >= selectedStar) || (hoverStar !== null && star >= hoverStar)
-                          ? "brightness(1.5) saturate(2) drop-shadow(0 0 12px rgba(255,215,0,0.8))" 
+                        filter: ((selectedStar !== null && star <= selectedStar) || (hoverStar !== null && star <= hoverStar))
+                          ? "sepia(1) saturate(5) hue-rotate(5deg) brightness(1.15) drop-shadow(0 0 12px rgba(255,215,0,0.8))" 
                           : "none" 
                       }}
                     />
