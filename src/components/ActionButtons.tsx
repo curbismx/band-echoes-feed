@@ -131,7 +131,6 @@ export const ActionButtons = ({
       {/* Share */}
       <button onClick={handleShare} className="action-button flex flex-col items-center gap-1 mt-[40px]">
         <img src={shareIcon} alt="Share" className="h-[30px] w-[30px]" />
-        <span className="text-xs font-semibold text-white drop-shadow-lg">share</span>
       </button>
 
       {/* Account */}
@@ -143,7 +142,6 @@ export const ActionButtons = ({
         className="action-button flex flex-col items-center gap-1 mt-[40px]"
       >
         <img src={accountIcon} alt="Account" className="h-[30px] w-[30px]" />
-        <span className="text-xs font-semibold text-white drop-shadow-lg">account</span>
       </button>
 
       {/* Upload/Camera */}
