@@ -4,7 +4,7 @@ import heartIcon from "@/assets/heart.png";
 import menuIcon from "@/assets/menu.png";
 import accountIcon from "@/assets/account.png";
 import circleIcon from "@/assets/circle-2.png";
-import starRatingSlider from "@/assets/star-rating-slider.png";
+import starRatingIcon from "@/assets/star-rating-icon.png";
 
 interface ActionButtonsProps {
   likes: number;
@@ -29,13 +29,11 @@ export const ActionButtons = ({
 }: ActionButtonsProps) => {
   const [showRating, setShowRating] = useState(false);
   const [hasRated, setHasRated] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [currentRating, setCurrentRating] = useState(rating);
+  const [currentRating, setCurrentRating] = useState(0);
   const circleRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLButtonElement>(null);
   const menuLabelRef = useRef<HTMLSpanElement>(null);
   const accountRef = useRef<HTMLButtonElement>(null);
-  const sliderRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
     const measure = () => {
@@ -79,71 +77,12 @@ export const ActionButtons = ({
     setShowRating(!showRating);
   };
 
-  const calculateRating = (clientY: number) => {
-    if (!sliderRef.current) return currentRating;
-    
-    const rect = sliderRef.current.getBoundingClientRect();
-    const y = clientY - rect.top;
-    const height = rect.height;
-    
-    // Calculate rating from 5 (top) to 0 (bottom)
-    let rating = 5 - (y / height) * 5;
-    rating = Math.max(0, Math.min(5, rating));
-    rating = Math.round(rating * 10) / 10; // Round to 0.1 step
-    
-    return rating;
+  const handleStarClick = (starRating: number) => {
+    setCurrentRating(starRating);
+    setHasRated(true);
+    setShowRating(false);
+    onRate(starRating);
   };
-
-  const handleSliderStart = (clientY: number) => {
-    setIsDragging(true);
-    const newRating = calculateRating(clientY);
-    setCurrentRating(newRating);
-  };
-
-  const handleSliderMove = (clientY: number) => {
-    if (isDragging) {
-      const newRating = calculateRating(clientY);
-      setCurrentRating(newRating);
-    }
-  };
-
-  const handleSliderEnd = () => {
-    if (isDragging) {
-      setIsDragging(false);
-      setShowRating(false);
-      setHasRated(true);
-      onRate(currentRating);
-    }
-  };
-
-  useEffect(() => {
-    if (isDragging) {
-      const handleTouchMove = (e: TouchEvent) => {
-        handleSliderMove(e.touches[0].clientY);
-      };
-      const handleMouseMove = (e: MouseEvent) => {
-        handleSliderMove(e.clientY);
-      };
-      const handleTouchEnd = () => {
-        handleSliderEnd();
-      };
-      const handleMouseUp = () => {
-        handleSliderEnd();
-      };
-
-      document.addEventListener('touchmove', handleTouchMove);
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('touchend', handleTouchEnd);
-      document.addEventListener('mouseup', handleMouseUp);
-
-      return () => {
-        document.removeEventListener('touchmove', handleTouchMove);
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('touchend', handleTouchEnd);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [isDragging, currentRating]);
 
   return (
     <div className="flex flex-col items-center relative z-10">
@@ -161,30 +100,27 @@ export const ActionButtons = ({
             }`}
           />
           
-          {/* Star Rating Slider */}
+          {/* 5 Rating Stars */}
           {showRating && (
-            <img 
-              ref={sliderRef}
-              src={starRatingSlider} 
-              alt="Rating" 
-              className="absolute animate-slide-up-from-star"
-              draggable={false}
-              onTouchStart={(e) => handleSliderStart(e.touches[0].clientY)}
-              onMouseDown={(e) => handleSliderStart(e.clientY)}
-              style={{
-                touchAction: 'none',
-                zIndex: 10,
-                width: '47px',
-                height: 'auto',
-                bottom: '0',
-                left: '50%',
-                transform: 'translateX(-50%)',
-              }}
-            />
+            <div className="absolute bottom-full mb-2 flex flex-col gap-2 animate-slide-in-from-top">
+              {[5, 4, 3, 2, 1].map((star) => (
+                <button
+                  key={star}
+                  onClick={() => handleStarClick(star)}
+                  className="transition-transform hover:scale-110"
+                >
+                  <img 
+                    src={starRatingIcon} 
+                    alt={`${star} stars`}
+                    className="h-[30px] w-[30px]"
+                  />
+                </button>
+              ))}
+            </div>
           )}
         </div>
         <span className="text-xs font-semibold text-white drop-shadow-lg">
-          {hasRated ? currentRating.toFixed(1) : rating.toFixed(1)}
+          {hasRated ? currentRating : rating.toFixed(1)}
         </span>
       </button>
 
