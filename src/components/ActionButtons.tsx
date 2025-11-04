@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import starIcon from "@/assets/star.png";
 import starOnIcon from "@/assets/star-on.png";
 import heartIcon from "@/assets/heart.png";
+import heartRedIcon from "@/assets/heart-red.png";
 import menuIcon from "@/assets/menu.png";
 import accountIcon from "@/assets/account.png";
 import circleIcon from "@/assets/circle-2.png";
@@ -129,11 +130,9 @@ export const ActionButtons = ({
         className="action-button flex flex-col items-center gap-1 mt-[40px]"
       >
         <img
-          src={heartIcon}
+          src={isLiked ? heartRedIcon : heartIcon}
           alt="Like"
-          className={`h-[30px] w-[30px] transition-all ${
-            isLiked ? "scale-110 brightness-0 saturate-100 invert-[.35] sepia-100 hue-rotate-[340deg]" : ""
-          }`}
+          className="h-[30px] w-[30px] transition-all"
         />
         <span className="text-xs font-semibold text-white drop-shadow-lg">
           {formatNumber(likes)}
