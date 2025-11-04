@@ -96,7 +96,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
       
       <div className="absolute inset-0 flex flex-col justify-between p-4 pb-8 pr-[30px] pointer-events-none">
         {/* Bottom Content */}
-        <div className="mt-auto flex items-end justify-between pointer-events-auto">
+        <div className="mt-auto flex items-end justify-end pointer-events-auto">
           {/* Action Buttons */}
           <ActionButtons
             likes={likes}
