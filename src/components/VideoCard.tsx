@@ -27,6 +27,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
   const [rating, setRating] = useState(video.rating);
   const [isPaused, setIsPaused] = useState(false);
   const [showDock, setShowDock] = useState(false);
+  const [dockTop, setDockTop] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -103,13 +104,15 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
             onLike={handleLike}
             onRate={handleRate}
             showDock={showDock}
-            onMenuClick={() => setShowDock(!showDock)}
+            onMenuClick={(y) => { if (typeof y === 'number') setDockTop(y); setShowDock(!showDock); }}
           />
         </div>
 
         {/* Bottom Dock */}
-        <div className={`absolute bottom-[70px] right-[30px] w-[200px] h-[60px] bg-black/80 backdrop-blur-md transition-opacity duration-300 ${showDock ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-        </div>
+        <div
+          className={`absolute left-0 right-0 bg-black/80 backdrop-blur-md transition-all duration-300 ${showDock ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+          style={{ top: showDock && dockTop !== null ? dockTop : '100%' }}
+        />
       </div>
     </div>
   );

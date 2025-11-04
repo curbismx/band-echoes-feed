@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import starIcon from "@/assets/star.png";
 import heartIcon from "@/assets/heart.png";
 import menuIcon from "@/assets/menu.png";
@@ -12,7 +12,7 @@ interface ActionButtonsProps {
   onLike: () => void;
   onRate: (rating: number) => void;
   showDock: boolean;
-  onMenuClick: () => void;
+  onMenuClick: (dockTop?: number) => void;
 }
 
 export const ActionButtons = ({
@@ -25,6 +25,8 @@ export const ActionButtons = ({
   onMenuClick,
 }: ActionButtonsProps) => {
   const [showRating, setShowRating] = useState(false);
+  const circleRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLButtonElement>(null);
 
   const formatNumber = (num: number) => {
     if (num >= 1000) {
@@ -97,7 +99,7 @@ export const ActionButtons = ({
 
       {/* Upload/Camera Button */}
       {!showDock && (
-        <button className="action-button mt-[40px]">
+        <button className="action-button mt-[40px]" ref={circleRef}>
           <img src={circleIcon} alt="Upload" className="h-[30px] w-[30px]" />
         </button>
       )}
@@ -105,7 +107,16 @@ export const ActionButtons = ({
       {/* Menu */}
       <button 
         className="action-button flex flex-col items-center gap-1 mt-[40px]"
-        onClick={onMenuClick}
+        ref={menuRef}
+        onClick={() => {
+          let yMid: number | undefined;
+          if (circleRef.current && menuRef.current) {
+            const circleRect = circleRef.current.getBoundingClientRect();
+            const menuRect = menuRef.current.getBoundingClientRect();
+            yMid = (circleRect.bottom + menuRect.top) / 2;
+          }
+          onMenuClick(yMid);
+        }}
       >
         <img src={menuIcon} alt="Menu" className="h-[30px] w-[30px]" />
         <span className="text-xs font-semibold text-white drop-shadow-lg">
