@@ -117,7 +117,7 @@ export const ActionButtons = ({
                     <img
                       src={starRatingIcon}
                       alt={`${star} stars`}
-                      className="h-[22px] w-[22px] transition-all duration-200"
+                      className="w-auto h-[22px] transition-all duration-200"
                       style={{ 
                         filter: ((selectedStar !== null && star <= selectedStar) || (hoverStar !== null && star <= hoverStar))
                           ? "sepia(1) saturate(5) hue-rotate(5deg) brightness(1.15) drop-shadow(0 0 12px rgba(255,215,0,0.8))" 
