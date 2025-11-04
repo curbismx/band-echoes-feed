@@ -179,7 +179,10 @@ export const ActionButtons = ({
 
       {/* Account */}
       <button 
-        onClick={() => navigate('/profile')}
+        onClick={(e) => {
+          e.stopPropagation();
+          navigate('/profile');
+        }}
         className="action-button flex flex-col items-center gap-1 mt-[40px]" 
         ref={accountRef}
       >
