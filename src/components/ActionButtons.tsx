@@ -76,9 +76,7 @@ export const ActionButtons = ({
   };
 
   const handleRateClick = () => {
-    if (!hasRated) {
-      setShowRating(!showRating);
-    }
+    setShowRating(!showRating);
   };
 
   const calculateRating = (clientY: number) => {
