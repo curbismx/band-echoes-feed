@@ -30,6 +30,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
   const [showDock, setShowDock] = useState(false);
   const [dockTop, setDockTop] = useState<number | null>(null);
   const [menuLabelBottom, setMenuLabelBottom] = useState<number | null>(null);
+  const [menuCenterY, setMenuCenterY] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -106,7 +107,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
             onLike={handleLike}
             onRate={handleRate}
             showDock={showDock}
-            onMenuClick={(pos) => { if (pos?.dockTop !== undefined) setDockTop(pos.dockTop!); if (pos?.menuLabelBottom !== undefined) setMenuLabelBottom(pos.menuLabelBottom!); setShowDock(!showDock); }}
+            onMenuClick={(pos) => { if (pos?.dockTop !== undefined) setDockTop(pos.dockTop!); if (pos?.menuLabelBottom !== undefined) setMenuLabelBottom(pos.menuLabelBottom!); if (pos?.menuCenterY !== undefined) setMenuCenterY(pos.menuCenterY!); setShowDock(!showDock); }}
           />
         </div>
 
@@ -115,7 +116,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
           className={`absolute left-0 right-0 bottom-0 bg-black/80 backdrop-blur-md transition-transform duration-300 ${showDock ? 'translate-y-0' : 'translate-y-full'}`}
           style={{ height: dockTop !== null ? `calc(100vh - ${dockTop}px)` : '0px' }}
         >
-          <div className="absolute bottom-0 left-[30px]" style={{ paddingBottom: menuLabelBottom ?? 0 }}>
+          <div className="absolute left-[30px]" style={{ top: menuCenterY !== null && dockTop !== null ? `${menuCenterY - dockTop}px` : '0px', transform: 'translateY(-50%)' }}>
             <button className="flex flex-col items-center gap-1">
               <img src={favsIcon} alt="Favs" className="h-[30px] w-[30px]" />
             </button>

@@ -12,7 +12,7 @@ interface ActionButtonsProps {
   onLike: () => void;
   onRate: (rating: number) => void;
   showDock: boolean;
-  onMenuClick: (pos: { dockTop?: number; menuLabelBottom?: number }) => void;
+  onMenuClick: (pos: { dockTop?: number; menuLabelBottom?: number; menuCenterY?: number }) => void;
 }
 
 export const ActionButtons = ({
@@ -111,15 +111,17 @@ export const ActionButtons = ({
         onClick={() => {
           let menuTop: number | undefined;
           let menuLabelBottom: number | undefined;
+          let menuCenterY: number | undefined;
           if (menuRef.current) {
             const menuRect = menuRef.current.getBoundingClientRect();
             menuTop = menuRect.top - 20;
+            menuCenterY = menuRect.top + menuRect.height / 2;
           }
           if (menuLabelRef.current) {
             const labelRect = menuLabelRef.current.getBoundingClientRect();
             menuLabelBottom = window.innerHeight - labelRect.bottom;
           }
-          onMenuClick({ dockTop: menuTop, menuLabelBottom });
+          onMenuClick({ dockTop: menuTop, menuLabelBottom, menuCenterY });
         }}
       >
         <img src={menuIcon} alt="Menu" className="h-[30px] w-[30px]" />
