@@ -80,39 +80,43 @@ export const ActionButtons = ({
       <div className="relative h-[30px] mt-0">
         <button
           onClick={handleRateClick}
-          className="action-button flex items-center justify-center relative z-10"
+          className={`action-button flex items-center justify-center relative z-10 ${showRating ? 'pointer-events-none' : ''}`}
+          aria-expanded={showRating}
         >
-          <div className="relative flex items-center justify-center">
             <img
               src={hasRated ? starOnIcon : starIcon}
               alt="Rate"
               className="h-[30px] w-[30px] relative z-20 transition-all"
             />
-
-            {showRating && (
-              <div className="absolute bottom-full mb-2 flex flex-col gap-3 z-50 pointer-events-auto" onClick={(e) => e.stopPropagation()}>
-                {[5, 4, 3, 2, 1].map((star) => (
-                  <div key={star} className="relative flex items-center justify-center">
-                    {selectedStar === star && (
-                      <div className="absolute inset-0 bg-yellow-400 rounded-full blur-xl scale-[3] animate-pulse" />
-                    )}
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleStarClick(star); }}
-                      className={`relative ${selectedStar === star ? "z-50" : ""} transition-[filter,transform] duration-200`}
-                    >
-                      <img
-                        src={starRatingIcon}
-                        alt={`${star} stars`}
-                        className={`h-[18px] w-[18px] transition-all duration-200 ${selectedStar === star ? "brightness-150" : ""}`}
-                        style={{ filter: selectedStar === star ? "drop-shadow(0 0 20px gold)" : "none" }}
-                      />
-                    </button>
+          </button>
+          {showRating && (
+            <div
+              className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 flex flex-col gap-3 z-50 pointer-events-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {[5, 4, 3, 2, 1].map((star) => (
+                <div key={star} className="relative flex items-center justify-center">
+                  {selectedStar === star && (
+                    <div className="absolute inset-0 bg-yellow-400 rounded-full blur-xl scale-[3] animate-pulse" />
+                  )}
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => { e.stopPropagation(); handleStarClick(star); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); handleStarClick(star); } }}
+                    className={`relative ${selectedStar === star ? "z-50" : ""} transition-[filter,transform] duration-200`}
+                  >
+                    <img
+                      src={starRatingIcon}
+                      alt={`${star} stars`}
+                      className={`h-[18px] w-[18px] transition-all duration-200 ${selectedStar === star ? "brightness-150" : ""}`}
+                      style={{ filter: selectedStar === star ? "drop-shadow(0 0 20px gold)" : "none" }}
+                    />
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </button>
+                </div>
+              ))}
+            </div>
+          )}
         <span className="pointer-events-none absolute top-[34px] left-1/2 -translate-x-1/2 text-xs font-semibold text-white drop-shadow-lg">
           {averageRating > 0 ? averageRating.toFixed(1) : "0.0"}
         </span>
