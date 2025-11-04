@@ -96,11 +96,9 @@ export const ActionButtons = ({
       </button>
 
       {/* Upload/Camera Button */}
-      {!showDock && (
-        <button className="action-button mt-[40px]">
-          <img src={circleIcon} alt="Upload" className="h-[30px] w-[30px]" />
-        </button>
-      )}
+      <button className="action-button mt-[40px]">
+        <img src={circleIcon} alt="Upload" className="h-[30px] w-[30px]" />
+      </button>
 
       {/* Menu */}
       <button 
