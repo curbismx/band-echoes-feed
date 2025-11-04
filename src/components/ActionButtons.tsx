@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import starIcon from "@/assets/star.png";
 import starOnIcon from "@/assets/star-on.png";
 import heartIcon from "@/assets/heart.png";
@@ -31,6 +32,7 @@ export const ActionButtons = ({
   onMenuClick,
   onButtonsMeasure,
 }: ActionButtonsProps) => {
+  const navigate = useNavigate();
   const [showRating, setShowRating] = useState(false);
   const [selectedStar, setSelectedStar] = useState<number | null>(null);
   const circleRef = useRef<HTMLButtonElement>(null);
@@ -176,7 +178,11 @@ export const ActionButtons = ({
       </button>
 
       {/* Account */}
-      <button className="action-button flex flex-col items-center gap-1 mt-[40px]" ref={accountRef}>
+      <button 
+        onClick={() => navigate('/profile')}
+        className="action-button flex flex-col items-center gap-1 mt-[40px]" 
+        ref={accountRef}
+      >
         <img src={accountIcon} alt="Account" className="h-[30px] w-[30px]" />
         <span className="text-xs font-semibold text-white drop-shadow-lg">
           account
