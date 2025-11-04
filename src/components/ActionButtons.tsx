@@ -12,6 +12,7 @@ interface ActionButtonsProps {
   onRate: (rating: number) => void;
   showDock: boolean;
   onMenuClick: (pos: { dockTop?: number; menuLabelBottom?: number; menuCenterY?: number; menuCenterX?: number }) => void;
+  followButton?: React.ReactNode;
 }
 
 export const ActionButtons = ({
@@ -22,6 +23,7 @@ export const ActionButtons = ({
   onRate,
   showDock,
   onMenuClick,
+  followButton,
 }: ActionButtonsProps) => {
   const [showRating, setShowRating] = useState(false);
   const menuRef = useRef<HTMLButtonElement>(null);
@@ -95,6 +97,13 @@ export const ActionButtons = ({
           account
         </span>
       </button>
+
+      {/* Follow Button - rendered when in state 2 */}
+      {followButton && (
+        <div className="action-button mt-[40px]">
+          {followButton}
+        </div>
+      )}
 
       {/* Menu */}
       <button 

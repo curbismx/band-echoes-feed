@@ -96,31 +96,42 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
       <div className="absolute inset-0 flex flex-col justify-between p-4 pb-8 pr-[30px] pointer-events-none">
         {/* Bottom Content */}
         <div className="mt-auto flex items-end justify-between pointer-events-auto">
-          {/* Left side: Artist Info + Follow Button */}
-          <div className={`flex flex-col gap-2 transition-all duration-300 ${
-            showDock ? 'bottom-[190px]' : 'bottom-[50px]'
-          }`}>
+          {/* Left side: Artist Info */}
+          <div className={`flex flex-col gap-2 transition-all duration-300`}>
             <h2 className="text-2xl font-bold text-white drop-shadow-lg mb-2">
               The Rising Stars
             </h2>
-            <button
-              onClick={handleFollow}
-              className="flex items-center"
-            >
-              <img src={followIcon} alt="Follow" className="h-[30px]" />
-            </button>
+            {/* Follow Button - only show here in state 1 */}
+            {!showDock && (
+              <button
+                onClick={handleFollow}
+                className="flex items-center"
+              >
+                <img src={followIcon} alt="Follow" className="h-[30px]" />
+              </button>
+            )}
           </div>
 
-          {/* Action Buttons */}
-          <ActionButtons
-            likes={likes}
-            isLiked={isLiked}
-            rating={rating}
-            onLike={handleLike}
-            onRate={handleRate}
-            showDock={showDock}
-            onMenuClick={(pos) => { if (pos?.dockTop !== undefined) setDockTop(pos.dockTop!); if (pos?.menuLabelBottom !== undefined) setMenuLabelBottom(pos.menuLabelBottom!); if (pos?.menuCenterY !== undefined) setMenuCenterY(pos.menuCenterY!); if (pos?.menuCenterX !== undefined) setMenuCenterX(pos.menuCenterX!); setShowDock(!showDock); }}
-          />
+          {/* Right side: Action Buttons + Follow in state 2 */}
+          <div className="flex flex-col items-center">
+            <ActionButtons
+              likes={likes}
+              isLiked={isLiked}
+              rating={rating}
+              onLike={handleLike}
+              onRate={handleRate}
+              showDock={showDock}
+              onMenuClick={(pos) => { if (pos?.dockTop !== undefined) setDockTop(pos.dockTop!); if (pos?.menuLabelBottom !== undefined) setMenuLabelBottom(pos.menuLabelBottom!); if (pos?.menuCenterY !== undefined) setMenuCenterY(pos.menuCenterY!); if (pos?.menuCenterX !== undefined) setMenuCenterX(pos.menuCenterX!); setShowDock(!showDock); }}
+              followButton={showDock ? (
+                <button
+                  onClick={handleFollow}
+                  className="flex items-center"
+                >
+                  <img src={followIcon} alt="Follow" className="h-[30px]" />
+                </button>
+              ) : null}
+            />
+          </div>
         </div>
 
         {/* Bottom Dock */}
