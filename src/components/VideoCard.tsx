@@ -21,11 +21,12 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
   const [isLiked, setIsLiked] = useState(false);
   const [likes, setLikes] = useState(video.likes);
   const [rating, setRating] = useState(video.rating);
+  const [isPaused, setIsPaused] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (videoRef.current) {
-      if (isActive) {
+      if (isActive && !isPaused) {
         videoRef.current.play().catch(() => {
           // Handle autoplay restrictions
         });
@@ -33,7 +34,19 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
         videoRef.current.pause();
       }
     }
-  }, [isActive]);
+  }, [isActive, isPaused]);
+
+  const handleVideoClick = () => {
+    if (videoRef.current) {
+      if (isPaused) {
+        videoRef.current.play();
+        setIsPaused(false);
+      } else {
+        videoRef.current.pause();
+        setIsPaused(true);
+      }
+    }
+  };
 
   const handleFollow = () => {
     setIsFollowing(!isFollowing);
@@ -54,10 +67,11 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
       <video
         ref={videoRef}
         src={video.videoUrl}
-        className="absolute inset-0 w-[100vw] h-[100vh] object-cover"
+        className="absolute inset-0 w-[100vw] h-[100vh] object-cover cursor-pointer"
         loop
         playsInline
         muted
+        onClick={handleVideoClick}
       />
 
       <div className="absolute inset-0 flex flex-col justify-between p-4 pb-8">
