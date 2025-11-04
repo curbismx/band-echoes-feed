@@ -108,13 +108,17 @@ export const ActionButtons = ({
                     onMouseEnter={() => setHoverStar(star)}
                     onMouseLeave={() => setHoverStar(null)}
                     aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
-                    className={`relative ${selectedStar === star ? "z-50" : ""} transition-[filter,transform] duration-200 hover:scale-105`}
+                    className={`relative ${selectedStar === star ? "z-50" : ""} transition-[filter,transform] duration-200 hover:scale-110 cursor-pointer`}
                   >
                     <img
-                      src={(selectedStar === star || hoverStar === star) ? starOnIcon : starRatingIcon}
+                      src={starRatingIcon}
                       alt={`${star} stars`}
-                      className={`h-[22px] w-[22px] transition-all duration-200 ${(selectedStar === star || hoverStar === star) ? "brightness-110" : ""}`}
-                      style={{ filter: (selectedStar === star || hoverStar === star) ? "drop-shadow(0 0 14px rgba(255,215,0,0.7))" : "none" }}
+                      className={`h-[22px] w-[22px] transition-all duration-200`}
+                      style={{ 
+                        filter: (selectedStar === star || hoverStar === star) 
+                          ? "brightness(1.5) saturate(2) drop-shadow(0 0 12px rgba(255,215,0,0.8))" 
+                          : "none" 
+                      }}
                     />
                   </div>
                 </div>
