@@ -153,7 +153,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
 
         {/* Bottom Dock */}
         <div
-          className={`absolute left-0 right-0 bottom-0 bg-black/70 backdrop-blur-md transition-transform duration-300 ${showDock ? 'translate-y-0' : 'translate-y-full'}`}
+          className={`absolute left-0 right-0 bottom-0 bg-black/70 backdrop-blur-md overflow-hidden transition-transform duration-300 ${showDock ? 'translate-y-0' : 'translate-y-full'}`}
           style={{ height: dockTop !== null ? `calc(100vh - ${dockTop}px)` : '0px' }}
         >
           {/* Dock icons row aligned to fixed Menu position */}
