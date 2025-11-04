@@ -67,8 +67,8 @@ export default function EditProfile() {
       // Upload avatar if a new one was selected
       if (avatarFile) {
         const fileExt = avatarFile.name.split(".").pop();
-        const fileName = `${profile.id}.${fileExt}`;
-        const filePath = `${fileName}`;
+        const fileName = `avatar.${fileExt}`;
+        const filePath = `${profile.id}/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
           .from("avatars")
