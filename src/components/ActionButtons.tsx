@@ -167,7 +167,7 @@ export const ActionButtons = ({
           {showRating && (
             <div 
               ref={sliderRef}
-              className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 animate-slide-in-from-top"
+              className="absolute top-0 left-1/2 -translate-x-1/2 animate-slide-up-from-star"
               onTouchStart={(e) => handleSliderStart(e.touches[0].clientY)}
               onMouseDown={(e) => handleSliderStart(e.clientY)}
               style={{
