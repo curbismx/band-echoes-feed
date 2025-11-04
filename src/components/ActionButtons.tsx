@@ -90,15 +90,15 @@ export const ActionButtons = ({
             />
 
             {showRating && (
-              <div className="absolute bottom-full mb-2 flex flex-col gap-3">
+              <div className="absolute bottom-full mb-2 flex flex-col gap-3 z-50 pointer-events-auto" onClick={(e) => e.stopPropagation()}>
                 {[5, 4, 3, 2, 1].map((star) => (
                   <div key={star} className="relative flex items-center justify-center">
                     {selectedStar === star && (
                       <div className="absolute inset-0 bg-yellow-400 rounded-full blur-xl scale-[3] animate-pulse" />
                     )}
                     <button
-                      onClick={() => handleStarClick(star)}
-                      className={`relative ${selectedStar === star ? "z-50 scale-[1.8]" : ""} transition-transform duration-200`}
+                      onClick={(e) => { e.stopPropagation(); handleStarClick(star); }}
+                      className={`relative ${selectedStar === star ? "z-50" : ""} transition-[filter,transform] duration-200`}
                     >
                       <img
                         src={starRatingIcon}
