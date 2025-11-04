@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { ActionButtons } from "./ActionButtons";
-import followIcon from "@/assets/follow.png";
+import followIcon from "@/assets/follow-2.png";
 
 interface Video {
   id: number;
@@ -78,18 +78,16 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
         {/* Bottom Content */}
         <div className="mt-auto flex items-end justify-between">
           {/* Artist Info */}
-          <div className="flex-1 space-y-3">
-            <div className="flex items-center gap-3">
-              <h2 className="text-2xl font-bold text-white drop-shadow-lg">
-                {video.artistName}
-              </h2>
-              <button
-                onClick={handleFollow}
-                className="flex items-center"
-              >
-                <img src={followIcon} alt="Follow" className="h-[30px]" />
-              </button>
-            </div>
+          <div className="flex-1 flex flex-col justify-end">
+            <h2 className="text-2xl font-bold text-white drop-shadow-lg mb-3">
+              {video.artistName}
+            </h2>
+            <button
+              onClick={handleFollow}
+              className="flex items-center self-start"
+            >
+              <img src={followIcon} alt="Follow" className="h-[30px]" />
+            </button>
           </div>
 
           {/* Action Buttons */}
