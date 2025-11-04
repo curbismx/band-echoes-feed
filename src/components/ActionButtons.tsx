@@ -156,7 +156,7 @@ export const ActionButtons = ({
           <img 
             src={starIcon} 
             alt="Rate" 
-            className={`h-[30px] w-[30px] transition-all ${
+            className={`h-[30px] w-[30px] relative z-20 transition-all ${
               hasRated ? "brightness-0 saturate-100 invert-[.65] sepia-100 hue-rotate-[10deg]" : ""
             }`}
           />
@@ -167,13 +167,13 @@ export const ActionButtons = ({
               ref={sliderRef}
               src={starRatingSlider} 
               alt="Rating" 
-              className="absolute bottom-0 left-1/2 -translate-x-1/2 animate-slide-up-from-star w-[47px] h-auto"
+              className="absolute bottom-[-8px] left-1/2 -translate-x-1/2 animate-slide-up-from-star w-[47px] h-auto"
               draggable={false}
               onTouchStart={(e) => handleSliderStart(e.touches[0].clientY)}
               onMouseDown={(e) => handleSliderStart(e.clientY)}
               style={{
                 touchAction: 'none',
-                zIndex: -1,
+                zIndex: 10,
               }}
             />
           )}

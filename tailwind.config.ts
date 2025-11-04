@@ -82,11 +82,11 @@ export default {
         },
         "slide-up-from-star": {
           "0%": {
-            transform: "translateX(-50%) translateY(0)",
+            transform: "translateX(-50%) translateY(100%)",
             opacity: "0",
           },
           "100%": {
-            transform: "translateX(-50%) translateY(-220px)",
+            transform: "translateX(-50%) translateY(0)",
             opacity: "1",
           },
         },
