@@ -1,20 +1,55 @@
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, MoreVertical } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ChevronLeft, MoreVertical, LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Profile() {
   const navigate = useNavigate();
-  
-  // Mock data - will be replaced with real data later
-  const profile = {
-    username: "thebandsname",
-    displayName: "The Bands Name",
-    bio: "Musician/band\n🎸 Artist\nMaking music that moves souls\n🏆 Award Winner 2024",
-    posts: 12,
-    followers: 15200,
-    following: 324,
-    profileImage: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200&h=200&fit=crop",
+  const { user, signOut } = useAuth();
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+
+    const fetchProfile = async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+
+      if (data) {
+        setProfile(data);
+      }
+      setLoading(false);
+    };
+
+    fetchProfile();
+  }, [user, navigate]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth");
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return null;
+  }
+  
+  // Mock videos - will be replaced with real user videos later
   const videos = [
     { id: 1, thumbnail: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&h=400&fit=crop", views: "29.9K" },
     { id: 2, thumbnail: "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=400&h=400&fit=crop", views: "12.1K" },
@@ -44,9 +79,9 @@ export default function Profile() {
         >
           <ChevronLeft className="w-6 h-6" />
         </button>
-        <span className="font-semibold text-lg">{profile.username}</span>
-        <button className="p-2 -mr-2">
-          <MoreVertical className="w-6 h-6" />
+        <span className="font-semibold text-lg">{profile.username || "user"}</span>
+        <button className="p-2 -mr-2" onClick={handleSignOut}>
+          <LogOut className="w-5 h-5" />
         </button>
       </div>
 
@@ -55,22 +90,22 @@ export default function Profile() {
         {/* Profile Picture and Stats */}
         <div className="flex items-center gap-6 mb-4">
           <img
-            src={profile.profileImage}
+            src={profile.avatar_url || "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200&h=200&fit=crop"}
             alt="Profile"
             className="w-20 h-20 rounded-full object-cover"
           />
           
           <div className="flex-1 flex justify-around">
             <div className="text-center">
-              <div className="font-semibold text-lg">{profile.posts}</div>
+              <div className="font-semibold text-lg">{profile.posts_count || 0}</div>
               <div className="text-sm text-white/60">posts</div>
             </div>
             <div className="text-center">
-              <div className="font-semibold text-lg">{formatNumber(profile.followers)}</div>
+              <div className="font-semibold text-lg">{formatNumber(profile.followers_count || 0)}</div>
               <div className="text-sm text-white/60">followers</div>
             </div>
             <div className="text-center">
-              <div className="font-semibold text-lg">{profile.following}</div>
+              <div className="font-semibold text-lg">{profile.following_count || 0}</div>
               <div className="text-sm text-white/60">following</div>
             </div>
           </div>
@@ -78,9 +113,9 @@ export default function Profile() {
 
         {/* Name and Bio */}
         <div className="mb-4">
-          <div className="font-semibold mb-1">{profile.displayName}</div>
+          <div className="font-semibold mb-1">{profile.display_name || profile.username}</div>
           <div className="text-sm text-white/80 whitespace-pre-line">
-            {profile.bio}
+            {profile.bio || "No bio yet"}
           </div>
         </div>
 

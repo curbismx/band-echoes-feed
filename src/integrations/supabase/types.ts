@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          display_name: string | null
+          followers_count: number | null
+          following_count: number | null
+          id: string
+          posts_count: number | null
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          followers_count?: number | null
+          following_count?: number | null
+          id: string
+          posts_count?: number | null
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          followers_count?: number | null
+          following_count?: number | null
+          id?: string
+          posts_count?: number | null
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
       video_ratings: {
         Row: {
           created_at: string
