@@ -108,13 +108,12 @@ export const ActionButtons = ({
         className="action-button flex flex-col items-center gap-1 mt-[40px]"
         ref={menuRef}
         onClick={() => {
-          let yMid: number | undefined;
-          if (circleRef.current && menuRef.current) {
-            const circleRect = circleRef.current.getBoundingClientRect();
+          let menuTop: number | undefined;
+          if (menuRef.current) {
             const menuRect = menuRef.current.getBoundingClientRect();
-            yMid = (circleRect.bottom + menuRect.top) / 2;
+            menuTop = menuRect.top - 20;
           }
-          onMenuClick(yMid);
+          onMenuClick(menuTop);
         }}
       >
         <img src={menuIcon} alt="Menu" className="h-[30px] w-[30px]" />

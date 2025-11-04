@@ -110,8 +110,8 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
 
         {/* Bottom Dock */}
         <div
-          className={`absolute left-0 right-0 bg-black/80 backdrop-blur-md transition-all duration-300 ${showDock ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-          style={{ top: showDock && dockTop !== null ? dockTop : '100%' }}
+          className={`absolute left-0 right-0 bottom-0 bg-black/80 backdrop-blur-md transition-transform duration-300 ${showDock ? 'translate-y-0' : 'translate-y-full'}`}
+          style={{ height: dockTop !== null ? `calc(100vh - ${dockTop}px)` : '0px' }}
         />
       </div>
     </div>
