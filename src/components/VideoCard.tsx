@@ -113,7 +113,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
           className={`absolute left-0 right-0 bottom-0 bg-black/80 backdrop-blur-md transition-transform duration-300 ${showDock ? 'translate-y-0' : 'translate-y-full'}`}
           style={{ height: dockTop !== null ? `calc(100vh - ${dockTop}px)` : '0px' }}
         >
-          <div className="flex items-center justify-around px-8 pt-6">
+          <div className="flex items-center justify-around px-4 pt-6">
             <button className="flex flex-col items-center gap-1">
               <img src={heart2Icon} alt="Favs" className="h-[30px] w-[30px]" />
               <span className="text-xs font-semibold text-white drop-shadow-lg">favs</span>
@@ -125,6 +125,10 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
             <button className="flex flex-col items-center gap-1">
               <img src={shareIcon} alt="Share" className="h-[30px] w-[30px]" />
               <span className="text-xs font-semibold text-white drop-shadow-lg">share</span>
+            </button>
+            <button className="flex flex-col items-center gap-1" onClick={() => setShowDock(false)}>
+              <img src={dotsIcon} alt="Menu" className="h-[30px] w-[30px]" />
+              <span className="text-xs font-semibold text-white drop-shadow-lg">menu</span>
             </button>
           </div>
         </div>
