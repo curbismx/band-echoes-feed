@@ -33,6 +33,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
   const [dockTop, setDockTop] = useState<number | null>(null);
   const [menuLabelBottom, setMenuLabelBottom] = useState<number | null>(null);
   const [menuCenterY, setMenuCenterY] = useState<number | null>(null);
+  const [menuCenterX, setMenuCenterX] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -114,7 +115,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
             onLike={handleLike}
             onRate={handleRate}
             showDock={showDock}
-            onMenuClick={(pos) => { if (pos?.dockTop !== undefined) setDockTop(pos.dockTop!); if (pos?.menuLabelBottom !== undefined) setMenuLabelBottom(pos.menuLabelBottom!); if (pos?.menuCenterY !== undefined) setMenuCenterY(pos.menuCenterY!); setShowDock(!showDock); }}
+            onMenuClick={(pos) => { if (pos?.dockTop !== undefined) setDockTop(pos.dockTop!); if (pos?.menuLabelBottom !== undefined) setMenuLabelBottom(pos.menuLabelBottom!); if (pos?.menuCenterY !== undefined) setMenuCenterY(pos.menuCenterY!); if (pos?.menuCenterX !== undefined) setMenuCenterX(pos.menuCenterX!); setShowDock(!showDock); }}
           />
         </div>
 
@@ -124,7 +125,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
           style={{ height: dockTop !== null ? `calc(100vh - ${dockTop}px)` : '0px' }}
         >
           {/* Favs Icon */}
-          <div className="absolute left-[40px]" style={{ top: menuCenterY !== null && dockTop !== null ? `${menuCenterY - dockTop}px` : '0px', transform: 'translateY(-50%)' }}>
+          <div className="absolute" style={{ left: '40px', top: menuCenterY !== null && dockTop !== null ? `${menuCenterY - dockTop}px` : '0px', transform: 'translateY(-50%)' }}>
             <button className="flex flex-col items-center gap-1">
               <img src={favsIcon} alt="Favs" className="h-[30px] w-[30px]" />
               <span className="text-xs font-semibold text-white drop-shadow-lg">favs</span>
@@ -132,7 +133,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
           </div>
           
           {/* Add Icon */}
-          <div className="absolute" style={{ left: 'calc(40px + (100% - 70px) / 3)', top: menuCenterY !== null && dockTop !== null ? `${menuCenterY - dockTop}px` : '0px', transform: 'translate(-50%, -50%)' }}>
+          <div className="absolute" style={{ left: menuCenterX !== null ? `${(40 + 15) + (menuCenterX - (40 + 15)) / 3 - 15}px` : 'calc(40px + (100vw - 70px) / 3)', top: menuCenterY !== null && dockTop !== null ? `${menuCenterY - dockTop}px` : '0px', transform: 'translateY(-50%)' }}>
             <button className="flex flex-col items-center gap-1">
               <img src={addIcon} alt="Add" className="h-[30px] w-[30px]" />
               <span className="text-xs font-semibold text-white drop-shadow-lg">add</span>
@@ -140,7 +141,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
           </div>
           
           {/* Share Icon */}
-          <div className="absolute" style={{ left: 'calc(40px + 2 * (100% - 70px) / 3)', top: menuCenterY !== null && dockTop !== null ? `${menuCenterY - dockTop}px` : '0px', transform: 'translate(-50%, -50%)' }}>
+          <div className="absolute" style={{ left: 'calc(40px + 2 * (100vw - 70px) / 3)', top: menuCenterY !== null && dockTop !== null ? `${menuCenterY - dockTop}px` : '0px', transform: 'translateY(-50%)' }}>
             <button className="flex flex-col items-center gap-1">
               <img src={shareNewIcon} alt="Share" className="h-[30px] w-[30px]" />
               <span className="text-xs font-semibold text-white drop-shadow-lg">share</span>
