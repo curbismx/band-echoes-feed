@@ -79,7 +79,7 @@ export const ActionButtons = ({
       {/* Star Rating */}
       <button
         onClick={handleRateClick}
-        className="action-button flex flex-col items-center gap-1 relative z-10"
+        className="action-button flex flex-col items-center relative z-10"
       >
         <div className="relative flex items-center justify-center">
           <img
@@ -123,13 +123,13 @@ export const ActionButtons = ({
       </button>
 
       {/* Heart/Like */}
-      <button onClick={handleLikeClick} className="action-button flex flex-col items-center gap-1 mt-[40px]">
+      <button onClick={handleLikeClick} className="action-button flex flex-col items-center mt-[40px]">
         <img src={isLiked ? heartRedIcon : heartIcon} alt="Like" className="h-[30px] w-[30px] transition-all" />
         <span className="text-xs font-semibold text-white drop-shadow-lg">{formatNumber(likes)}</span>
       </button>
 
       {/* Share */}
-      <button onClick={handleShare} className="action-button flex flex-col items-center gap-1 mt-[40px]">
+      <button onClick={handleShare} className="action-button flex flex-col items-center mt-[40px]">
         <img src={shareIcon} alt="Share" className="h-[30px] w-[30px]" />
       </button>
 
@@ -139,7 +139,7 @@ export const ActionButtons = ({
           e.stopPropagation();
           navigate("/profile");
         }}
-        className="action-button flex flex-col items-center gap-1 mt-[40px]"
+        className="action-button flex flex-col items-center mt-[40px]"
       >
         <img src={accountIcon} alt="Account" className="h-[30px] w-[30px]" />
       </button>
