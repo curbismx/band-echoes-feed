@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { ActionButtons } from "./ActionButtons";
-import followIcon from "@/assets/follow-2.png";
+import followIcon from "@/assets/follow-new.png";
 import heart2Icon from "@/assets/heart_2-2.png";
 import plusIcon from "@/assets/plus-2.png";
 import shareIcon from "@/assets/share-2.png";
