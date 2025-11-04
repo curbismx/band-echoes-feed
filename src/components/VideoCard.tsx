@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { ActionButtons } from "./ActionButtons";
-import { Button } from "./ui/button";
+import followIcon from "@/assets/follow.png";
 
 interface Video {
   id: number;
@@ -82,17 +82,15 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
             <h2 className="text-2xl font-bold text-white drop-shadow-lg">
               {video.artistName}
             </h2>
-            <Button
+            <button
               onClick={handleFollow}
-              variant={isFollowing ? "secondary" : "default"}
-              className={`rounded-full px-8 ${
-                isFollowing
-                  ? "border border-white/30 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20"
-                  : "bg-primary text-primary-foreground hover:bg-primary/90"
-              }`}
+              className="flex items-center gap-2"
             >
-              {isFollowing ? "Following" : "Follow"}
-            </Button>
+              <img src={followIcon} alt="Follow" className="h-[30px] w-[30px]" />
+              <span className="text-sm font-semibold text-white drop-shadow-lg">
+                {isFollowing ? "Following" : "Follow"}
+              </span>
+            </button>
           </div>
 
           {/* Action Buttons */}
