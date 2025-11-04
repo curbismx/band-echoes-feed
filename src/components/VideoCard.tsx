@@ -79,18 +79,17 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
         <div className="mt-auto flex items-end justify-between">
           {/* Artist Info */}
           <div className="flex-1 space-y-3">
-            <h2 className="text-2xl font-bold text-white drop-shadow-lg">
-              {video.artistName}
-            </h2>
-            <button
-              onClick={handleFollow}
-              className="flex items-center gap-2"
-            >
-              <img src={followIcon} alt="Follow" className="h-[30px] w-[30px]" />
-              <span className="text-sm font-semibold text-white drop-shadow-lg">
-                {isFollowing ? "Following" : "Follow"}
-              </span>
-            </button>
+            <div className="flex items-center gap-3">
+              <h2 className="text-2xl font-bold text-white drop-shadow-lg">
+                {video.artistName}
+              </h2>
+              <button
+                onClick={handleFollow}
+                className="flex items-center"
+              >
+                <img src={followIcon} alt="Follow" className="h-[30px]" />
+              </button>
+            </div>
           </div>
 
           {/* Action Buttons */}
