@@ -97,7 +97,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
         {/* Bottom Content */}
         <div className="mt-auto flex items-end justify-between pointer-events-auto">
           {/* Artist Info */}
-          <div className={`pb-[60px] transition-all duration-300 ${showDock ? '-translate-y-[70px]' : ''}`}>
+          <div className={`pb-[20px] transition-all duration-300 ${showDock ? '-translate-y-[70px]' : ''}`}>
             <h2 className="text-2xl font-bold text-white drop-shadow-lg">
               The Rising Stars
             </h2>
@@ -119,7 +119,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
         <button
           onClick={handleFollow}
           className={`absolute flex items-center pointer-events-auto transition-all duration-300 ${
-            showDock ? 'bottom-[190px] left-[28px]' : 'bottom-[50px] left-[16px]'
+            showDock ? 'bottom-[230px] left-[28px]' : 'bottom-[90px] left-[16px]'
           }`}
         >
           <img src={followIcon} alt="Follow" className="h-[30px]" />
