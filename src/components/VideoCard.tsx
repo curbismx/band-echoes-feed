@@ -115,7 +115,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
         >
           <div className="flex items-start pt-6 pl-[35px]">
             <button className="flex flex-col items-center gap-1">
-              <img src={heart2Icon} alt="Favs" className="h-[30px] w-[30px]" />
+              <img src={heart2Icon} alt="Favs" className="h-[20px] w-[20px]" />
               <span className="text-xs font-semibold text-white drop-shadow-lg">favs</span>
             </button>
           </div>
