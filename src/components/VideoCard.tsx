@@ -49,13 +49,12 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
   };
 
   return (
-    <div className="relative h-[100dvh] w-screen">
+    <div className="relative h-screen w-screen">
       {/* Video Background */}
       <video
         ref={videoRef}
         src={video.videoUrl}
-        className="absolute inset-0 h-full w-full object-cover"
-        style={{ objectFit: 'cover' }}
+        className="absolute inset-0 w-[100vw] h-[100vh] object-cover"
         loop
         playsInline
         muted

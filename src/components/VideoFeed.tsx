@@ -80,7 +80,7 @@ export const VideoFeed = () => {
   return (
     <div
       ref={containerRef}
-      className="relative h-[100dvh] w-screen overflow-hidden bg-black"
+      className="relative h-screen w-screen overflow-hidden bg-black"
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
@@ -88,7 +88,7 @@ export const VideoFeed = () => {
       <div
         className="relative h-full transition-transform duration-500 ease-out"
         style={{
-          transform: `translateY(-${currentIndex * 100}dvh)`,
+          transform: `translateY(-${currentIndex * 100}vh)`,
         }}
       >
         {mockVideos.map((video, index) => (
