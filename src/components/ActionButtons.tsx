@@ -46,7 +46,7 @@ export const ActionButtons = ({
         className="action-button flex flex-col items-center gap-1"
       >
         <div className="relative">
-          <img src={starIcon} alt="Rate" className="h-[26px] w-[26px]" />
+          <img src={starIcon} alt="Rate" className="h-[30px] w-[30px]" />
           {showRating && (
             <div className="absolute right-16 top-0 flex gap-1 rounded-lg bg-black/80 p-2 backdrop-blur-sm">
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
@@ -74,7 +74,7 @@ export const ActionButtons = ({
         <img
           src={heartIcon}
           alt="Like"
-          className={`h-[26px] w-[26px] transition-all ${
+          className={`h-[30px] w-[30px] transition-all ${
             isLiked ? "scale-110 brightness-0 saturate-100 invert-[.35] sepia-100 hue-rotate-[340deg]" : ""
           }`}
         />
@@ -85,7 +85,7 @@ export const ActionButtons = ({
 
       {/* Menu */}
       <button className="action-button flex flex-col items-center gap-1">
-        <img src={menuIcon} alt="Menu" className="h-[26px] w-[26px]" />
+        <img src={menuIcon} alt="Menu" className="h-[30px] w-[30px]" />
         <span className="text-xs font-semibold text-white drop-shadow-lg">
           menu
         </span>
@@ -93,7 +93,7 @@ export const ActionButtons = ({
 
       {/* Account */}
       <button className="action-button flex flex-col items-center gap-1">
-        <img src={accountIcon} alt="Account" className="h-[26px] w-[26px]" />
+        <img src={accountIcon} alt="Account" className="h-[30px] w-[30px]" />
         <span className="text-xs font-semibold text-white drop-shadow-lg">
           account
         </span>
@@ -101,7 +101,7 @@ export const ActionButtons = ({
 
       {/* Upload/Camera Button */}
       <button className="action-button mt-2 flex h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg shadow-primary/50">
-        <img src={circleIcon} alt="Upload" className="h-[26px] w-[26px]" />
+        <img src={circleIcon} alt="Upload" className="h-[30px] w-[30px]" />
       </button>
     </div>
   );
