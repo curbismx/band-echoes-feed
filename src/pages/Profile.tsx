@@ -10,6 +10,7 @@ export default function Profile() {
   const { user, signOut } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [following, setFollowing] = useState<any[]>([]);
+  const [followers, setFollowers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -46,6 +47,24 @@ export default function Profile() {
       
       if (followsData) {
         setFollowing(followsData.map((f: any) => f.profiles));
+      }
+      
+      // Fetch followers list
+      const { data: followersData } = await supabase
+        .from("follows")
+        .select(`
+          follower_id,
+          profiles:follower_id (
+            id,
+            username,
+            display_name,
+            avatar_url
+          )
+        `)
+        .eq("followed_id", user.id);
+      
+      if (followersData) {
+        setFollowers(followersData.map((f: any) => f.profiles));
       }
       
       setLoading(false);
@@ -175,6 +194,28 @@ export default function Profile() {
           </button>
         </div>
       </div>
+
+      {/* Followers List */}
+      {followers.length > 0 && (
+        <div className="p-4 border-t border-white/10">
+          <h2 className="font-semibold text-lg mb-3">Followers</h2>
+          <div className="space-y-3">
+            {followers.map((follower) => (
+              <div key={follower.id} className="flex items-center gap-3">
+                <img
+                  src={follower.avatar_url || "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=80&h=80&fit=crop"}
+                  alt={follower.username}
+                  className="w-12 h-12 rounded-full object-cover"
+                />
+                <div className="flex-1">
+                  <div className="font-semibold">{follower.display_name || follower.username}</div>
+                  <div className="text-sm text-white/60">@{follower.username}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Following List */}
       {following.length > 0 && (
