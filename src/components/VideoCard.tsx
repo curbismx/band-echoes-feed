@@ -108,28 +108,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
         </div>
 
         {/* Bottom Dock */}
-        <div className={`absolute bottom-0 left-0 right-0 bg-black/80 backdrop-blur-md transition-transform duration-300 ${showDock ? 'translate-y-0' : 'translate-y-full'}`}>
-          <div className="flex items-center justify-around px-[30px] py-6">
-            <button className="flex flex-col items-center gap-1">
-              <img src={heart2Icon} alt="Favs" className="h-[20px]" />
-              <span className="text-xs font-semibold text-white">favs</span>
-            </button>
-            <button className="flex flex-col items-center gap-1">
-              <img src={plusIcon} alt="Add" className="h-[20px]" />
-              <span className="text-xs font-semibold text-white">add</span>
-            </button>
-            <button className="flex flex-col items-center gap-1">
-              <img src={shareIcon} alt="Share" className="h-[20px]" />
-              <span className="text-xs font-semibold text-white">share</span>
-            </button>
-            <button 
-              className="flex flex-col items-center gap-1"
-              onClick={() => setShowDock(false)}
-            >
-              <img src={dotsIcon} alt="Menu" className="h-[20px]" />
-              <span className="text-xs font-semibold text-white">menu</span>
-            </button>
-          </div>
+        <div className={`absolute bottom-[70px] right-[30px] w-[200px] h-[60px] bg-black/80 backdrop-blur-md transition-opacity duration-300 ${showDock ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         </div>
       </div>
     </div>
