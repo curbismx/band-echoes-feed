@@ -45,7 +45,12 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
         videoRef.current.pause();
       }
     }
-  }, [isActive, isPaused]);
+    
+    // Close dock when video becomes inactive
+    if (!isActive && showDock) {
+      setShowDock(false);
+    }
+  }, [isActive, isPaused, showDock]);
 
   const handleVideoClick = () => {
     if (videoRef.current) {
