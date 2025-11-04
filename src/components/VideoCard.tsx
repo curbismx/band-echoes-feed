@@ -97,13 +97,6 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
       <div className="absolute inset-0 flex flex-col justify-between p-4 pb-8 pr-[30px] pointer-events-none">
         {/* Bottom Content */}
         <div className="mt-auto flex items-end justify-between pointer-events-auto">
-          {/* Artist Info */}
-          <div className={`pb-[0px] transition-all duration-300 ${showDock ? '-translate-y-[90px]' : '-translate-y-[10px]'}`}>
-            <h2 className="text-2xl font-bold text-white drop-shadow-lg">
-              The Rising Stars
-            </h2>
-          </div>
-
           {/* Action Buttons */}
           <ActionButtons
             likes={likes}
@@ -116,24 +109,6 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
             onButtonsMeasure={(pos) => { if (pos?.menuCenterY !== undefined) setMenuCenterY(pos.menuCenterY!); if (pos?.accountCenterY !== undefined) setAccountCenterY(pos.accountCenterY!); if (pos?.menuCenterX !== undefined) setMenuCenterX(pos.menuCenterX!); }}
           />
         </div>
-
-        {/* Follow Button - positioned independently */}
-        <button
-          onClick={handleFollow}
-          className={`absolute flex items-center pointer-events-auto transition-all duration-300 ${
-            (showDock ? accountCenterY : menuCenterY) !== null
-              ? `${showDock ? 'left-[28px]' : 'left-[16px]'}`
-              : `${showDock ? 'bottom-[230px] left-[28px]' : 'bottom-[90px] left-[16px]'}`
-          }`}
-          style={{
-            top:
-              (showDock ? accountCenterY : menuCenterY) !== null
-                ? `${(((showDock ? accountCenterY : menuCenterY) as number) - 15 - (showDock ? 135 : 55))}px`
-                : undefined,
-          }}
-        >
-          <img src={followIcon} alt="Follow" className="h-[30px]" />
-        </button>
 
         {/* Bottom Dock */}
         <div
