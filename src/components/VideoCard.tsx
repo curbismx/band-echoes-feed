@@ -99,7 +99,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
         className="absolute pointer-events-none z-20"
         style={{
           left: '30px',
-          bottom: '90px',
+          bottom: '85px',
         }}
       >
         <div className="font-bold text-white drop-shadow-lg">The Bands Name</div>
@@ -112,7 +112,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
         className="absolute pointer-events-auto z-20 p-0 border-0 bg-transparent"
         style={{
           left: '30px',
-          bottom: '40px',
+          bottom: '35px',
           height: '30px',
         }}
       >
