@@ -11,6 +11,8 @@ interface ActionButtonsProps {
   rating: number;
   onLike: () => void;
   onRate: (rating: number) => void;
+  showDock: boolean;
+  onMenuClick: () => void;
 }
 
 export const ActionButtons = ({
@@ -19,6 +21,8 @@ export const ActionButtons = ({
   rating,
   onLike,
   onRate,
+  showDock,
+  onMenuClick,
 }: ActionButtonsProps) => {
   const [showRating, setShowRating] = useState(false);
 
@@ -92,12 +96,17 @@ export const ActionButtons = ({
       </button>
 
       {/* Upload/Camera Button */}
-      <button className="action-button mt-[40px]">
-        <img src={circleIcon} alt="Upload" className="h-[30px] w-[30px]" />
-      </button>
+      {!showDock && (
+        <button className="action-button mt-[40px]">
+          <img src={circleIcon} alt="Upload" className="h-[30px] w-[30px]" />
+        </button>
+      )}
 
       {/* Menu */}
-      <button className="action-button flex flex-col items-center gap-1 mt-[40px]">
+      <button 
+        className="action-button flex flex-col items-center gap-1 mt-[40px]"
+        onClick={onMenuClick}
+      >
         <img src={menuIcon} alt="Menu" className="h-[30px] w-[30px]" />
         <span className="text-xs font-semibold text-white drop-shadow-lg">
           menu
