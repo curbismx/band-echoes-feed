@@ -76,7 +76,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
 
       <div className="absolute inset-0 flex flex-col justify-between p-4 pb-8 pr-[30px]">
         {/* Bottom Content */}
-        <div className="mt-auto flex items-end justify-between">
+        <div className="mt-auto flex items-end justify-between pb-[18px]">
           {/* Artist Info and Follow */}
           <div className="flex items-center gap-3">
             <h2 className="text-2xl font-bold text-white drop-shadow-lg">
