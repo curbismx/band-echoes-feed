@@ -77,77 +77,87 @@ export const ActionButtons = ({
   return (
     <div className="flex flex-col items-center relative z-10">
       {/* Star Rating */}
-      <button
-        onClick={handleRateClick}
-        className="action-button flex flex-col items-center relative z-10"
-      >
-        <div className="relative flex items-center justify-center">
-          <img
-            src={hasRated ? starOnIcon : starIcon}
-            alt="Rate"
-            className="h-[30px] w-[30px] relative z-20 transition-all"
-          />
+      <div className="relative h-[30px] mt-0">
+        <button
+          onClick={handleRateClick}
+          className="action-button flex items-center justify-center relative z-10"
+        >
+          <div className="relative flex items-center justify-center">
+            <img
+              src={hasRated ? starOnIcon : starIcon}
+              alt="Rate"
+              className="h-[30px] w-[30px] relative z-20 transition-all"
+            />
 
-          {showRating && (
-            <div className="absolute bottom-full mb-2 flex flex-col gap-3">
-              {[5, 4, 3, 2, 1].map((star) => (
-                <div key={star} className="relative flex items-center justify-center">
-                  {selectedStar === star && (
-                    <div className="absolute inset-0 bg-yellow-400 rounded-full blur-xl scale-150 animate-pulse" />
-                  )}
-                  <button
-                    onClick={() => handleStarClick(star)}
-                    className={`relative transition-all duration-300 ${
-                      selectedStar === star ? "scale-[2.5] z-50" : "hover:scale-110"
-                    }`}
-                  >
-                    <img
-                      src={starRatingIcon}
-                      alt={`${star} stars`}
-                      className={`h-[30px] w-[30px] transition-all duration-300 ${
-                        selectedStar === star
-                          ? "brightness-0 saturate-100 invert-[.65] sepia-100 hue-rotate-[10deg]"
-                          : ""
+            {showRating && (
+              <div className="absolute bottom-full mb-2 flex flex-col gap-3">
+                {[5, 4, 3, 2, 1].map((star) => (
+                  <div key={star} className="relative flex items-center justify-center">
+                    {selectedStar === star && (
+                      <div className="absolute inset-0 bg-yellow-400 rounded-full blur-xl scale-150 animate-pulse" />
+                    )}
+                    <button
+                      onClick={() => handleStarClick(star)}
+                      className={`relative transition-all duration-300 ${
+                        selectedStar === star ? "scale-[2.5] z-50" : "hover:scale-110"
                       }`}
-                      style={{ filter: selectedStar === star ? "drop-shadow(0 0 16px gold)" : "none" }}
-                    />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-        <span className="text-xs font-semibold text-white drop-shadow-lg">
+                    >
+                      <img
+                        src={starRatingIcon}
+                        alt={`${star} stars`}
+                        className={`h-[30px] w-[30px] transition-all duration-300 ${
+                          selectedStar === star
+                            ? "brightness-0 saturate-100 invert-[.65] sepia-100 hue-rotate-[10deg]"
+                            : ""
+                        }`}
+                        style={{ filter: selectedStar === star ? "drop-shadow(0 0 16px gold)" : "none" }}
+                      />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </button>
+        <span className="pointer-events-none absolute top-[34px] left-1/2 -translate-x-1/2 text-xs font-semibold text-white drop-shadow-lg">
           {averageRating > 0 ? averageRating.toFixed(1) : "0.0"}
         </span>
-      </button>
+      </div>
 
       {/* Heart/Like */}
-      <button onClick={handleLikeClick} className="action-button flex flex-col items-center mt-[40px]">
-        <img src={isLiked ? heartRedIcon : heartIcon} alt="Like" className="h-[30px] w-[30px] transition-all" />
-        <span className="text-xs font-semibold text-white drop-shadow-lg">{formatNumber(likes)}</span>
-      </button>
+      <div className="relative h-[30px] mt-[40px]">
+        <button onClick={handleLikeClick} className="action-button flex items-center justify-center">
+          <img src={isLiked ? heartRedIcon : heartIcon} alt="Like" className="h-[30px] w-[30px] transition-all" />
+        </button>
+        <span className="pointer-events-none absolute top-[34px] left-1/2 -translate-x-1/2 text-xs font-semibold text-white drop-shadow-lg">{formatNumber(likes)}</span>
+      </div>
 
       {/* Share */}
-      <button onClick={handleShare} className="action-button flex flex-col items-center mt-[40px]">
-        <img src={shareIcon} alt="Share" className="h-[30px] w-[30px]" />
-      </button>
+      <div className="relative h-[30px] mt-[40px]">
+        <button onClick={handleShare} className="action-button flex items-center justify-center">
+          <img src={shareIcon} alt="Share" className="h-[30px] w-[30px]" />
+        </button>
+      </div>
 
       {/* Account */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          navigate("/profile");
-        }}
-        className="action-button flex flex-col items-center mt-[40px]"
-      >
-        <img src={accountIcon} alt="Account" className="h-[30px] w-[30px]" />
-      </button>
+      <div className="relative h-[30px] mt-[40px]">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate("/profile");
+          }}
+          className="action-button flex items-center justify-center"
+        >
+          <img src={accountIcon} alt="Account" className="h-[30px] w-[30px]" />
+        </button>
+      </div>
 
       {/* Upload/Camera */}
-      <button className="action-button mt-[40px]">
-        <img src={circleIcon} alt="Upload" className="h-[30px] w-[30px]" />
-      </button>
+      <div className="relative h-[30px] mt-[40px]">
+        <button className="action-button flex items-center justify-center">
+          <img src={circleIcon} alt="Upload" className="h-[30px] w-[30px]" />
+        </button>
+      </div>
     </div>
   );
 };
