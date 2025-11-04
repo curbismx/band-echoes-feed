@@ -41,7 +41,11 @@ export const VideoFeed = () => {
   const [touchEnd, setTouchEnd] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const mockVideos = getMockVideos(user?.id || "");
+  const [videos, setVideos] = useState(getMockVideos(""));
+  useEffect(() => {
+    if (user?.id) setVideos(getMockVideos(user.id));
+  }, [user?.id]);
+
   const minSwipeDistance = 50;
 
   const onTouchStart = (e: React.TouchEvent) => {
@@ -60,7 +64,7 @@ export const VideoFeed = () => {
     const isUpSwipe = distance > minSwipeDistance;
     const isDownSwipe = distance < -minSwipeDistance;
 
-    if (isUpSwipe && currentIndex < mockVideos.length - 1) {
+    if (isUpSwipe && currentIndex < videos.length - 1) {
       setCurrentIndex((prev) => prev + 1);
     }
 
@@ -72,7 +76,7 @@ export const VideoFeed = () => {
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowDown" && currentIndex < mockVideos.length - 1) {
+      if (e.key === "ArrowDown" && currentIndex < videos.length - 1) {
         setCurrentIndex((prev) => prev + 1);
       }
       if (e.key === "ArrowUp" && currentIndex > 0) {
@@ -98,7 +102,7 @@ export const VideoFeed = () => {
           transform: `translateY(-${currentIndex * 100}vh)`,
         }}
       >
-        {mockVideos.map((video, index) => (
+        {videos.map((video, index) => (
           <VideoCard
             key={video.id}
             video={video}
@@ -111,7 +115,7 @@ export const VideoFeed = () => {
 
       {/* Progress indicator dots */}
       <div className="absolute left-1/2 top-4 flex -translate-x-1/2 gap-1 z-50">
-        {mockVideos.map((_, index) => (
+        {videos.map((_, index) => (
           <div
             key={index}
             className={`h-1 rounded-full transition-all duration-300 ${

@@ -34,6 +34,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
 
   // Fetch artist profile avatar
   useEffect(() => {
+    if (!video.artistUserId) return;
     const fetchArtistProfile = async () => {
       const { data } = await supabase
         .from("profiles")
