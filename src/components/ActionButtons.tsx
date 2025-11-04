@@ -40,44 +40,6 @@ export const ActionButtons = ({
 
   return (
     <div className="flex flex-col items-center gap-6">
-      {/* Menu */}
-      <button className="action-button flex flex-col items-center gap-1">
-        <img src={menuIcon} alt="Menu" className="h-[30px] w-[30px]" />
-        <span className="text-xs font-semibold text-white drop-shadow-lg">
-          menu
-        </span>
-      </button>
-
-      {/* Upload/Camera Button */}
-      <button className="action-button mt-2">
-        <img src={circleIcon} alt="Upload" className="h-[30px] w-[30px]" />
-      </button>
-
-      {/* Account */}
-      <button className="action-button mt-2 flex flex-col items-center gap-1">
-        <img src={accountIcon} alt="Account" className="h-[30px] w-[30px]" />
-        <span className="text-xs font-semibold text-white drop-shadow-lg">
-          account
-        </span>
-      </button>
-
-      {/* Heart/Like */}
-      <button
-        onClick={onLike}
-        className="action-button flex flex-col items-center gap-1"
-      >
-        <img
-          src={heartIcon}
-          alt="Like"
-          className={`h-[30px] w-[30px] transition-all ${
-            isLiked ? "scale-110 brightness-0 saturate-100 invert-[.35] sepia-100 hue-rotate-[340deg]" : ""
-          }`}
-        />
-        <span className="text-xs font-semibold text-white drop-shadow-lg">
-          {formatNumber(likes)}
-        </span>
-      </button>
-
       {/* Star Rating */}
       <button
         onClick={handleRateClick}
@@ -101,6 +63,44 @@ export const ActionButtons = ({
         </div>
         <span className="text-xs font-semibold text-white drop-shadow-lg">
           {rating.toFixed(1)}
+        </span>
+      </button>
+
+      {/* Heart/Like */}
+      <button
+        onClick={onLike}
+        className="action-button flex flex-col items-center gap-1"
+      >
+        <img
+          src={heartIcon}
+          alt="Like"
+          className={`h-[30px] w-[30px] transition-all ${
+            isLiked ? "scale-110 brightness-0 saturate-100 invert-[.35] sepia-100 hue-rotate-[340deg]" : ""
+          }`}
+        />
+        <span className="text-xs font-semibold text-white drop-shadow-lg">
+          {formatNumber(likes)}
+        </span>
+      </button>
+
+      {/* Account */}
+      <button className="action-button flex flex-col items-center gap-1">
+        <img src={accountIcon} alt="Account" className="h-[30px] w-[30px]" />
+        <span className="text-xs font-semibold text-white drop-shadow-lg">
+          account
+        </span>
+      </button>
+
+      {/* Upload/Camera Button */}
+      <button className="action-button mt-2">
+        <img src={circleIcon} alt="Upload" className="h-[30px] w-[30px]" />
+      </button>
+
+      {/* Menu */}
+      <button className="action-button flex flex-col items-center gap-1">
+        <img src={menuIcon} alt="Menu" className="h-[30px] w-[30px]" />
+        <span className="text-xs font-semibold text-white drop-shadow-lg">
+          menu
         </span>
       </button>
     </div>
