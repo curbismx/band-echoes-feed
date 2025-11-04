@@ -89,11 +89,12 @@ export const ActionButtons = ({
     }
     
     setSelectedStar(starRating);
+    // Keep feedback visible for 1 second
     setTimeout(() => {
       setShowRating(false);
       onRate(starRating);
       setTimeout(() => setSelectedStar(null), 100);
-    }, 600);
+    }, 1000);
   };
 
   const handleLikeClick = () => {
@@ -120,28 +121,36 @@ export const ActionButtons = ({
           
           {/* 5 Rating Stars */}
           {showRating && (
-            <div className="absolute bottom-full mb-2 flex flex-col gap-2 animate-slide-in-from-top">
+            <div className="absolute bottom-full mb-2 flex flex-col gap-3 animate-slide-in-from-top">
               {[5, 4, 3, 2, 1].map((star) => (
-                <button
+                <div 
                   key={star}
-                  onClick={() => handleStarClick(star)}
-                  className={`transition-all duration-200 ${
-                    selectedStar === star 
-                      ? "scale-150" 
-                      : "hover:scale-110"
-                  }`}
-                  style={{
-                    filter: selectedStar === star ? "drop-shadow(0 0 8px gold)" : "none"
-                  }}
+                  className="relative flex items-center justify-center"
                 >
-                  <img 
-                    src={starRatingIcon} 
-                    alt={`${star} stars`}
-                    className={`h-[30px] w-[30px] transition-all duration-200 ${
-                      selectedStar === star ? "brightness-0 saturate-100 invert-[.65] sepia-100 hue-rotate-[10deg] animate-pulse" : ""
+                  {/* Yellow glow background when selected */}
+                  {selectedStar === star && (
+                    <div className="absolute inset-0 bg-yellow-400 rounded-full blur-xl scale-150 animate-pulse" />
+                  )}
+                  <button
+                    onClick={() => handleStarClick(star)}
+                    className={`relative transition-all duration-300 ${
+                      selectedStar === star 
+                        ? "scale-[2.5] z-50" 
+                        : "hover:scale-110"
                     }`}
-                  />
-                </button>
+                  >
+                    <img 
+                      src={starRatingIcon} 
+                      alt={`${star} stars`}
+                      className={`h-[30px] w-[30px] transition-all duration-300 ${
+                        selectedStar === star ? "brightness-0 saturate-100 invert-[.65] sepia-100 hue-rotate-[10deg]" : ""
+                      }`}
+                      style={{
+                        filter: selectedStar === star ? "drop-shadow(0 0 16px gold)" : "none"
+                      }}
+                    />
+                  </button>
+                </div>
               ))}
             </div>
           )}
