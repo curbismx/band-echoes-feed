@@ -102,7 +102,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
           className="absolute pointer-events-auto z-20 p-0 border-0 bg-transparent"
           style={{
             left: '30px',
-            top: showDock ? `${circleCenterY}px` : `${menuCenterY}px`,
+            top: showDock ? `${circleCenterY}px` : `${menuCenterY! - 8}px`,
             transform: 'translateY(-50%)',
             height: '30px',
           }}
