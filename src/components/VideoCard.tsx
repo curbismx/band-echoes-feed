@@ -99,7 +99,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
       {((showDock && circleCenterY !== null) || (!showDock && menuCenterY !== null)) && (
         <button
           onClick={handleFollow}
-          className="absolute flex flex-col items-center gap-1 action-button pointer-events-auto z-20"
+          className="absolute action-button pointer-events-auto z-20 h-[30px] w-[30px]"
           style={{
             left: '30px',
             top: showDock ? `${circleCenterY}px` : `${menuCenterY}px`,
@@ -109,13 +109,10 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
           <img
             src={followIcon}
             alt="Follow"
-            className={`h-[30px] w-[30px] transition-all ${
+            className={`h-[30px] w-[30px] object-contain transition-all ${
               isFollowing ? "opacity-50" : ""
             }`}
           />
-          <span className="text-xs font-semibold text-white drop-shadow-lg">
-            {isFollowing ? "following" : "follow"}
-          </span>
         </button>
       )}
       
