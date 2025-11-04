@@ -209,7 +209,7 @@ export const ActionButtons = ({
           let menuCenterX: number | undefined;
           if (menuRef.current) {
             const menuRect = menuRef.current.getBoundingClientRect();
-            menuTop = menuRect.top - 20;
+            menuTop = menuRect.top;
             menuCenterY = menuRect.top + menuRect.height / 2;
             menuCenterX = menuRect.left + menuRect.width / 2;
           }
