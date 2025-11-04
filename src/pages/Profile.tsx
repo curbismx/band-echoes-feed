@@ -1,17 +1,15 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { ChevronLeft, MoreVertical, LogOut, Share2 } from "lucide-react";
+import { ChevronLeft, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import EditProfileDialog from "@/components/EditProfileDialog";
 
 export default function Profile() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -58,19 +56,6 @@ export default function Profile() {
     }
   };
 
-  const handleProfileUpdate = async () => {
-    if (!user) return;
-    
-    const { data } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single();
-
-    if (data) {
-      setProfile(data);
-    }
-  };
 
   if (loading) {
     return (
@@ -157,7 +142,7 @@ export default function Profile() {
         {/* Action Buttons */}
         <div className="flex gap-2 mb-4">
           <button 
-            onClick={() => setEditDialogOpen(true)}
+            onClick={() => navigate("/edit-profile")}
             className="flex-1 bg-white/10 hover:bg-white/20 transition-colors py-2 rounded-lg font-semibold text-sm"
           >
             Edit Profile
@@ -170,14 +155,6 @@ export default function Profile() {
           </button>
         </div>
       </div>
-
-      {/* Edit Profile Dialog */}
-      <EditProfileDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        profile={profile}
-        onProfileUpdate={handleProfileUpdate}
-      />
 
       {/* Video Grid */}
       <div className="border-t border-white/10">
