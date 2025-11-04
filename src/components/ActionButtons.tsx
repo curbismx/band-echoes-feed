@@ -4,6 +4,7 @@ import heartIcon from "@/assets/heart.png";
 import menuIcon from "@/assets/menu.png";
 import accountIcon from "@/assets/account.png";
 import circleIcon from "@/assets/circle-2.png";
+import starsSlider from "@/assets/stars-slider.png";
 
 interface ActionButtonsProps {
   likes: number;
@@ -27,10 +28,14 @@ export const ActionButtons = ({
   onButtonsMeasure,
 }: ActionButtonsProps) => {
   const [showRating, setShowRating] = useState(false);
+  const [hasRated, setHasRated] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [currentRating, setCurrentRating] = useState(rating);
   const circleRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLButtonElement>(null);
   const menuLabelRef = useRef<HTMLSpanElement>(null);
   const accountRef = useRef<HTMLButtonElement>(null);
+  const sliderRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const measure = () => {
@@ -71,39 +76,117 @@ export const ActionButtons = ({
   };
 
   const handleRateClick = () => {
-    setShowRating(!showRating);
+    if (!hasRated) {
+      setShowRating(!showRating);
+    }
   };
 
-  const handleRatingSelect = (selectedRating: number) => {
-    onRate(selectedRating);
-    setShowRating(false);
+  const calculateRating = (clientY: number) => {
+    if (!sliderRef.current) return currentRating;
+    
+    const rect = sliderRef.current.getBoundingClientRect();
+    const y = clientY - rect.top;
+    const height = rect.height;
+    
+    // Calculate rating from 5 (top) to 0 (bottom)
+    let rating = 5 - (y / height) * 5;
+    rating = Math.max(0, Math.min(5, rating));
+    rating = Math.round(rating * 10) / 10; // Round to 0.1 step
+    
+    return rating;
   };
+
+  const handleSliderStart = (clientY: number) => {
+    setIsDragging(true);
+    const newRating = calculateRating(clientY);
+    setCurrentRating(newRating);
+  };
+
+  const handleSliderMove = (clientY: number) => {
+    if (isDragging) {
+      const newRating = calculateRating(clientY);
+      setCurrentRating(newRating);
+    }
+  };
+
+  const handleSliderEnd = () => {
+    if (isDragging) {
+      setIsDragging(false);
+      setShowRating(false);
+      setHasRated(true);
+      onRate(currentRating);
+    }
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      const handleTouchMove = (e: TouchEvent) => {
+        handleSliderMove(e.touches[0].clientY);
+      };
+      const handleMouseMove = (e: MouseEvent) => {
+        handleSliderMove(e.clientY);
+      };
+      const handleTouchEnd = () => {
+        handleSliderEnd();
+      };
+      const handleMouseUp = () => {
+        handleSliderEnd();
+      };
+
+      document.addEventListener('touchmove', handleTouchMove);
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('touchend', handleTouchEnd);
+      document.addEventListener('mouseup', handleMouseUp);
+
+      return () => {
+        document.removeEventListener('touchmove', handleTouchMove);
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('touchend', handleTouchEnd);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, currentRating]);
 
   return (
     <div className="flex flex-col items-center relative z-10">
       {/* Star Rating */}
       <button
         onClick={handleRateClick}
-        className="action-button flex flex-col items-center gap-1"
+        className="action-button flex flex-col items-center gap-1 relative"
       >
         <div className="relative">
-          <img src={starIcon} alt="Rate" className="h-[30px] w-[30px]" />
+          <img 
+            src={starIcon} 
+            alt="Rate" 
+            className={`h-[30px] w-[30px] transition-all ${
+              hasRated ? "brightness-0 saturate-100 invert-[.65] sepia-100 hue-rotate-[10deg]" : ""
+            }`}
+          />
+          
+          {/* Star Rating Slider */}
           {showRating && (
-            <div className="absolute right-16 top-0 flex gap-1 rounded-lg bg-black/80 p-2 backdrop-blur-sm">
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                <button
-                  key={num}
-                  onClick={() => handleRatingSelect(num)}
-                  className="flex h-8 w-8 items-center justify-center rounded-md text-sm font-semibold text-white transition-colors hover:bg-primary hover:text-primary-foreground"
-                >
-                  {num}
-                </button>
-              ))}
+            <div 
+              ref={sliderRef}
+              className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 animate-slide-in-from-top"
+              onTouchStart={(e) => handleSliderStart(e.touches[0].clientY)}
+              onMouseDown={(e) => handleSliderStart(e.clientY)}
+              style={{
+                touchAction: 'none',
+              }}
+            >
+              <div className="relative w-[50px] h-[250px] rounded-full bg-black/70 backdrop-blur-md flex items-center justify-center">
+                <img 
+                  src={starsSlider} 
+                  alt="Rating" 
+                  className="w-[30px] h-auto pointer-events-none"
+                  draggable={false}
+                />
+              </div>
             </div>
           )}
         </div>
         <span className="text-xs font-semibold text-white drop-shadow-lg">
-          {rating.toFixed(1)}
+          {hasRated ? currentRating.toFixed(1) : rating.toFixed(1)}
         </span>
       </button>
 
