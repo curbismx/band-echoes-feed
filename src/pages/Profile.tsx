@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { ChevronLeft, LogOut } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -139,8 +139,8 @@ export default function Profile() {
           <ChevronLeft className="w-6 h-6" />
         </button>
         <span className="font-semibold text-lg">{profile.username || "user"}</span>
-        <button className="p-2 -mr-2" onClick={handleSignOut}>
-          <LogOut className="w-5 h-5" />
+        <button className="px-3 py-1 text-sm font-semibold" onClick={handleSignOut}>
+          Logout
         </button>
       </div>
 
