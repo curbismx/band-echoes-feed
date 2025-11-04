@@ -125,7 +125,7 @@ export const ActionButtons = ({
       </div>
 
       {/* Heart/Like */}
-      <div className="relative h-[30px] mt-[40px]">
+      <div className="relative h-[30px] mt-[50px]">
         <button onClick={handleLikeClick} className="action-button flex items-center justify-center">
           <img src={isLiked ? heartRedIcon : heartIcon} alt="Like" className="h-[30px] w-[30px] transition-all" />
         </button>
@@ -133,14 +133,14 @@ export const ActionButtons = ({
       </div>
 
       {/* Share */}
-      <div className="relative h-[30px] mt-[40px]">
+      <div className="relative h-[30px] mt-[50px]">
         <button onClick={handleShare} className="action-button flex items-center justify-center">
           <img src={shareIcon} alt="Share" className="h-[30px] w-[30px]" />
         </button>
       </div>
 
       {/* Account */}
-      <div className="relative h-[30px] mt-[40px]">
+      <div className="relative h-[30px] mt-[50px]">
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -153,7 +153,7 @@ export const ActionButtons = ({
       </div>
 
       {/* Upload/Camera */}
-      <div className="relative h-[30px] mt-[40px]">
+      <div className="relative h-[30px] mt-[50px]">
         <button className="action-button flex items-center justify-center">
           <img src={circleIcon} alt="Upload" className="h-[30px] w-[30px]" />
         </button>
