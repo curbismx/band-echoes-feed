@@ -119,7 +119,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
         <button
           onClick={handleFollow}
           className={`absolute flex items-center pointer-events-auto transition-all duration-300 ${
-            showDock ? 'bottom-[270px] left-[28px]' : 'bottom-[130px] left-[16px]'
+            showDock ? 'bottom-[230px] left-[28px]' : 'bottom-[90px] left-[16px]'
           }`}
         >
           <img src={followIcon} alt="Follow" className="h-[30px]" />
