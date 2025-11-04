@@ -99,17 +99,19 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
       {((showDock && circleCenterY !== null) || (!showDock && menuCenterY !== null)) && (
         <button
           onClick={handleFollow}
-          className="absolute action-button pointer-events-auto z-20 h-[30px] w-[30px]"
+          className="absolute pointer-events-auto z-20 p-0 border-0 bg-transparent"
           style={{
             left: '30px',
             top: showDock ? `${circleCenterY}px` : `${menuCenterY}px`,
             transform: 'translateY(-50%)',
+            height: '30px',
+            width: '30px',
           }}
         >
           <img
             src={followIcon}
             alt="Follow"
-            className={`h-[30px] w-[30px] object-contain transition-all ${
+            className={`h-full w-full object-contain transition-all ${
               isFollowing ? "opacity-50" : ""
             }`}
           />
