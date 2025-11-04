@@ -270,11 +270,11 @@ export default function Profile() {
 
       {/* Video Grid */}
       <div className="border-t border-white/10">
-        <div className="grid grid-cols-3 gap-[2px]">
+        <div className="grid grid-cols-3 gap-1">
           {videos.map((video) => (
             <div 
               key={video.id} 
-              className="relative aspect-square bg-white/5 cursor-pointer hover:opacity-80 transition-opacity"
+              className="relative aspect-[9/16] bg-white/5 cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => navigate(`/`)}
             >
               <img
