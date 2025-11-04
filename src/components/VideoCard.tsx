@@ -83,7 +83,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
         {/* Bottom Content */}
         <div className="mt-auto flex items-end justify-between">
           {/* Artist Info and Follow */}
-          <div className={`flex items-center gap-3 pb-[20px] transition-all duration-300 ${showDock ? '-translate-y-[80px]' : ''}`}>
+          <div className={`flex items-center gap-3 pb-[20px] transition-all duration-300 ${showDock ? '-translate-y-[100px]' : ''}`}>
             <h2 className="text-2xl font-bold text-white drop-shadow-lg">
               The Rising Stars
             </h2>
@@ -108,8 +108,8 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
         </div>
 
         {/* Bottom Dock */}
-        <div className={`absolute bottom-[80px] right-[30px] transition-transform duration-300 ${showDock ? 'translate-x-0' : 'translate-x-[200px]'}`}>
-          <div className="flex flex-col items-center gap-4">
+        <div className={`absolute bottom-0 left-0 right-0 bg-black/80 backdrop-blur-md transition-transform duration-300 ${showDock ? 'translate-y-0' : 'translate-y-full'}`}>
+          <div className="flex items-center justify-around px-[30px] py-6">
             <button className="flex flex-col items-center gap-1">
               <img src={heart2Icon} alt="Favs" className="h-[20px]" />
               <span className="text-xs font-semibold text-white">favs</span>
@@ -121,6 +121,13 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
             <button className="flex flex-col items-center gap-1">
               <img src={shareIcon} alt="Share" className="h-[20px]" />
               <span className="text-xs font-semibold text-white">share</span>
+            </button>
+            <button 
+              className="flex flex-col items-center gap-1"
+              onClick={() => setShowDock(false)}
+            >
+              <img src={dotsIcon} alt="Menu" className="h-[20px]" />
+              <span className="text-xs font-semibold text-white">menu</span>
             </button>
           </div>
         </div>
