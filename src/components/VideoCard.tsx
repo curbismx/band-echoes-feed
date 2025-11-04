@@ -89,6 +89,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
         className="absolute inset-0 w-[100vw] h-[100vh] object-cover cursor-pointer"
         loop
         playsInline
+        muted
         onClick={handleVideoClick}
       />
 
