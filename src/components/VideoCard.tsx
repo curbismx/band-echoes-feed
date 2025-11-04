@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { ActionButtons } from "./ActionButtons";
 import followIcon from "@/assets/follow-2.png";
-import heart2Icon from "@/assets/heart-2.png";
-import plusIcon from "@/assets/plus.png";
-import shareIcon from "@/assets/share.png";
+import heart2Icon from "@/assets/heart_2-2.png";
+import plusIcon from "@/assets/plus-2.png";
+import shareIcon from "@/assets/share-2.png";
 import dotsIcon from "@/assets/3-dots.png";
 
 interface Video {
@@ -112,7 +112,22 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
         <div
           className={`absolute left-0 right-0 bottom-0 bg-black/80 backdrop-blur-md transition-transform duration-300 ${showDock ? 'translate-y-0' : 'translate-y-full'}`}
           style={{ height: dockTop !== null ? `calc(100vh - ${dockTop}px)` : '0px' }}
-        />
+        >
+          <div className="flex items-center justify-around px-8 pt-6">
+            <button className="flex flex-col items-center gap-1">
+              <img src={heart2Icon} alt="Favs" className="h-[30px] w-[30px]" />
+              <span className="text-xs font-semibold text-white drop-shadow-lg">favs</span>
+            </button>
+            <button className="flex flex-col items-center gap-1">
+              <img src={plusIcon} alt="Add" className="h-[30px] w-[30px]" />
+              <span className="text-xs font-semibold text-white drop-shadow-lg">add</span>
+            </button>
+            <button className="flex flex-col items-center gap-1">
+              <img src={shareIcon} alt="Share" className="h-[30px] w-[30px]" />
+              <span className="text-xs font-semibold text-white drop-shadow-lg">share</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
