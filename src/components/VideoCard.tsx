@@ -77,14 +77,14 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
       <div className="absolute inset-0 flex flex-col justify-between p-4 pb-8 pr-[30px]">
         {/* Bottom Content */}
         <div className="mt-auto flex items-end justify-between">
-          {/* Artist Info */}
-          <div className="flex-1 flex flex-col justify-end">
-            <h2 className="text-2xl font-bold text-white drop-shadow-lg mb-3">
-              {video.artistName}
+          {/* Artist Info and Follow */}
+          <div className="flex items-center gap-3">
+            <h2 className="text-2xl font-bold text-white drop-shadow-lg">
+              The Rising Stars
             </h2>
             <button
               onClick={handleFollow}
-              className="flex items-center self-start"
+              className="flex items-center"
             >
               <img src={followIcon} alt="Follow" className="h-[30px]" />
             </button>
