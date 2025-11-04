@@ -39,7 +39,7 @@ export const ActionButtons = ({
   };
 
   return (
-    <div className="flex flex-col items-center gap-10">
+    <div className="flex flex-col items-center">
       {/* Star Rating */}
       <button
         onClick={handleRateClick}
@@ -69,7 +69,7 @@ export const ActionButtons = ({
       {/* Heart/Like */}
       <button
         onClick={onLike}
-        className="action-button flex flex-col items-center gap-1"
+        className="action-button flex flex-col items-center gap-1 mt-[40px]"
       >
         <img
           src={heartIcon}
@@ -84,7 +84,7 @@ export const ActionButtons = ({
       </button>
 
       {/* Account */}
-      <button className="action-button flex flex-col items-center gap-1">
+      <button className="action-button flex flex-col items-center gap-1 mt-[40px]">
         <img src={accountIcon} alt="Account" className="h-[30px] w-[30px]" />
         <span className="text-xs font-semibold text-white drop-shadow-lg">
           account
@@ -92,12 +92,12 @@ export const ActionButtons = ({
       </button>
 
       {/* Upload/Camera Button */}
-      <button className="action-button mt-2">
+      <button className="action-button mt-[40px]">
         <img src={circleIcon} alt="Upload" className="h-[30px] w-[30px]" />
       </button>
 
       {/* Menu */}
-      <button className="action-button flex flex-col items-center gap-1">
+      <button className="action-button flex flex-col items-center gap-1 mt-[40px]">
         <img src={menuIcon} alt="Menu" className="h-[30px] w-[30px]" />
         <span className="text-xs font-semibold text-white drop-shadow-lg">
           menu
