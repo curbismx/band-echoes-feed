@@ -3,6 +3,7 @@ import starIcon from "@/assets/star.png";
 import heartIcon from "@/assets/heart.png";
 import menuIcon from "@/assets/menu.png";
 import accountIcon from "@/assets/account.png";
+import circleIcon from "@/assets/circle-2.png";
 
 interface ActionButtonsProps {
   likes: number;
@@ -12,7 +13,6 @@ interface ActionButtonsProps {
   onRate: (rating: number) => void;
   showDock: boolean;
   onMenuClick: (pos: { dockTop?: number; menuLabelBottom?: number; menuCenterY?: number; menuCenterX?: number }) => void;
-  followButton?: React.ReactNode;
 }
 
 export const ActionButtons = ({
@@ -23,9 +23,9 @@ export const ActionButtons = ({
   onRate,
   showDock,
   onMenuClick,
-  followButton,
 }: ActionButtonsProps) => {
   const [showRating, setShowRating] = useState(false);
+  const circleRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLButtonElement>(null);
   const menuLabelRef = useRef<HTMLSpanElement>(null);
 
@@ -98,12 +98,11 @@ export const ActionButtons = ({
         </span>
       </button>
 
-      {/* Follow Button - rendered when in state 2 */}
-      {followButton && (
-        <div className="action-button mt-[40px]">
-          {followButton}
-        </div>
-      )}
+      {/* Upload/Camera Button */}
+      {/* Upload/Camera Button */}
+      <button className="action-button mt-[40px]" ref={circleRef}>
+        <img src={circleIcon} alt="Upload" className="h-[30px] w-[30px]" />
+      </button>
 
       {/* Menu */}
       <button 
