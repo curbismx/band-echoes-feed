@@ -32,6 +32,7 @@ export const ActionButtons = ({
   onButtonsMeasure,
 }: ActionButtonsProps) => {
   const [showRating, setShowRating] = useState(false);
+  const [selectedStar, setSelectedStar] = useState<number | null>(null);
   const circleRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLButtonElement>(null);
   const menuLabelRef = useRef<HTMLSpanElement>(null);
@@ -82,8 +83,12 @@ export const ActionButtons = ({
   };
 
   const handleStarClick = (starRating: number) => {
-    setShowRating(false);
-    onRate(starRating);
+    setSelectedStar(starRating);
+    setTimeout(() => {
+      setShowRating(false);
+      onRate(starRating);
+      setSelectedStar(null);
+    }, 300);
   };
 
   return (
@@ -107,12 +112,18 @@ export const ActionButtons = ({
                 <button
                   key={star}
                   onClick={() => handleStarClick(star)}
-                  className="transition-transform hover:scale-110"
+                  className={`transition-all ${
+                    selectedStar === star 
+                      ? "scale-125 animate-pulse" 
+                      : "hover:scale-110"
+                  }`}
                 >
                   <img 
                     src={starRatingIcon} 
                     alt={`${star} stars`}
-                    className="h-[30px] w-[30px]"
+                    className={`h-[30px] w-[30px] transition-all ${
+                      selectedStar === star ? "brightness-0 saturate-100 invert-[.65] sepia-100 hue-rotate-[10deg]" : ""
+                    }`}
                   />
                 </button>
               ))}
