@@ -75,7 +75,7 @@ export const ActionButtons = ({
   };
 
   return (
-    <div className="flex flex-col items-center relative z-10">
+    <div className="flex flex-col items-center relative z-10 -translate-y-[15px]">
       {/* Star Rating */}
       <div className="relative h-[30px] mt-0">
         <button
