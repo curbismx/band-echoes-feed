@@ -28,6 +28,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
   const [isPaused, setIsPaused] = useState(false);
   const [showDock, setShowDock] = useState(false);
   const [dockTop, setDockTop] = useState<number | null>(null);
+  const [menuLabelBottom, setMenuLabelBottom] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -104,7 +105,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
             onLike={handleLike}
             onRate={handleRate}
             showDock={showDock}
-            onMenuClick={(y) => { if (typeof y === 'number') setDockTop(y); setShowDock(!showDock); }}
+            onMenuClick={(pos) => { if (pos?.dockTop !== undefined) setDockTop(pos.dockTop!); if (pos?.menuLabelBottom !== undefined) setMenuLabelBottom(pos.menuLabelBottom!); setShowDock(!showDock); }}
           />
         </div>
 
@@ -113,7 +114,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
           className={`absolute left-0 right-0 bottom-0 bg-black/80 backdrop-blur-md transition-transform duration-300 ${showDock ? 'translate-y-0' : 'translate-y-full'}`}
           style={{ height: dockTop !== null ? `calc(100vh - ${dockTop}px)` : '0px' }}
         >
-          <div className="flex items-start pb-[20px] pl-[35px]">
+          <div className="flex items-end pl-[35px]" style={{ paddingBottom: menuLabelBottom ?? 0 }}>
             <button className="flex flex-col items-center gap-1">
               <img src={heart2Icon} alt="Favs" className="h-[20px] w-[20px]" />
               <span className="text-xs font-semibold text-white drop-shadow-lg">favs</span>

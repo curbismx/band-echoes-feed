@@ -12,7 +12,7 @@ interface ActionButtonsProps {
   onLike: () => void;
   onRate: (rating: number) => void;
   showDock: boolean;
-  onMenuClick: (dockTop?: number) => void;
+  onMenuClick: (pos: { dockTop?: number; menuLabelBottom?: number }) => void;
 }
 
 export const ActionButtons = ({
@@ -27,6 +27,7 @@ export const ActionButtons = ({
   const [showRating, setShowRating] = useState(false);
   const circleRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLButtonElement>(null);
+  const menuLabelRef = useRef<HTMLSpanElement>(null);
 
   const formatNumber = (num: number) => {
     if (num >= 1000) {
@@ -109,15 +110,20 @@ export const ActionButtons = ({
         ref={menuRef}
         onClick={() => {
           let menuTop: number | undefined;
+          let menuLabelBottom: number | undefined;
           if (menuRef.current) {
             const menuRect = menuRef.current.getBoundingClientRect();
             menuTop = menuRect.top - 20;
           }
-          onMenuClick(menuTop);
+          if (menuLabelRef.current) {
+            const labelRect = menuLabelRef.current.getBoundingClientRect();
+            menuLabelBottom = window.innerHeight - labelRect.bottom;
+          }
+          onMenuClick({ dockTop: menuTop, menuLabelBottom });
         }}
       >
         <img src={menuIcon} alt="Menu" className="h-[30px] w-[30px]" />
-        <span className="text-xs font-semibold text-white drop-shadow-lg">
+        <span className="text-xs font-semibold text-white drop-shadow-lg" ref={menuLabelRef}>
           menu
         </span>
       </button>
