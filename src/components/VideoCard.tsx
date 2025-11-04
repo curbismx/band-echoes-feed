@@ -99,20 +99,20 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
         className="absolute pointer-events-none z-20"
         style={{
           left: '30px',
-          bottom: '190px',
+          bottom: '90px',
         }}
       >
         <div className="font-bold text-white drop-shadow-lg">The Bands Name</div>
         <div className="font-medium text-white drop-shadow-lg">The songs name</div>
       </div>
 
-      {/* Follow Button - Left Side */}
+      {/* Follow Button - Left Side, aligned with circle icon */}
       <button
         onClick={handleFollow}
         className="absolute pointer-events-auto z-20 p-0 border-0 bg-transparent"
         style={{
           left: '30px',
-          bottom: '140px',
+          bottom: '40px',
           height: '30px',
         }}
       >
