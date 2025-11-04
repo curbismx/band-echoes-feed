@@ -16,6 +16,8 @@ export default function EditProfile() {
   const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
+  const [website, setWebsite] = useState("");
+  const [email, setEmail] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState("");
   const [loading, setLoading] = useState(false);
@@ -38,6 +40,8 @@ export default function EditProfile() {
         setUsername(data.username || "");
         setDisplayName(data.display_name || "");
         setBio(data.bio || "");
+        setWebsite(data.website || "");
+        setEmail(data.email || "");
         setAvatarPreview(data.avatar_url || "");
       }
     };
@@ -92,6 +96,8 @@ export default function EditProfile() {
           username,
           display_name: displayName,
           bio,
+          website,
+          email,
           avatar_url: avatarUrl,
         })
         .eq("id", profile.id);
@@ -188,6 +194,30 @@ export default function EditProfile() {
             className="bg-white/10 border-white/20 text-white resize-none"
             placeholder="Write a bio..."
             rows={5}
+          />
+        </div>
+
+        {/* Website */}
+        <div>
+          <label className="text-sm text-white/80 mb-2 block">Website</label>
+          <Input
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
+            className="bg-white/10 border-white/20 text-white"
+            placeholder="https://yourwebsite.com"
+            type="url"
+          />
+        </div>
+
+        {/* Email */}
+        <div>
+          <label className="text-sm text-white/80 mb-2 block">Email</label>
+          <Input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="bg-white/10 border-white/20 text-white"
+            placeholder="your@email.com"
+            type="email"
           />
         </div>
 

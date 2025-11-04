@@ -41,36 +41,42 @@ export type Database = {
           bio: string | null
           created_at: string
           display_name: string | null
+          email: string | null
           followers_count: number | null
           following_count: number | null
           id: string
           posts_count: number | null
           updated_at: string
           username: string | null
+          website: string | null
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
           display_name?: string | null
+          email?: string | null
           followers_count?: number | null
           following_count?: number | null
           id: string
           posts_count?: number | null
           updated_at?: string
           username?: string | null
+          website?: string | null
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
           display_name?: string | null
+          email?: string | null
           followers_count?: number | null
           following_count?: number | null
           id?: string
           posts_count?: number | null
           updated_at?: string
           username?: string | null
+          website?: string | null
         }
         Relationships: []
       }
