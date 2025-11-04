@@ -6,6 +6,8 @@ import plusIcon from "@/assets/plus-2.png";
 import shareIcon from "@/assets/share-2.png";
 import dotsIcon from "@/assets/3-dots.png";
 import favsIcon from "@/assets/favs_new.png";
+import addIcon from "@/assets/new_add.png";
+import shareNewIcon from "@/assets/new_share.png";
 
 interface Video {
   id: number;
@@ -116,10 +118,27 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
           className={`absolute left-0 right-0 bottom-0 bg-black/80 backdrop-blur-md transition-transform duration-300 ${showDock ? 'translate-y-0' : 'translate-y-full'}`}
           style={{ height: dockTop !== null ? `calc(100vh - ${dockTop}px)` : '0px' }}
         >
+          {/* Favs Icon */}
           <div className="absolute left-[40px]" style={{ top: menuCenterY !== null && dockTop !== null ? `${menuCenterY - dockTop}px` : '0px', transform: 'translateY(-50%)' }}>
             <button className="flex flex-col items-center gap-1">
               <img src={favsIcon} alt="Favs" className="h-[30px] w-[30px]" />
               <span className="text-xs font-semibold text-white drop-shadow-lg">favs</span>
+            </button>
+          </div>
+          
+          {/* Add Icon */}
+          <div className="absolute left-[33%]" style={{ top: menuCenterY !== null && dockTop !== null ? `${menuCenterY - dockTop}px` : '0px', transform: 'translate(-50%, -50%)' }}>
+            <button className="flex flex-col items-center gap-1">
+              <img src={addIcon} alt="Add" className="h-[30px] w-[30px]" />
+              <span className="text-xs font-semibold text-white drop-shadow-lg">add</span>
+            </button>
+          </div>
+          
+          {/* Share Icon */}
+          <div className="absolute left-[60%]" style={{ top: menuCenterY !== null && dockTop !== null ? `${menuCenterY - dockTop}px` : '0px', transform: 'translate(-50%, -50%)' }}>
+            <button className="flex flex-col items-center gap-1">
+              <img src={shareNewIcon} alt="Share" className="h-[30px] w-[30px]" />
+              <span className="text-xs font-semibold text-white drop-shadow-lg">share</span>
             </button>
           </div>
         </div>
