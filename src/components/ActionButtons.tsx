@@ -17,6 +17,7 @@ interface ActionButtonsProps {
   onLike: () => void;
   onRate: (rating: number) => void;
   artistAvatar?: string;
+  artistUserId?: string;
 }
 
 export const ActionButtons = ({
@@ -27,6 +28,7 @@ export const ActionButtons = ({
   onLike,
   onRate,
   artistAvatar,
+  artistUserId,
 }: ActionButtonsProps) => {
   const navigate = useNavigate();
   const [showRating, setShowRating] = useState(false);
@@ -162,7 +164,15 @@ export const ActionButtons = ({
 
       {/* Upload/Camera */}
       <div className="relative h-[30px] mt-[50px]">
-        <button className="action-button flex items-center justify-center">
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            if (artistUserId) {
+              navigate(`/user/${artistUserId}`);
+            }
+          }}
+          className="action-button flex items-center justify-center"
+        >
           {artistAvatar ? (
             <img 
               src={artistAvatar} 
