@@ -55,6 +55,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
         ref={videoRef}
         src={video.videoUrl}
         className="absolute inset-0 h-full w-full object-cover"
+        style={{ objectFit: 'cover' }}
         loop
         playsInline
         muted
