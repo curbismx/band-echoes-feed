@@ -29,6 +29,7 @@ export const ActionButtons = ({
   const navigate = useNavigate();
   const [showRating, setShowRating] = useState(false);
   const [selectedStar, setSelectedStar] = useState<number | null>(null);
+  const [hoverStar, setHoverStar] = useState<number | null>(null);
 
   const hasRated = userRating !== null;
 
@@ -104,13 +105,16 @@ export const ActionButtons = ({
                     tabIndex={0}
                     onClick={(e) => { e.stopPropagation(); handleStarClick(star); }}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); handleStarClick(star); } }}
-                    className={`relative ${selectedStar === star ? "z-50" : ""} transition-[filter,transform] duration-200`}
+                    onMouseEnter={() => setHoverStar(star)}
+                    onMouseLeave={() => setHoverStar(null)}
+                    aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
+                    className={`relative ${selectedStar === star ? "z-50" : ""} transition-[filter,transform] duration-200 hover:scale-105`}
                   >
                     <img
-                      src={starRatingIcon}
+                      src={(selectedStar === star || hoverStar === star) ? starOnIcon : starRatingIcon}
                       alt={`${star} stars`}
-                      className={`h-[18px] w-[18px] transition-all duration-200 ${selectedStar === star ? "brightness-150" : ""}`}
-                      style={{ filter: selectedStar === star ? "drop-shadow(0 0 20px gold)" : "none" }}
+                      className={`h-[22px] w-[22px] transition-all duration-200 ${(selectedStar === star || hoverStar === star) ? "brightness-110" : ""}`}
+                      style={{ filter: (selectedStar === star || hoverStar === star) ? "drop-shadow(0 0 14px rgba(255,215,0,0.7))" : "none" }}
                     />
                   </div>
                 </div>
