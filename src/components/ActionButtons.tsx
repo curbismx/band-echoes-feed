@@ -152,7 +152,7 @@ export const ActionButtons = ({
         onClick={handleRateClick}
         className="action-button flex flex-col items-center gap-1 relative z-10"
       >
-        <div className="relative">
+        <div className="relative flex items-center justify-center">
           <img 
             src={starIcon} 
             alt="Rate" 
@@ -167,7 +167,7 @@ export const ActionButtons = ({
               ref={sliderRef}
               src={starRatingSlider} 
               alt="Rating" 
-              className="absolute bottom-0 left-1/2 -translate-x-1/2 animate-slide-up-from-star"
+              className="absolute animate-slide-up-from-star"
               draggable={false}
               onTouchStart={(e) => handleSliderStart(e.touches[0].clientY)}
               onMouseDown={(e) => handleSliderStart(e.clientY)}
@@ -176,6 +176,9 @@ export const ActionButtons = ({
                 zIndex: 10,
                 width: '47px',
                 height: 'auto',
+                bottom: '0',
+                left: '50%',
+                transform: 'translateX(-50%)',
               }}
             />
           )}
