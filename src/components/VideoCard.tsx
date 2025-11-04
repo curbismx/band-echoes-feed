@@ -21,15 +21,16 @@ interface Video {
 interface VideoCardProps {
   video: Video;
   isActive: boolean;
+  isMuted: boolean;
+  onUnmute: () => void;
 }
 
-export const VideoCard = ({ video, isActive }: VideoCardProps) => {
+export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps) => {
   const [isFollowing, setIsFollowing] = useState(video.isFollowing);
   const [isLiked, setIsLiked] = useState(false);
   const [likes, setLikes] = useState(video.likes);
   const [rating, setRating] = useState(video.rating);
   const [isPaused, setIsPaused] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
   const [showDock, setShowDock] = useState(false);
   const [dockTop, setDockTop] = useState<number | null>(null);
   const [menuLabelBottom, setMenuLabelBottom] = useState<number | null>(null);
@@ -62,7 +63,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
     // On first interaction: unmute and ensure playback without pausing
     if (isMuted) {
       videoRef.current.muted = false;
-      setIsMuted(false);
+      onUnmute();
       videoRef.current.play().catch(() => {});
       setIsPaused(false);
       return;

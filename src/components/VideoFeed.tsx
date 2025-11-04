@@ -31,6 +31,7 @@ const mockVideos = [
 
 export const VideoFeed = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isMuted, setIsMuted] = useState(true);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -96,6 +97,8 @@ export const VideoFeed = () => {
             key={video.id}
             video={video}
             isActive={index === currentIndex}
+            isMuted={isMuted}
+            onUnmute={() => setIsMuted(false)}
           />
         ))}
       </div>
