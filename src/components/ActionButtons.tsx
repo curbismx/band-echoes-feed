@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import starIcon from "@/assets/star.png";
+import starOnIcon from "@/assets/star-on.png";
 import heartIcon from "@/assets/heart.png";
 import menuIcon from "@/assets/menu.png";
 import accountIcon from "@/assets/account.png";
@@ -93,11 +94,9 @@ export const ActionButtons = ({
       >
         <div className="relative flex items-center justify-center">
           <img 
-            src={starIcon} 
+            src={hasRated ? starOnIcon : starIcon} 
             alt="Rate" 
-            className={`h-[30px] w-[30px] relative z-20 transition-all ${
-              hasRated ? "brightness-0 saturate-100 invert-[.65] sepia-100 hue-rotate-[10deg]" : ""
-            }`}
+            className="h-[30px] w-[30px] relative z-20 transition-all"
           />
           
           {/* 5 Rating Stars */}
