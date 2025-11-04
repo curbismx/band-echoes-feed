@@ -65,29 +65,31 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
   };
 
   const handleFollow = async () => {
-    if (!video.artistUserId) return;
-    
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    // Optimistic UI toggle
+    const next = !isFollowing;
+    setIsFollowing(next);
 
-    if (isFollowing) {
+    // Attempt to persist if logged in and we have an artist id
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!video.artistUserId || !user) {
+      return; // keep optimistic state locally
+    }
+
+    if (next) {
+      // Follow
+      const { error } = await supabase
+        .from('follows')
+        .insert({ follower_id: user.id, followed_id: video.artistUserId });
+      if (error) setIsFollowing(!next); // revert on error
+    } else {
       // Unfollow
-      await supabase
+      const { error } = await supabase
         .from('follows')
         .delete()
         .eq('follower_id', user.id)
         .eq('followed_id', video.artistUserId);
-    } else {
-      // Follow
-      await supabase
-        .from('follows')
-        .insert({
-          follower_id: user.id,
-          followed_id: video.artistUserId
-        });
+      if (error) setIsFollowing(!next); // revert on error
     }
-    
-    setIsFollowing(!isFollowing);
   };
 
   const handleLike = () => {
