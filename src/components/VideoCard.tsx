@@ -96,42 +96,44 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
       <div className="absolute inset-0 pointer-events-auto" onClick={handleVideoClick} />
       
       {/* Artist/Song Text - Above Follow Button */}
-      {((showDock && circleCenterY !== null) || (!showDock && menuCenterY !== null)) && (
-        <div
-          className="absolute pointer-events-none z-20"
-          style={{
-            left: '30px',
-            bottom: showDock 
-              ? `calc(100vh - ${circleCenterY}px + 15px + 30px)` 
-              : `calc(100vh - ${menuCenterY! - 10}px + 15px + 30px)`,
-          }}
-        >
-          <div className="font-bold text-white drop-shadow-lg">The Bands Name</div>
-          <div className="font-medium text-white drop-shadow-lg">The songs name</div>
-        </div>
-      )}
+      <div
+        className="absolute pointer-events-none z-20"
+        style={{
+          left: '30px',
+          bottom: showDock && circleCenterY !== null
+            ? `calc(100vh - ${circleCenterY}px + 15px + 30px)` 
+            : menuCenterY !== null 
+              ? `calc(100vh - ${menuCenterY - 10}px + 15px + 30px)`
+              : '150px',
+        }}
+      >
+        <div className="font-bold text-white drop-shadow-lg">The Bands Name</div>
+        <div className="font-medium text-white drop-shadow-lg">The songs name</div>
+      </div>
 
       {/* Follow Button - Left Side */}
-      {((showDock && circleCenterY !== null) || (!showDock && menuCenterY !== null)) && (
-        <button
-          onClick={handleFollow}
-          className="absolute pointer-events-auto z-20 p-0 border-0 bg-transparent"
-          style={{
-            left: '30px',
-            top: showDock ? `${circleCenterY}px` : `${menuCenterY! - 10}px`,
-            transform: 'translateY(-50%)',
-            height: '30px',
-          }}
-        >
-          <img
-            src={followIcon}
-            alt="Follow"
-            className={`h-[30px] w-auto transition-all ${
-              isFollowing ? "opacity-50" : ""
-            }`}
-          />
-        </button>
-      )}
+      <button
+        onClick={handleFollow}
+        className="absolute pointer-events-auto z-20 p-0 border-0 bg-transparent"
+        style={{
+          left: '30px',
+          top: showDock && circleCenterY !== null
+            ? `${circleCenterY}px` 
+            : menuCenterY !== null
+              ? `${menuCenterY - 10}px`
+              : '100px',
+          transform: 'translateY(-50%)',
+          height: '30px',
+        }}
+      >
+        <img
+          src={followIcon}
+          alt="Follow"
+          className={`h-[30px] w-auto transition-all ${
+            isFollowing ? "opacity-50" : ""
+          }`}
+        />
+      </button>
       
       <div className="absolute inset-0 flex flex-col justify-between p-4 pb-8 pr-[30px] pointer-events-none">
         {/* Bottom Content */}
