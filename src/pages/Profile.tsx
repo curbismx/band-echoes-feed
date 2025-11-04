@@ -74,7 +74,7 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#252525" }}>
         <div className="text-white">Loading...</div>
       </div>
     );
@@ -105,7 +105,7 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen text-white" style={{ backgroundColor: "#252525" }}>
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-white/10">
         <button 
