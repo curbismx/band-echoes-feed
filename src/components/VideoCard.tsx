@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { ActionButtons } from "./ActionButtons";
 import { useVideoRatings } from "@/hooks/useVideoRatings";
-import followIcon from "@/assets/follow-new.png";
+import followOffIcon from "@/assets/follow_OFF.png";
+import followOnIcon from "@/assets/follow_ON.png";
 
 interface Video {
   id: number;
@@ -117,11 +118,9 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
         }}
       >
         <img
-          src={followIcon}
+          src={isFollowing ? followOnIcon : followOffIcon}
           alt="Follow"
-          className={`h-[30px] w-auto transition-all ${
-            isFollowing ? "opacity-50" : ""
-          }`}
+          className="h-[30px] w-auto transition-all"
         />
       </button>
       
