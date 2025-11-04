@@ -3,7 +3,6 @@ import starIcon from "@/assets/star.png";
 import heartIcon from "@/assets/heart.png";
 import menuIcon from "@/assets/menu.png";
 import accountIcon from "@/assets/account.png";
-import circleIcon from "@/assets/circle-2.png";
 
 interface ActionButtonsProps {
   likes: number;
@@ -25,7 +24,6 @@ export const ActionButtons = ({
   onMenuClick,
 }: ActionButtonsProps) => {
   const [showRating, setShowRating] = useState(false);
-  const circleRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLButtonElement>(null);
   const menuLabelRef = useRef<HTMLSpanElement>(null);
 
@@ -96,12 +94,6 @@ export const ActionButtons = ({
         <span className="text-xs font-semibold text-white drop-shadow-lg">
           account
         </span>
-      </button>
-
-      {/* Upload/Camera Button */}
-      {/* Upload/Camera Button */}
-      <button className="action-button mt-[40px]" ref={circleRef}>
-        <img src={circleIcon} alt="Upload" className="h-[30px] w-[30px]" />
       </button>
 
       {/* Menu */}
