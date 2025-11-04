@@ -49,7 +49,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
   };
 
   return (
-    <div className="relative h-screen w-screen">
+    <div className="relative h-[100dvh] w-screen">
       {/* Video Background */}
       <video
         ref={videoRef}
@@ -61,10 +61,6 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
         muted
       />
 
-      {/* Dark overlay for better text visibility */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60" />
-
-      {/* Content Overlay */}
       <div className="absolute inset-0 flex flex-col justify-between p-4 pb-8">
         {/* Bottom Content */}
         <div className="mt-auto flex items-end justify-between">
