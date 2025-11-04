@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { VideoCard } from "./VideoCard";
+import { useAuth } from "@/contexts/AuthContext";
 
-// Test videos
-const mockVideos = [
+// Test videos - will use current user's ID
+const getMockVideos = (userId: string) => [
   {
     id: 1,
     artistName: "The Rising Stars",
-    artistUserId: "00000000-0000-0000-0000-000000000001",
+    artistUserId: userId,
     videoUrl: "/videos/video1.mp4",
     likes: 1234,
     rating: 8.7,
@@ -15,7 +16,7 @@ const mockVideos = [
   {
     id: 2,
     artistName: "The Midnight Keys",
-    artistUserId: "00000000-0000-0000-0000-000000000002",
+    artistUserId: userId,
     videoUrl: "/videos/video2.mp4",
     likes: 892,
     rating: 9.2,
@@ -24,7 +25,7 @@ const mockVideos = [
   {
     id: 3,
     artistName: "Luna Eclipse",
-    artistUserId: "00000000-0000-0000-0000-000000000003",
+    artistUserId: userId,
     videoUrl: "/videos/video3.mp4",
     likes: 2156,
     rating: 7.8,
@@ -33,12 +34,14 @@ const mockVideos = [
 ];
 
 export const VideoFeed = () => {
+  const { user } = useAuth();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMuted, setIsMuted] = useState(true);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const mockVideos = getMockVideos(user?.id || "");
   const minSwipeDistance = 50;
 
   const onTouchStart = (e: React.TouchEvent) => {
