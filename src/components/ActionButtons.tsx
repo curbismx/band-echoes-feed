@@ -4,7 +4,7 @@ import heartIcon from "@/assets/heart.png";
 import menuIcon from "@/assets/menu.png";
 import accountIcon from "@/assets/account.png";
 import circleIcon from "@/assets/circle-2.png";
-import starsSlider from "@/assets/stars-slider.png";
+import starRatingSlider from "@/assets/star-rating-slider.png";
 
 interface ActionButtonsProps {
   likes: number;
@@ -165,9 +165,9 @@ export const ActionButtons = ({
           {showRating && (
             <img 
               ref={sliderRef}
-              src={starsSlider} 
+              src={starRatingSlider} 
               alt="Rating" 
-              className="absolute top-0 left-1/2 -translate-x-1/2 animate-slide-up-from-star w-[60px] h-auto"
+              className="absolute bottom-0 left-1/2 -translate-x-1/2 animate-slide-up-from-star w-[47px] h-auto"
               draggable={false}
               onTouchStart={(e) => handleSliderStart(e.touches[0].clientY)}
               onMouseDown={(e) => handleSliderStart(e.clientY)}
