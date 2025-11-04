@@ -105,7 +105,6 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
             top: showDock ? `${circleCenterY}px` : `${menuCenterY}px`,
             transform: 'translateY(-50%)',
             height: '30px',
-            width: '30px',
           }}
         >
           <img
