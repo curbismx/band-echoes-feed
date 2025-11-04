@@ -83,7 +83,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
         {/* Bottom Content */}
         <div className="mt-auto flex items-end justify-between">
           {/* Artist Info and Follow */}
-          <div className={`flex items-center gap-3 transition-all duration-300 ${showDock ? 'pb-0' : 'pb-[20px]'}`}>
+          <div className={`flex items-center gap-3 pb-[20px] transition-transform duration-300 ${showDock ? '-translate-y-[40px]' : ''}`}>
             <h2 className="text-2xl font-bold text-white drop-shadow-lg">
               The Rising Stars
             </h2>
