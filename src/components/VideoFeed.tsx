@@ -6,6 +6,7 @@ const mockVideos = [
   {
     id: 1,
     artistName: "The Rising Stars",
+    artistUserId: "00000000-0000-0000-0000-000000000001",
     videoUrl: "/videos/video1.mp4",
     likes: 1234,
     rating: 8.7,
@@ -14,6 +15,7 @@ const mockVideos = [
   {
     id: 2,
     artistName: "The Midnight Keys",
+    artistUserId: "00000000-0000-0000-0000-000000000002",
     videoUrl: "/videos/video2.mp4",
     likes: 892,
     rating: 9.2,
@@ -22,6 +24,7 @@ const mockVideos = [
   {
     id: 3,
     artistName: "Luna Eclipse",
+    artistUserId: "00000000-0000-0000-0000-000000000003",
     videoUrl: "/videos/video3.mp4",
     likes: 2156,
     rating: 7.8,

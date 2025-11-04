@@ -1,12 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { ActionButtons } from "./ActionButtons";
 import { useVideoRatings } from "@/hooks/useVideoRatings";
+import { supabase } from "@/integrations/supabase/client";
 import followOffIcon from "@/assets/follow_OFF.png";
 import followOnIcon from "@/assets/follow_ON.png";
 
 interface Video {
   id: number;
   artistName: string;
+  artistUserId: string;
   videoUrl: string;
   likes: number;
   rating: number;
@@ -62,7 +64,29 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
     }
   };
 
-  const handleFollow = () => {
+  const handleFollow = async () => {
+    if (!video.artistUserId) return;
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    if (isFollowing) {
+      // Unfollow
+      await supabase
+        .from('follows')
+        .delete()
+        .eq('follower_id', user.id)
+        .eq('followed_id', video.artistUserId);
+    } else {
+      // Follow
+      await supabase
+        .from('follows')
+        .insert({
+          follower_id: user.id,
+          followed_id: video.artistUserId
+        });
+    }
+    
     setIsFollowing(!isFollowing);
   };
 

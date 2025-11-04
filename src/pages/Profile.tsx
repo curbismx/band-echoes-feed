@@ -9,6 +9,7 @@ export default function Profile() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const [profile, setProfile] = useState<any>(null);
+  const [following, setFollowing] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -28,6 +29,25 @@ export default function Profile() {
       if (data) {
         setProfile(data);
       }
+      
+      // Fetch following list
+      const { data: followsData } = await supabase
+        .from("follows")
+        .select(`
+          followed_id,
+          profiles:followed_id (
+            id,
+            username,
+            display_name,
+            avatar_url
+          )
+        `)
+        .eq("follower_id", user.id);
+      
+      if (followsData) {
+        setFollowing(followsData.map((f: any) => f.profiles));
+      }
+      
       setLoading(false);
     };
 
@@ -155,6 +175,28 @@ export default function Profile() {
           </button>
         </div>
       </div>
+
+      {/* Following List */}
+      {following.length > 0 && (
+        <div className="p-4 border-t border-white/10">
+          <h2 className="font-semibold text-lg mb-3">Following</h2>
+          <div className="space-y-3">
+            {following.map((followedUser) => (
+              <div key={followedUser.id} className="flex items-center gap-3">
+                <img
+                  src={followedUser.avatar_url || "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=80&h=80&fit=crop"}
+                  alt={followedUser.username}
+                  className="w-12 h-12 rounded-full object-cover"
+                />
+                <div className="flex-1">
+                  <div className="font-semibold">{followedUser.display_name || followedUser.username}</div>
+                  <div className="text-sm text-white/60">@{followedUser.username}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Video Grid */}
       <div className="border-t border-white/10">
