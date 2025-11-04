@@ -94,17 +94,17 @@ export const ActionButtons = ({
                 {[5, 4, 3, 2, 1].map((star) => (
                   <div key={star} className="relative flex items-center justify-center">
                     {selectedStar === star && (
-                      <div className="absolute inset-0 bg-yellow-400 rounded-full blur-xl scale-150 animate-pulse" />
+                      <div className="absolute inset-0 bg-yellow-400 rounded-full blur-xl scale-[3] animate-pulse" />
                     )}
                     <button
                       onClick={() => handleStarClick(star)}
-                      className={`relative ${selectedStar === star ? "z-50" : ""}`}
+                      className={`relative ${selectedStar === star ? "z-50 scale-[1.8]" : ""} transition-transform duration-200`}
                     >
                       <img
                         src={starRatingIcon}
                         alt={`${star} stars`}
-                        className="h-[18px] w-[18px]"
-                        style={{ filter: selectedStar === star ? "drop-shadow(0 0 16px gold)" : "none" }}
+                        className={`h-[18px] w-[18px] transition-all duration-200 ${selectedStar === star ? "brightness-150" : ""}`}
+                        style={{ filter: selectedStar === star ? "drop-shadow(0 0 20px gold)" : "none" }}
                       />
                     </button>
                   </div>
