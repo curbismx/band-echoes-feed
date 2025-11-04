@@ -50,9 +50,18 @@ export const ActionButtons = ({
       }
       onButtonsMeasure?.(pos);
     };
+    
+    // Measure immediately
     measure();
+    
+    // Also measure after a short delay to ensure layout is stable
+    const timer = setTimeout(measure, 100);
+    
     window.addEventListener('resize', measure);
-    return () => window.removeEventListener('resize', measure);
+    return () => {
+      window.removeEventListener('resize', measure);
+      clearTimeout(timer);
+    };
   }, [onButtonsMeasure]);
   const formatNumber = (num: number) => {
     if (num >= 1000) {
