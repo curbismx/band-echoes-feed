@@ -87,13 +87,15 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
         className="absolute inset-0 w-[100vw] h-[100vh] object-cover cursor-pointer"
         loop
         playsInline
-        muted
         onClick={handleVideoClick}
       />
 
-      <div className="absolute inset-0 flex flex-col justify-between p-4 pb-8 pr-[30px]">
+      {/* Click area for video pause/play */}
+      <div className="absolute inset-0 pointer-events-auto" onClick={handleVideoClick} />
+      
+      <div className="absolute inset-0 flex flex-col justify-between p-4 pb-8 pr-[30px] pointer-events-none">
         {/* Bottom Content */}
-        <div className="mt-auto flex items-end justify-between">
+        <div className="mt-auto flex items-end justify-between pointer-events-auto">
           {/* Artist Info and Follow */}
           <div className={`flex items-center gap-3 pb-[20px] transition-all duration-300 ${showDock ? '-translate-y-[70px]' : ''}`}>
             <h2 className="text-2xl font-bold text-white drop-shadow-lg">
