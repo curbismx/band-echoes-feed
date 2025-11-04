@@ -117,7 +117,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
         >
           <div className="absolute bottom-0 left-[30px]" style={{ paddingBottom: menuLabelBottom ?? 0 }}>
             <button className="flex flex-col items-center gap-1">
-              <img src={favsIcon} alt="Favs" />
+              <img src={favsIcon} alt="Favs" className="h-[30px] w-[30px]" />
             </button>
           </div>
         </div>
