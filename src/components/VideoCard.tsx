@@ -29,6 +29,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
   const [likes, setLikes] = useState(video.likes);
   const [rating, setRating] = useState(video.rating);
   const [isPaused, setIsPaused] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const [showDock, setShowDock] = useState(false);
   const [dockTop, setDockTop] = useState<number | null>(null);
   const [menuLabelBottom, setMenuLabelBottom] = useState<number | null>(null);
@@ -57,6 +58,12 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
 
   const handleVideoClick = () => {
     if (videoRef.current) {
+      // Unmute on first interaction
+      if (isMuted) {
+        videoRef.current.muted = false;
+        setIsMuted(false);
+      }
+      
       if (isPaused) {
         videoRef.current.play();
         setIsPaused(false);
@@ -94,7 +101,11 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
       />
 
       {/* Click area for video pause/play */}
-      <div className="absolute inset-0 pointer-events-auto" onClick={handleVideoClick} />
+      <div 
+        className="absolute inset-0 z-10" 
+        style={{ pointerEvents: 'auto' }}
+        onClick={handleVideoClick} 
+      />
       
       {/* Artist/Song Text - Above Follow Button */}
       <div
