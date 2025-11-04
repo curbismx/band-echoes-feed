@@ -87,8 +87,8 @@ export const ActionButtons = ({
     setTimeout(() => {
       setShowRating(false);
       onRate(starRating);
-      setSelectedStar(null);
-    }, 300);
+      setTimeout(() => setSelectedStar(null), 100);
+    }, 600);
   };
 
   return (
@@ -112,17 +112,20 @@ export const ActionButtons = ({
                 <button
                   key={star}
                   onClick={() => handleStarClick(star)}
-                  className={`transition-all ${
+                  className={`transition-all duration-200 ${
                     selectedStar === star 
-                      ? "scale-125 animate-pulse" 
+                      ? "scale-150" 
                       : "hover:scale-110"
                   }`}
+                  style={{
+                    filter: selectedStar === star ? "drop-shadow(0 0 8px gold)" : "none"
+                  }}
                 >
                   <img 
                     src={starRatingIcon} 
                     alt={`${star} stars`}
-                    className={`h-[30px] w-[30px] transition-all ${
-                      selectedStar === star ? "brightness-0 saturate-100 invert-[.65] sepia-100 hue-rotate-[10deg]" : ""
+                    className={`h-[30px] w-[30px] transition-all duration-200 ${
+                      selectedStar === star ? "brightness-0 saturate-100 invert-[.65] sepia-100 hue-rotate-[10deg] animate-pulse" : ""
                     }`}
                   />
                 </button>
