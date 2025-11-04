@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { VideoCard } from "./VideoCard";
 
-// Mock video data - replace with real data later
+// Test videos
 const mockVideos = [
   {
     id: 1,
-    artistName: "Jimi Hendrix",
-    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+    artistName: "The Rising Stars",
+    videoUrl: "/videos/video1.mp4",
     likes: 1234,
     rating: 8.7,
     isFollowing: false,
@@ -14,7 +14,7 @@ const mockVideos = [
   {
     id: 2,
     artistName: "The Midnight Keys",
-    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+    videoUrl: "/videos/video2.mp4",
     likes: 892,
     rating: 9.2,
     isFollowing: true,
@@ -22,7 +22,7 @@ const mockVideos = [
   {
     id: 3,
     artistName: "Luna Eclipse",
-    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    videoUrl: "/videos/video3.mp4",
     likes: 2156,
     rating: 7.8,
     isFollowing: false,
