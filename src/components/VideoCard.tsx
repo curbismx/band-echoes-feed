@@ -110,7 +110,7 @@ export const VideoCard = ({ video, isActive }: VideoCardProps) => {
           <img
             src={followIcon}
             alt="Follow"
-            className={`h-[30px] w-[30px] transition-all ${
+            className={`h-[30px] w-auto transition-all ${
               isFollowing ? "opacity-50" : ""
             }`}
           />
