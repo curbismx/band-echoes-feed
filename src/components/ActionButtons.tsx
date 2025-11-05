@@ -287,27 +287,28 @@ export const ActionButtons = ({
       </div>
 
       {/* Follow Artist */}
-      {artistUserId && user?.id !== artistUserId && (
-        <div className="relative h-[30px] mt-[40px]">
-          <button 
-            onClick={(e) => {
-              e.stopPropagation();
-              if ("vibrate" in navigator) {
-                navigator.vibrate(50);
-              }
+      <div className="relative h-[30px] mt-[40px]">
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            if ("vibrate" in navigator) {
+              navigator.vibrate(50);
+            }
+            if (artistUserId && user?.id !== artistUserId) {
               handleFollowToggle();
-            }}
-            disabled={followLoading}
-            className="action-button flex items-center justify-center"
-          >
-            <img 
-              src={isFollowing ? followOnIcon : followOffIcon} 
-              alt={isFollowing ? "Unfollow" : "Follow"} 
-              className="h-[30px] w-[30px]"
-            />
-          </button>
-        </div>
-      )}
+            }
+          }}
+          disabled={followLoading || !artistUserId || user?.id === artistUserId}
+          className="action-button flex items-center justify-center"
+        >
+          <img 
+            src={isFollowing ? followOnIcon : followOffIcon} 
+            alt={isFollowing ? "Unfollow" : "Follow"} 
+            className="h-[30px] w-[30px]"
+            style={{ opacity: (!artistUserId || user?.id === artistUserId) ? 0.3 : 1 }}
+          />
+        </button>
+      </div>
 
       {/* Plus */}
       <div className="relative h-[30px] mt-[40px]">
