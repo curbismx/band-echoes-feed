@@ -14,6 +14,8 @@ interface Video {
   likes: number;
   rating: number;
   isFollowing: boolean;
+  title?: string;
+  caption?: string;
 }
 
 interface VideoCardProps {
@@ -179,34 +181,20 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
         onClick={handleVideoClick} 
       />
       
-      {/* Artist/Song Text - Above Follow Button */}
+      {/* Video Info Text - Left Side */}
       <div
-        className="absolute pointer-events-none z-20"
+        className="absolute pointer-events-none z-20 max-w-[65%]"
         style={{
           left: '30px',
-          bottom: '99px',
+          bottom: '80px',
         }}
       >
-        <div className="font-bold text-white drop-shadow-lg">The Bands Name</div>
-        <div className="font-medium text-white drop-shadow-lg">The songs name</div>
+        <div className="font-bold text-white drop-shadow-lg mb-1">{video.artistName}</div>
+        <div className="font-medium text-white drop-shadow-lg mb-1">{video.title || "Untitled"}</div>
+        <div className="font-normal text-white drop-shadow-lg text-sm leading-relaxed">
+          {video.caption || ""}
+        </div>
       </div>
-
-      {/* Follow Button - Left Side, aligned with circle icon */}
-      <button
-        onClick={handleFollow}
-        className="absolute pointer-events-auto z-20 p-0 border-0 bg-transparent"
-        style={{
-          left: '30px',
-          bottom: '49px',
-          height: '30px',
-        }}
-      >
-        <img
-          src={isFollowing ? followOnIcon : followOffIcon}
-          alt="Follow"
-          className="h-[30px] w-auto transition-all"
-        />
-      </button>
       
       <div className="absolute inset-0 flex flex-col justify-between p-4 pb-8 pr-[30px] pointer-events-none">
         {/* Bottom Content */}
