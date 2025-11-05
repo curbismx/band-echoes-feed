@@ -38,8 +38,26 @@ export const CommentsDrawer = ({ videoId, isOpen, onClose }: CommentsDrawerProps
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
 
   const emojis = ["❤️", "🙌", "🔥", "👏", "😢", "😍", "😮", "😂"];
+
+  // Fetch current user's avatar
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user) return;
+      const { data } = await supabase
+        .from("profiles")
+        .select("avatar_url")
+        .eq("id", user.id)
+        .single();
+      
+      if (data?.avatar_url) {
+        setUserAvatar(data.avatar_url);
+      }
+    };
+    fetchUserProfile();
+  }, [user]);
 
   useEffect(() => {
     if (isOpen) {
@@ -107,7 +125,7 @@ export const CommentsDrawer = ({ videoId, isOpen, onClose }: CommentsDrawerProps
 
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DrawerContent className="h-[85vh] flex flex-col">
+      <DrawerContent className="h-[50vh] flex flex-col rounded-t-3xl">
         <DrawerHeader className="border-b border-border">
           <DrawerTitle className="text-center">Comments</DrawerTitle>
         </DrawerHeader>
@@ -190,7 +208,7 @@ export const CommentsDrawer = ({ videoId, isOpen, onClose }: CommentsDrawerProps
         <div className="border-t border-border p-4">
           <div className="flex gap-3 items-start">
             <Avatar className="h-10 w-10 flex-shrink-0">
-              <AvatarImage src={user?.user_metadata?.avatar_url} />
+              <AvatarImage src={userAvatar || undefined} />
               <AvatarFallback>
                 {user?.email?.charAt(0).toUpperCase() || "U"}
               </AvatarFallback>
