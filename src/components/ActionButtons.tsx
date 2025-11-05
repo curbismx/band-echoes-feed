@@ -221,20 +221,7 @@ export const ActionButtons = ({
         </button>
       </div>
 
-      {/* Account */}
-      <div className="relative h-[30px] mt-[40px]">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            navigate("/profile");
-          }}
-          className="action-button flex items-center justify-center"
-        >
-          <img src={accountIcon} alt="Account" className="h-[30px] w-[30px]" />
-        </button>
-      </div>
-
-      {/* Upload/Camera */}
+      {/* Artist Avatar/Profile */}
       <div className="relative h-[30px] mt-[40px]">
         <button 
           onClick={(e) => {
@@ -254,6 +241,19 @@ export const ActionButtons = ({
           ) : (
             <img src={circleIcon} alt="Upload" className="h-[30px] w-[30px]" />
           )}
+        </button>
+      </div>
+
+      {/* Account */}
+      <div className="relative h-[30px] mt-[40px]">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate("/profile");
+          }}
+          className="action-button flex items-center justify-center"
+        >
+          <img src={accountIcon} alt="Account" className="h-[30px] w-[30px]" />
         </button>
       </div>
     </div>
