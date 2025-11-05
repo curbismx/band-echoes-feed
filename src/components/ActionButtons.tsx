@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 import starIcon from "@/assets/star.png";
 import starOnIcon from "@/assets/star-on.png";
 import starSingleIcon from "@/assets/star-single.png";
@@ -36,6 +37,7 @@ export const ActionButtons = ({
   artistName = "",
 }: ActionButtonsProps) => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [showRating, setShowRating] = useState(false);
   const [selectedStar, setSelectedStar] = useState<number | null>(null);
   const [hoverStar, setHoverStar] = useState<number | null>(null);
@@ -74,6 +76,10 @@ export const ActionButtons = ({
   };
 
   const handleShare = async () => {
+    if ("vibrate" in navigator) {
+      navigator.vibrate(50);
+    }
+
     const url = window.location.href;
     const shareData = {
       title: videoTitle,
@@ -85,14 +91,39 @@ export const ActionButtons = ({
       try {
         await navigator.share(shareData);
       } catch (err) {
-        // User cancelled or share failed, fallback to clipboard
+        // User cancelled or share failed
         if (err instanceof Error && err.name !== 'AbortError') {
-          navigator.clipboard?.writeText(url);
+          // Share failed, copy to clipboard
+          try {
+            await navigator.clipboard.writeText(url);
+            toast({
+              title: "Link copied!",
+              description: "Video link copied to clipboard",
+            });
+          } catch (clipboardErr) {
+            toast({
+              title: "Share failed",
+              description: "Unable to share or copy link",
+              variant: "destructive",
+            });
+          }
         }
       }
     } else {
       // Fallback for browsers that don't support Web Share API
-      navigator.clipboard?.writeText(url);
+      try {
+        await navigator.clipboard.writeText(url);
+        toast({
+          title: "Link copied!",
+          description: "Video link copied to clipboard",
+        });
+      } catch (err) {
+        toast({
+          title: "Copy failed",
+          description: "Unable to copy link to clipboard",
+          variant: "destructive",
+        });
+      }
     }
   };
 
