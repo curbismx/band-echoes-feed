@@ -189,10 +189,10 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
           bottom: '80px',
         }}
       >
-        <div className="font-bold text-white drop-shadow-lg mb-1">{video.artistName}</div>
-        <div className="font-medium text-white drop-shadow-lg mb-1">{video.title || "Untitled"}</div>
+        <div className="font-bold text-white drop-shadow-lg mb-1">The Guitarman</div>
+        <div className="font-medium text-white drop-shadow-lg mb-1">Crosstown Traffic</div>
         <div className="font-normal text-white drop-shadow-lg text-sm leading-relaxed">
-          {video.caption || ""}
+          Jimi Hendrix playing at the Rainbow Theatre, London in 1967
         </div>
       </div>
       
