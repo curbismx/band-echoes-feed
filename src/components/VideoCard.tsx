@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { ActionButtons } from "./ActionButtons";
 import { useVideoRatings } from "@/hooks/useVideoRatings";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +27,7 @@ interface VideoCardProps {
 }
 
 export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps) => {
+  const navigate = useNavigate();
   const [isFollowing, setIsFollowing] = useState(video.isFollowing);
   const [isLiked, setIsLiked] = useState(false);
   const [likes, setLikes] = useState(video.likes);
@@ -183,15 +185,23 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
       
       {/* Video Info Text - Left Side */}
       <div
-        className="absolute pointer-events-none z-20 max-w-[65%]"
+        className="absolute z-20 max-w-[65%]"
         style={{
           left: '30px',
           bottom: '50px',
         }}
       >
-        <div className="font-bold text-white drop-shadow-lg mb-1">The Guitarman</div>
-        <div className="font-medium text-white drop-shadow-lg mb-1">Crosstown Traffic</div>
-        <div className="font-normal text-white drop-shadow-lg text-sm leading-relaxed">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/user/${video.artistUserId}`);
+          }}
+          className="font-bold text-white drop-shadow-lg mb-1 cursor-pointer hover:underline pointer-events-auto text-left"
+        >
+          The Guitarman
+        </button>
+        <div className="font-medium text-white drop-shadow-lg mb-1 pointer-events-none">Crosstown Traffic</div>
+        <div className="font-normal text-white drop-shadow-lg text-sm leading-relaxed pointer-events-none">
           Jimi Hendrix playing at the Rainbow<br />Theatre, London in 1967
         </div>
       </div>
