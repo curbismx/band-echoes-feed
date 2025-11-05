@@ -14,7 +14,7 @@ import shareIcon from "@/assets/new_share.png";
 import plusIcon from "@/assets/plus-3.png";
 import commentsIcon from "@/assets/comments.png";
 import followOffIcon from "@/assets/follow_OFF-2.png";
-import followOnIcon from "@/assets/follow_ON-2.png";
+import followOnIcon from "@/assets/follow_ON-3.png";
 
 interface ActionButtonsProps {
   likes: number;
