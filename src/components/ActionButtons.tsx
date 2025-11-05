@@ -27,6 +27,8 @@ interface ActionButtonsProps {
   artistUserId?: string;
   videoTitle?: string;
   artistName?: string;
+  videoId: string;
+  onOpenComments: () => void;
 }
 
 export const ActionButtons = ({
@@ -40,6 +42,8 @@ export const ActionButtons = ({
   artistUserId,
   videoTitle = "Check out this video",
   artistName = "",
+  videoId,
+  onOpenComments,
 }: ActionButtonsProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -271,7 +275,10 @@ export const ActionButtons = ({
 
       {/* Comments */}
       <div className="relative h-[30px] mt-[40px]">
-        <button className="action-button flex items-center justify-center">
+        <button 
+          onClick={onOpenComments}
+          className="action-button flex items-center justify-center"
+        >
           <img src={commentsIcon} alt="Comments" className="h-[30px] w-[30px]" />
         </button>
       </div>

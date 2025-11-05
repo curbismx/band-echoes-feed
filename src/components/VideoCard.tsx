@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { ActionButtons } from "./ActionButtons";
 import { useVideoRatings } from "@/hooks/useVideoRatings";
 import { supabase } from "@/integrations/supabase/client";
+import { CommentsDrawer } from "./CommentsDrawer";
 import followOffIcon from "@/assets/follow_OFF.png";
 import followOnIcon from "@/assets/follow_ON.png";
 
@@ -28,6 +29,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
   const [likes, setLikes] = useState(video.likes);
   const [isPaused, setIsPaused] = useState(false);
   const [artistAvatar, setArtistAvatar] = useState<string>("");
+  const [commentsOpen, setCommentsOpen] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const { averageRating, userRating, submitRating } = useVideoRatings(video.id);
@@ -221,10 +223,18 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
         artistUserId={video.artistUserId}
         videoTitle="The songs name"
         artistName={video.artistName}
+        videoId={video.id.toString()}
+        onOpenComments={() => setCommentsOpen(true)}
       />
         </div>
 
       </div>
+      
+      <CommentsDrawer 
+        videoId={video.id.toString()}
+        isOpen={commentsOpen}
+        onClose={() => setCommentsOpen(false)}
+      />
     </div>
   );
 };
