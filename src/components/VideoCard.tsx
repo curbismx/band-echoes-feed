@@ -182,6 +182,8 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
         onRate={handleRate}
         artistAvatar={artistAvatar}
         artistUserId={video.artistUserId}
+        videoTitle="The songs name"
+        artistName={video.artistName}
       />
         </div>
 

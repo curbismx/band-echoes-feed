@@ -19,6 +19,8 @@ interface ActionButtonsProps {
   onRate: (rating: number) => void;
   artistAvatar?: string;
   artistUserId?: string;
+  videoTitle?: string;
+  artistName?: string;
 }
 
 export const ActionButtons = ({
@@ -30,6 +32,8 @@ export const ActionButtons = ({
   onRate,
   artistAvatar,
   artistUserId,
+  videoTitle = "Check out this video",
+  artistName = "",
 }: ActionButtonsProps) => {
   const navigate = useNavigate();
   const [showRating, setShowRating] = useState(false);
@@ -69,13 +73,25 @@ export const ActionButtons = ({
     onLike();
   };
 
-  const handleShare = () => {
+  const handleShare = async () => {
     const url = window.location.href;
+    const shareData = {
+      title: videoTitle,
+      text: artistName ? `${videoTitle} by ${artistName}` : videoTitle,
+      url: url
+    };
+
     if (navigator.share) {
-      navigator
-        .share({ url })
-        .catch(() => navigator.clipboard?.writeText(url));
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        // User cancelled or share failed, fallback to clipboard
+        if (err instanceof Error && err.name !== 'AbortError') {
+          navigator.clipboard?.writeText(url);
+        }
+      }
     } else {
+      // Fallback for browsers that don't support Web Share API
       navigator.clipboard?.writeText(url);
     }
   };
