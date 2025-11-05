@@ -298,7 +298,7 @@ export const ActionButtons = ({
               handleFollowToggle();
             }
           }}
-          disabled={followLoading || !artistUserId || user?.id === artistUserId}
+          disabled={followLoading}
           className="action-button flex items-center justify-center"
         >
           <img 
