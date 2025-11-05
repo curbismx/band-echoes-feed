@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import starIcon from "@/assets/star.png";
 import starOnIcon from "@/assets/star-on.png";
 import starSingleIcon from "@/assets/star-single.png";
@@ -11,6 +13,8 @@ import circleIcon from "@/assets/circle-2.png";
 import shareIcon from "@/assets/new_share.png";
 import plusIcon from "@/assets/plus-3.png";
 import commentsIcon from "@/assets/comments.png";
+import followOffIcon from "@/assets/follow_OFF-2.png";
+import followOnIcon from "@/assets/follow_ON-2.png";
 
 interface ActionButtonsProps {
   likes: number;
@@ -39,11 +43,88 @@ export const ActionButtons = ({
 }: ActionButtonsProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [showRating, setShowRating] = useState(false);
   const [selectedStar, setSelectedStar] = useState<number | null>(null);
   const [hoverStar, setHoverStar] = useState<number | null>(null);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
 
   const hasRated = userRating !== null;
+
+  // Check if user is following the artist
+  useEffect(() => {
+    if (user && artistUserId && user.id !== artistUserId) {
+      checkFollowStatus();
+    }
+  }, [user, artistUserId]);
+
+  const checkFollowStatus = async () => {
+    if (!user || !artistUserId) return;
+    
+    const { data } = await supabase
+      .from("follows")
+      .select("id")
+      .eq("follower_id", user.id)
+      .eq("followed_id", artistUserId)
+      .single();
+    
+    setIsFollowing(!!data);
+  };
+
+  const handleFollowToggle = async () => {
+    if (!user) {
+      toast({
+        title: "Login required",
+        description: "Please login to follow users",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!artistUserId || user.id === artistUserId) return;
+
+    setFollowLoading(true);
+
+    try {
+      if (isFollowing) {
+        // Unfollow
+        await supabase
+          .from("follows")
+          .delete()
+          .eq("follower_id", user.id)
+          .eq("followed_id", artistUserId);
+        
+        setIsFollowing(false);
+        toast({
+          title: "Unfollowed",
+          description: `You unfollowed ${artistName}`,
+        });
+      } else {
+        // Follow
+        await supabase
+          .from("follows")
+          .insert({
+            follower_id: user.id,
+            followed_id: artistUserId,
+          });
+        
+        setIsFollowing(true);
+        toast({
+          title: "Following",
+          description: `You are now following ${artistName}`,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update follow status",
+        variant: "destructive",
+      });
+    } finally {
+      setFollowLoading(false);
+    }
+  };
 
   const formatNumber = (num: number) => {
     if (num >= 1000) {
@@ -205,28 +286,28 @@ export const ActionButtons = ({
         </button>
       </div>
 
-      {/* Artist Avatar/Profile */}
-      <div className="relative h-[30px] mt-[40px]">
-        <button 
-          onClick={(e) => {
-            e.stopPropagation();
-            if (artistUserId) {
-              navigate(`/user/${artistUserId}`);
-            }
-          }}
-          className="action-button flex items-center justify-center"
-        >
-          {artistAvatar ? (
+      {/* Follow Artist */}
+      {artistUserId && user?.id !== artistUserId && (
+        <div className="relative h-[30px] mt-[40px]">
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              if ("vibrate" in navigator) {
+                navigator.vibrate(50);
+              }
+              handleFollowToggle();
+            }}
+            disabled={followLoading}
+            className="action-button flex items-center justify-center"
+          >
             <img 
-              src={artistAvatar} 
-              alt="Artist" 
-              className="h-[30px] w-[30px] rounded-full object-cover border-2 border-white"
+              src={isFollowing ? followOnIcon : followOffIcon} 
+              alt={isFollowing ? "Unfollow" : "Follow"} 
+              className="h-[30px] w-[30px]"
             />
-          ) : (
-            <img src={circleIcon} alt="Upload" className="h-[30px] w-[30px]" />
-          )}
-        </button>
-      </div>
+          </button>
+        </div>
+      )}
 
       {/* Plus */}
       <div className="relative h-[30px] mt-[40px]">
