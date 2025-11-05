@@ -2,8 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import starIcon from "@/assets/star.png";
 import starOnIcon from "@/assets/star-on.png";
-import starOffNewIcon from "@/assets/star-off-new.png";
-import starOnNewIcon from "@/assets/star-on-new.png";
+import starSingleIcon from "@/assets/star-single.png";
 import heartIcon from "@/assets/heart.png";
 import heartRedIcon from "@/assets/heart-red.png";
 import accountIcon from "@/assets/account.png";
@@ -116,9 +115,14 @@ export const ActionButtons = ({
                     className={`relative ${selectedStar === star ? "z-50" : ""} transition-[filter,transform] duration-200 hover:scale-110 cursor-pointer`}
                   >
                     <img
-                      src={((selectedStar !== null && star <= selectedStar) || (hoverStar !== null && star <= hoverStar)) ? starOnNewIcon : starOffNewIcon}
+                      src={starSingleIcon}
                       alt={`${star} stars`}
                       className="w-auto h-[22px] transition-all duration-200"
+                      style={{ 
+                        filter: ((selectedStar !== null && star <= selectedStar) || (hoverStar !== null && star <= hoverStar))
+                          ? "brightness(0) saturate(100%) invert(76%) sepia(82%) saturate(1445%) hue-rotate(359deg) brightness(103%) contrast(104%)" 
+                          : "grayscale(100%) brightness(0.7)" 
+                      }}
                     />
                   </div>
                 </div>
