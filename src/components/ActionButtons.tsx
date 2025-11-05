@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import starOffIcon from "@/assets/star-off-new.png";
-import starOnIcon from "@/assets/star-on-new.png";
+import starIcon from "@/assets/star.png";
+import starOnIcon from "@/assets/star-on.png";
+import starOffNewIcon from "@/assets/star-off-new.png";
+import starOnNewIcon from "@/assets/star-on-new.png";
 import heartIcon from "@/assets/heart.png";
 import heartRedIcon from "@/assets/heart-red.png";
 import accountIcon from "@/assets/account.png";
@@ -88,7 +90,7 @@ export const ActionButtons = ({
           aria-expanded={showRating}
         >
             <img
-              src={hasRated ? starOnIcon : starOffIcon}
+              src={hasRated ? starOnIcon : starIcon}
               alt="Rate"
               className="h-[30px] w-[30px] relative z-20 transition-all"
             />
@@ -114,7 +116,7 @@ export const ActionButtons = ({
                     className={`relative ${selectedStar === star ? "z-50" : ""} transition-[filter,transform] duration-200 hover:scale-110 cursor-pointer`}
                   >
                     <img
-                      src={((selectedStar !== null && star <= selectedStar) || (hoverStar !== null && star <= hoverStar)) ? starOnIcon : starOffIcon}
+                      src={((selectedStar !== null && star <= selectedStar) || (hoverStar !== null && star <= hoverStar)) ? starOnNewIcon : starOffNewIcon}
                       alt={`${star} stars`}
                       className="w-auto h-[22px] transition-all duration-200"
                     />
