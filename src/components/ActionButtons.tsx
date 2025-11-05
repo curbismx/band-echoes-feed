@@ -205,22 +205,6 @@ export const ActionButtons = ({
         </button>
       </div>
 
-      {/* Plus */}
-      <div className="relative h-[30px] mt-[40px]">
-        <button 
-          onClick={(e) => {
-            e.stopPropagation();
-            if ("vibrate" in navigator) {
-              navigator.vibrate(50);
-            }
-            navigate("/upload");
-          }}
-          className="action-button flex items-center justify-center"
-        >
-          <img src={plusIcon} alt="Add" className="h-[30px] w-[30px]" />
-        </button>
-      </div>
-
       {/* Artist Avatar/Profile */}
       <div className="relative h-[30px] mt-[40px]">
         <button 
@@ -241,6 +225,22 @@ export const ActionButtons = ({
           ) : (
             <img src={circleIcon} alt="Upload" className="h-[30px] w-[30px]" />
           )}
+        </button>
+      </div>
+
+      {/* Plus */}
+      <div className="relative h-[30px] mt-[40px]">
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            if ("vibrate" in navigator) {
+              navigator.vibrate(50);
+            }
+            navigate("/upload");
+          }}
+          className="action-button flex items-center justify-center"
+        >
+          <img src={plusIcon} alt="Add" className="h-[30px] w-[30px]" />
         </button>
       </div>
 
