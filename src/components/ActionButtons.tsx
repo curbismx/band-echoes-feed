@@ -85,7 +85,7 @@ export const ActionButtons = ({
       <div className="relative h-[30px] mt-0">
         <button
           onClick={handleRateClick}
-          className={`action-button flex items-center justify-center relative z-40 ${showRating ? 'pointer-events-none' : ''}`}
+          className="action-button flex items-center justify-center relative z-40"
           aria-expanded={showRating}
         >
             <img
@@ -120,8 +120,8 @@ export const ActionButtons = ({
                       className="inline-block object-contain w-auto h-[22px] transition-all duration-200"
                       style={{ 
                         filter: ((selectedStar !== null && star <= selectedStar) || (hoverStar !== null && star <= hoverStar))
-                          ? "brightness(0) saturate(100%) invert(76%) sepia(82%) saturate(1445%) hue-rotate(359deg) brightness(103%) contrast(104%)" 
-                          : "grayscale(100%) brightness(0.7)" 
+                          ? "brightness(0) saturate(100%) invert(85%) sepia(79%) saturate(2476%) hue-rotate(359deg) brightness(104%) contrast(101%)" 
+                          : "brightness(0) invert(1)" 
                       }}
                     />
                   </div>
