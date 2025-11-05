@@ -112,12 +112,12 @@ export const ActionButtons = ({
                     onMouseEnter={() => setHoverStar(star)}
                     onMouseLeave={() => setHoverStar(null)}
                     aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
-                    className={`relative ${selectedStar === star ? "z-50" : ""} transition-[filter,transform] duration-200 hover:scale-110 cursor-pointer`}
+                    className={`relative ${selectedStar === star ? "z-50 animate-pulse" : ""} transition-[filter,transform] duration-200 hover:scale-110 cursor-pointer`}
                   >
                     <img
                       src={starSingleIcon}
                       alt={`${star} stars`}
-                      className="inline-block object-contain w-auto h-[22px] transition-all duration-200"
+                      className={`inline-block object-contain w-auto h-[22px] transition-all duration-200 ${selectedStar === star ? "scale-125" : ""}`}
                       style={{ 
                         filter: ((selectedStar !== null && star <= selectedStar) || (hoverStar !== null && star <= hoverStar))
                           ? "brightness(0) saturate(100%) invert(85%) sepia(79%) saturate(2476%) hue-rotate(359deg) brightness(104%) contrast(101%)" 
