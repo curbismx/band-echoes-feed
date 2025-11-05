@@ -10,6 +10,7 @@ import UserProfile from "./pages/UserProfile";
 import EditProfile from "./pages/EditProfile";
 import Favorites from "./pages/Favorites";
 import Auth from "./pages/Auth";
+import Upload from "./pages/Upload";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/user/:userId" element={<UserProfile />} />
             <Route path="/edit-profile" element={<EditProfile />} />
             <Route path="/favorites" element={<Favorites />} />
+            <Route path="/upload" element={<Upload />} />
             <Route path="/auth" element={<Auth />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
