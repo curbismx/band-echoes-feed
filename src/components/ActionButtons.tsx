@@ -10,6 +10,7 @@ import accountIcon from "@/assets/account.png";
 import circleIcon from "@/assets/circle-2.png";
 import shareIcon from "@/assets/new_share.png";
 import plusIcon from "@/assets/plus-3.png";
+import commentsIcon from "@/assets/comments.png";
 
 interface ActionButtonsProps {
   likes: number;
@@ -188,6 +189,13 @@ export const ActionButtons = ({
           <img src={isLiked ? heartRedIcon : heartIcon} alt="Like" className="h-[30px] w-[30px] transition-all" />
         </button>
         <span className="pointer-events-none absolute top-[34px] left-1/2 -translate-x-1/2 text-xs font-semibold text-white drop-shadow-lg">{formatNumber(likes)}</span>
+      </div>
+
+      {/* Comments */}
+      <div className="relative h-[30px] mt-[40px]">
+        <button className="action-button flex items-center justify-center">
+          <img src={commentsIcon} alt="Comments" className="h-[30px] w-[30px]" />
+        </button>
       </div>
 
       {/* Share */}
