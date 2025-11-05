@@ -73,34 +73,20 @@ export const ActionButtons = ({
   };
 
   const handleFollowToggle = async () => {
-    if (!user) {
-      toast({
-        title: "Login required",
-        description: "Please login to follow users",
-        variant: "destructive",
-      });
+    setFollowLoading(true);
+
+    // Optimistic UI toggle
+    const next = !isFollowing;
+    setIsFollowing(next);
+
+    // If we don't have enough info to persist (no artist or self), just show UI change
+    if (!artistUserId || !user || user.id === artistUserId) {
+      setFollowLoading(false);
       return;
     }
 
-    if (!artistUserId || user.id === artistUserId) return;
-
-    setFollowLoading(true);
-
     try {
-      if (isFollowing) {
-        // Unfollow
-        await supabase
-          .from("follows")
-          .delete()
-          .eq("follower_id", user.id)
-          .eq("followed_id", artistUserId);
-        
-        setIsFollowing(false);
-        toast({
-          title: "Unfollowed",
-          description: `You unfollowed ${artistName}`,
-        });
-      } else {
+      if (next) {
         // Follow
         await supabase
           .from("follows")
@@ -108,14 +94,25 @@ export const ActionButtons = ({
             follower_id: user.id,
             followed_id: artistUserId,
           });
-        
-        setIsFollowing(true);
         toast({
           title: "Following",
           description: `You are now following ${artistName}`,
         });
+      } else {
+        // Unfollow
+        await supabase
+          .from("follows")
+          .delete()
+          .eq("follower_id", user.id)
+          .eq("followed_id", artistUserId);
+        toast({
+          title: "Unfollowed",
+          description: `You unfollowed ${artistName}`,
+        });
       }
     } catch (error) {
+      // Revert on failure
+      setIsFollowing(!next);
       toast({
         title: "Error",
         description: "Failed to update follow status",
