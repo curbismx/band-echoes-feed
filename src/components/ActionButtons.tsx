@@ -143,17 +143,17 @@ export const ActionButtons = ({
         <span className="pointer-events-none absolute top-[34px] left-1/2 -translate-x-1/2 text-xs font-semibold text-white drop-shadow-lg">{formatNumber(likes)}</span>
       </div>
 
-      {/* Plus */}
-      <div className="relative h-[30px] mt-[40px]">
-        <button className="action-button flex items-center justify-center">
-          <img src={plusIcon} alt="Add" className="h-[30px] w-[30px]" />
-        </button>
-      </div>
-
       {/* Share */}
       <div className="relative h-[30px] mt-[40px]">
         <button onClick={handleShare} className="action-button flex items-center justify-center">
           <img src={shareIcon} alt="Share" className="h-[30px] w-[30px]" />
+        </button>
+      </div>
+
+      {/* Plus */}
+      <div className="relative h-[30px] mt-[40px]">
+        <button className="action-button flex items-center justify-center">
+          <img src={plusIcon} alt="Add" className="h-[30px] w-[30px]" />
         </button>
       </div>
 
