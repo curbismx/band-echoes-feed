@@ -219,7 +219,7 @@ export default function Profile() {
             onClick={() => navigate("/favorites")}
             className="flex-1 bg-white/10 hover:bg-white/20 transition-colors py-2 rounded-lg font-semibold text-sm"
           >
-            Favs
+            View Favs
           </button>
           <button 
             onClick={handleShareProfile}
