@@ -192,7 +192,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
         <div className="font-bold text-white drop-shadow-lg mb-1">The Guitarman</div>
         <div className="font-medium text-white drop-shadow-lg mb-1">Crosstown Traffic</div>
         <div className="font-normal text-white drop-shadow-lg text-sm leading-relaxed">
-          Jimi Hendrix playing at the Rainbow Theatre, London in 1967
+          Jimi Hendrix playing at the Rainbow<br />Theatre, London in 1967
         </div>
       </div>
       
