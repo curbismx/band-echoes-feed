@@ -8,6 +8,7 @@ import heartRedIcon from "@/assets/heart-red.png";
 import accountIcon from "@/assets/account.png";
 import circleIcon from "@/assets/circle-2.png";
 import shareIcon from "@/assets/new_share.png";
+import plusIcon from "@/assets/plus-3.png";
 
 interface ActionButtonsProps {
   likes: number;
@@ -135,22 +136,29 @@ export const ActionButtons = ({
       </div>
 
       {/* Heart/Like */}
-      <div className="relative h-[30px] mt-[50px]">
+      <div className="relative h-[30px] mt-[40px]">
         <button onClick={handleLikeClick} className="action-button flex items-center justify-center">
           <img src={isLiked ? heartRedIcon : heartIcon} alt="Like" className="h-[30px] w-[30px] transition-all" />
         </button>
         <span className="pointer-events-none absolute top-[34px] left-1/2 -translate-x-1/2 text-xs font-semibold text-white drop-shadow-lg">{formatNumber(likes)}</span>
       </div>
 
+      {/* Plus */}
+      <div className="relative h-[30px] mt-[40px]">
+        <button className="action-button flex items-center justify-center">
+          <img src={plusIcon} alt="Add" className="h-[30px] w-[30px]" />
+        </button>
+      </div>
+
       {/* Share */}
-      <div className="relative h-[30px] mt-[50px]">
+      <div className="relative h-[30px] mt-[40px]">
         <button onClick={handleShare} className="action-button flex items-center justify-center">
           <img src={shareIcon} alt="Share" className="h-[30px] w-[30px]" />
         </button>
       </div>
 
       {/* Account */}
-      <div className="relative h-[30px] mt-[50px]">
+      <div className="relative h-[30px] mt-[40px]">
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -163,7 +171,7 @@ export const ActionButtons = ({
       </div>
 
       {/* Upload/Camera */}
-      <div className="relative h-[30px] mt-[50px]">
+      <div className="relative h-[30px] mt-[40px]">
         <button 
           onClick={(e) => {
             e.stopPropagation();
