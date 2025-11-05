@@ -186,7 +186,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
         className="absolute pointer-events-none z-20 max-w-[65%]"
         style={{
           left: '30px',
-          bottom: '80px',
+          bottom: '50px',
         }}
       >
         <div className="font-bold text-white drop-shadow-lg mb-1">The Guitarman</div>
