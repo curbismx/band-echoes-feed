@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import starIcon from "@/assets/star.png";
-import starOnIcon from "@/assets/star-on.png";
+import starOffIcon from "@/assets/star-off-new.png";
+import starOnIcon from "@/assets/star-on-new.png";
 import heartIcon from "@/assets/heart.png";
 import heartRedIcon from "@/assets/heart-red.png";
 import accountIcon from "@/assets/account.png";
 import circleIcon from "@/assets/circle-2.png";
-import starRatingIcon from "@/assets/star-rating-icon.png";
 import shareIcon from "@/assets/new_share.png";
 
 interface ActionButtonsProps {
@@ -89,7 +88,7 @@ export const ActionButtons = ({
           aria-expanded={showRating}
         >
             <img
-              src={hasRated ? starOnIcon : starIcon}
+              src={hasRated ? starOnIcon : starOffIcon}
               alt="Rate"
               className="h-[30px] w-[30px] relative z-20 transition-all"
             />
@@ -115,14 +114,9 @@ export const ActionButtons = ({
                     className={`relative ${selectedStar === star ? "z-50" : ""} transition-[filter,transform] duration-200 hover:scale-110 cursor-pointer`}
                   >
                     <img
-                      src={starRatingIcon}
+                      src={((selectedStar !== null && star <= selectedStar) || (hoverStar !== null && star <= hoverStar)) ? starOnIcon : starOffIcon}
                       alt={`${star} stars`}
                       className="w-auto h-[22px] transition-all duration-200"
-                      style={{ 
-                        filter: ((selectedStar !== null && star <= selectedStar) || (hoverStar !== null && star <= hoverStar))
-                          ? "sepia(1) saturate(5) hue-rotate(5deg) brightness(1.15) drop-shadow(0 0 12px rgba(255,215,0,0.8))" 
-                          : "none" 
-                      }}
                     />
                   </div>
                 </div>
