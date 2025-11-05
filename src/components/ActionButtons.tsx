@@ -294,14 +294,16 @@ export const ActionButtons = ({
             handleFollowToggle();
           }}
           disabled={followLoading}
-          className="action-button flex items-center justify-center"
-        >
-          <img 
-            src={isFollowing ? followOnIcon : followOffIcon} 
-            alt={isFollowing ? "Unfollow" : "Follow"} 
-            className="h-[30px] w-[30px]"
-          />
-        </button>
+            className="action-button flex items-center justify-center"
+          >
+            <img 
+              key={isFollowing ? "follow-on" : "follow-off"}
+              src={isFollowing ? followOnIcon : followOffIcon} 
+              alt={isFollowing ? "Unfollow" : "Follow"} 
+              className="h-[30px] w-[30px]"
+              draggable={false}
+            />
+          </button>
       </div>
 
       {/* Plus */}
