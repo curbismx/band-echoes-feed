@@ -305,7 +305,6 @@ export const ActionButtons = ({
             src={isFollowing ? followOnIcon : followOffIcon} 
             alt={isFollowing ? "Unfollow" : "Follow"} 
             className="h-[30px] w-[30px]"
-            style={{ opacity: (!artistUserId || user?.id === artistUserId) ? 0.3 : 1 }}
           />
         </button>
       </div>
