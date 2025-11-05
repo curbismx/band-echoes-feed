@@ -91,7 +91,7 @@ export const ActionButtons = ({
             <img
               src={hasRated ? starOnIcon : starIcon}
               alt="Rate"
-              className="h-[30px] w-[30px] relative z-20 transition-all"
+              className="h-[30px] w-auto relative z-20 transition-all"
             />
           </button>
           {showRating && (
@@ -117,7 +117,7 @@ export const ActionButtons = ({
                     <img
                       src={starSingleIcon}
                       alt={`${star} stars`}
-                      className="w-auto h-[22px] transition-all duration-200"
+                      className="inline-block object-contain w-auto h-[22px] transition-all duration-200"
                       style={{ 
                         filter: ((selectedStar !== null && star <= selectedStar) || (hoverStar !== null && star <= hoverStar))
                           ? "brightness(0) saturate(100%) invert(76%) sepia(82%) saturate(1445%) hue-rotate(359deg) brightness(103%) contrast(104%)" 
