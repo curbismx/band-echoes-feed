@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      favorites: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string
+          video_id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id: string
+          video_id: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string
+          video_id?: number
+        }
+        Relationships: []
+      }
       follows: {
         Row: {
           created_at: string

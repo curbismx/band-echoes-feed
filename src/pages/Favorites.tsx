@@ -1,11 +1,13 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ChevronLeft } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Favorites() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [favoriteVideos, setFavoriteVideos] = useState<any[]>([]);
 
   useEffect(() => {
     if (!user) {
@@ -13,15 +15,35 @@ export default function Favorites() {
     }
   }, [user, navigate]);
 
-  // Mock favorite videos - will be replaced with real favorites later
-  const favoriteVideos = [
-    { id: 1, thumbnail: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&h=400&fit=crop", views: "29.9K" },
-    { id: 2, thumbnail: "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=400&h=400&fit=crop", views: "12.1K" },
-    { id: 3, thumbnail: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=400&h=400&fit=crop", views: "48.3K" },
-    { id: 4, thumbnail: "https://images.unsplash.com/photo-1483412033650-1015ddeb83d1?w=400&h=400&fit=crop", views: "8.2K" },
-    { id: 5, thumbnail: "https://images.unsplash.com/photo-1460723237483-7a6dc9d0b212?w=400&h=400&fit=crop", views: "22.5K" },
-    { id: 6, thumbnail: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&h=400&fit=crop", views: "35.7K" },
-  ];
+  // Fetch real favorite videos
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchFavorites = async () => {
+      const { data } = await supabase
+        .from("favorites")
+        .select("video_id")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (data) {
+        // Map favorites to video objects (using mock data structure)
+        const mockVideos = [
+          { id: 1, artistName: "The Rising Stars", artistUserId: user.id, videoUrl: "/videos/video1.mp4", likes: 1234, rating: 8.7, isFollowing: false, thumbnail: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&h=400&fit=crop" },
+          { id: 2, artistName: "The Midnight Keys", artistUserId: user.id, videoUrl: "/videos/video2.mp4", likes: 892, rating: 9.2, isFollowing: true, thumbnail: "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=400&h=400&fit=crop" },
+          { id: 3, artistName: "Luna Eclipse", artistUserId: user.id, videoUrl: "/videos/video3.mp4", likes: 2156, rating: 7.8, isFollowing: false, thumbnail: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=400&h=400&fit=crop" },
+        ];
+
+        const favVideos = data
+          .map(fav => mockVideos.find(v => v.id === fav.video_id))
+          .filter(Boolean);
+
+        setFavoriteVideos(favVideos);
+      }
+    };
+
+    fetchFavorites();
+  }, [user]);
 
   return (
     <div className="min-h-screen text-white" style={{ backgroundColor: "#252525" }}>
@@ -40,22 +62,19 @@ export default function Favorites() {
       {/* Video Grid */}
       <div className="mt-1">
         <div className="grid grid-cols-3 gap-1">
-          {favoriteVideos.map((video) => (
+          {favoriteVideos.map((video, index) => (
             <div 
               key={video.id} 
               className="relative aspect-[9/16] bg-white/5 cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={() => navigate(`/`)}
+              onClick={() => navigate("/", { state: { favoriteVideos, startIndex: index } })}
             >
               <img
                 src={video.thumbnail}
                 alt="Video thumbnail"
                 className="w-full h-full object-cover"
               />
-              <div className="absolute bottom-2 left-2 flex items-center gap-1 text-white text-xs font-semibold drop-shadow-lg">
-                <svg className="w-4 h-4" fill="white" viewBox="0 0 24 24">
-                  <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
-                </svg>
-                {video.views}
+              <div className="absolute bottom-2 left-2 text-white text-xs font-semibold drop-shadow-lg">
+                {video.artistName}
               </div>
             </div>
           ))}

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { VideoCard } from "./VideoCard";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLocation } from "react-router-dom";
 
 // Test videos - will use current user's ID
 const getMockVideos = (userId: string) => [
@@ -35,6 +36,7 @@ const getMockVideos = (userId: string) => [
 
 export const VideoFeed = () => {
   const { user } = useAuth();
+  const location = useLocation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMuted, setIsMuted] = useState(true);
   const [touchStart, setTouchStart] = useState(0);
@@ -42,9 +44,22 @@ export const VideoFeed = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const [videos, setVideos] = useState(getMockVideos(""));
+  const [isPlayingFavorites, setIsPlayingFavorites] = useState(false);
+  const [allVideos] = useState(getMockVideos(""));
+
   useEffect(() => {
     if (user?.id) setVideos(getMockVideos(user.id));
   }, [user?.id]);
+
+  // Check if we're playing favorites from navigation state
+  useEffect(() => {
+    const state = location.state as { favoriteVideos?: any[], startIndex?: number };
+    if (state?.favoriteVideos) {
+      setVideos(state.favoriteVideos);
+      setCurrentIndex(state.startIndex || 0);
+      setIsPlayingFavorites(true);
+    }
+  }, [location.state]);
 
   const minSwipeDistance = 50;
 
@@ -66,6 +81,11 @@ export const VideoFeed = () => {
 
     if (isUpSwipe && currentIndex < videos.length - 1) {
       setCurrentIndex((prev) => prev + 1);
+    } else if (isUpSwipe && currentIndex === videos.length - 1 && isPlayingFavorites) {
+      // Finished favorites, return to normal feed
+      setVideos(allVideos);
+      setCurrentIndex(0);
+      setIsPlayingFavorites(false);
     }
 
     if (isDownSwipe && currentIndex > 0) {
@@ -78,6 +98,11 @@ export const VideoFeed = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "ArrowDown" && currentIndex < videos.length - 1) {
         setCurrentIndex((prev) => prev + 1);
+      } else if (e.key === "ArrowDown" && currentIndex === videos.length - 1 && isPlayingFavorites) {
+        // Finished favorites, return to normal feed
+        setVideos(allVideos);
+        setCurrentIndex(0);
+        setIsPlayingFavorites(false);
       }
       if (e.key === "ArrowUp" && currentIndex > 0) {
         setCurrentIndex((prev) => prev - 1);
@@ -86,7 +111,7 @@ export const VideoFeed = () => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentIndex]);
+  }, [currentIndex, isPlayingFavorites, allVideos]);
 
   return (
     <div

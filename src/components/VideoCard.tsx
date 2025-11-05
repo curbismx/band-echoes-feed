@@ -32,6 +32,25 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
 
   const { averageRating, userRating, submitRating } = useVideoRatings(video.id);
 
+  // Check if video is favorited
+  useEffect(() => {
+    const checkFavorite = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from("favorites")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("video_id", video.id)
+        .maybeSingle();
+
+      setIsLiked(!!data);
+    };
+
+    checkFavorite();
+  }, [video.id]);
+
   // Fetch artist profile avatar
   useEffect(() => {
     if (!video.artistUserId) return;
@@ -111,9 +130,27 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
     }
   };
 
-  const handleLike = () => {
-    setIsLiked(!isLiked);
+  const handleLike = async () => {
+    const newLikedState = !isLiked;
+    setIsLiked(newLikedState);
     setLikes((prev) => (isLiked ? prev - 1 : prev + 1));
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    if (newLikedState) {
+      // Add to favorites
+      await supabase
+        .from("favorites")
+        .insert({ user_id: user.id, video_id: video.id });
+    } else {
+      // Remove from favorites
+      await supabase
+        .from("favorites")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("video_id", video.id);
+    }
   };
 
   const handleRate = (newRating: number) => {
