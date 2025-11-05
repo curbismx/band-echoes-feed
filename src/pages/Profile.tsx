@@ -208,16 +208,22 @@ export default function Profile() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 mb-4">
+        <div className="flex flex-col gap-2 mb-4">
           <button 
             onClick={() => navigate("/edit-profile")}
-            className="flex-1 bg-white/10 hover:bg-white/20 transition-colors py-2 rounded-lg font-semibold text-sm"
+            className="w-full bg-white/10 hover:bg-white/20 transition-colors py-2 rounded-lg font-semibold text-sm"
           >
             Edit Profile
           </button>
           <button 
+            onClick={() => navigate("/favorites")}
+            className="w-full bg-white/10 hover:bg-white/20 transition-colors py-2 rounded-lg font-semibold text-sm"
+          >
+            View Favorites
+          </button>
+          <button 
             onClick={handleShareProfile}
-            className="flex-1 bg-white/10 hover:bg-white/20 transition-colors py-2 rounded-lg font-semibold text-sm"
+            className="w-full bg-white/10 hover:bg-white/20 transition-colors py-2 rounded-lg font-semibold text-sm"
           >
             Share Profile
           </button>
