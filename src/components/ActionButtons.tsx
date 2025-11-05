@@ -291,9 +291,7 @@ export const ActionButtons = ({
             if ("vibrate" in navigator) {
               navigator.vibrate(50);
             }
-            if (artistUserId && user?.id !== artistUserId) {
-              handleFollowToggle();
-            }
+            handleFollowToggle();
           }}
           disabled={followLoading}
           className="action-button flex items-center justify-center"
