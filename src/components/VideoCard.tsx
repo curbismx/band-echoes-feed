@@ -185,7 +185,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
       
       {/* Video Info Text - Left Side */}
       <div
-        className="absolute z-20 max-w-[65%]"
+        className="absolute z-20 max-w-[65%] pointer-events-auto"
         style={{
           left: '30px',
           bottom: '50px',
@@ -196,7 +196,12 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
             e.stopPropagation();
             navigate(`/user/${video.artistUserId}`);
           }}
-          className="font-bold text-white drop-shadow-lg mb-1 cursor-pointer hover:underline pointer-events-auto text-left"
+          onTouchEnd={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            navigate(`/user/${video.artistUserId}`);
+          }}
+          className="font-bold text-white drop-shadow-lg mb-1 cursor-pointer hover:underline text-left touch-manipulation"
         >
           The Guitarman
         </button>
