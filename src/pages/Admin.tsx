@@ -27,7 +27,6 @@ interface UserForm {
   name: string;
   username: string;
   email: string;
-  website: string;
   description: string;
   videos: VideoInput[];
 }
@@ -38,7 +37,6 @@ const initialUsers: UserForm[] = [
     name: "Sarah Martinez",
     username: "soundwave_sara",
     email: "sarah.martinez@musiclabel.com",
-    website: "sarahmartinez.com",
     description: "Music producer and songwriter based in LA",
     videos: [],
   },
@@ -47,7 +45,6 @@ const initialUsers: UserForm[] = [
     name: "Michael Thompson",
     username: "mikebeats",
     email: "michael.thompson@studioworks.com",
-    website: "mikethompson.studio",
     description: "Audio engineer with 15 years experience",
     videos: [],
   },
@@ -56,7 +53,6 @@ const initialUsers: UserForm[] = [
     name: "Emma Wilson",
     username: "artsy.emma",
     email: "emma.wilson@creativemedia.com",
-    website: "emmawilson.art",
     description: "Creative director and visual artist",
     videos: [],
   },
@@ -65,7 +61,6 @@ const initialUsers: UserForm[] = [
     name: "David Chen",
     username: "techbeats_dave",
     email: "david.chen@techstudio.com",
-    website: "davidchen.tech",
     description: "Tech entrepreneur and music enthusiast",
     videos: [],
   },
@@ -74,7 +69,6 @@ const initialUsers: UserForm[] = [
     name: "Jennifer Roberts",
     username: "hendrix_fan",
     email: "jennifer.roberts@executive.com",
-    website: "jenniferroberts.pro",
     description: "Entertainment industry executive",
     videos: [],
   },
@@ -83,7 +77,6 @@ const initialUsers: UserForm[] = [
     name: "Alex Rodriguez",
     username: "alexdrum",
     email: "alex.rodriguez@indie.com",
-    website: "alexrodriguez.band",
     description: "Indie musician and content creator",
     videos: [],
   },
@@ -92,7 +85,6 @@ const initialUsers: UserForm[] = [
     name: "Rachel Anderson",
     username: "vinyl_queen",
     email: "rachel.anderson@management.com",
-    website: "rachelanderson.biz",
     description: "Artist manager and talent scout",
     videos: [],
   },
@@ -101,7 +93,6 @@ const initialUsers: UserForm[] = [
     name: "Robert Sullivan",
     username: "classic_rock_bob",
     email: "robert.sullivan@legacy.com",
-    website: "robertsullivan.net",
     description: "Music industry veteran and consultant",
     videos: [],
   },
@@ -110,7 +101,6 @@ const initialUsers: UserForm[] = [
     name: "Nina Patel",
     username: "ninarocks",
     email: "nina.patel@startup.com",
-    website: "ninapatel.io",
     description: "Digital marketing specialist for artists",
     videos: [],
   },
@@ -119,7 +109,6 @@ const initialUsers: UserForm[] = [
     name: "James Mitchell",
     username: "live_music_jam",
     email: "james.mitchell@venue.com",
-    website: "jamesmitchell.events",
     description: "Live event producer and booking agent",
     videos: [],
   },
@@ -139,7 +128,6 @@ const Admin = () => {
     name: "",
     username: "",
     email: "",
-    website: "",
     description: "",
     videos: [],
   });
@@ -263,7 +251,6 @@ const Admin = () => {
         name: "",
         username: "",
         email: "",
-        website: "",
         description: "",
         videos: [],
       },
@@ -347,7 +334,6 @@ const Admin = () => {
         .from("profiles")
         .update({
           bio: userForm.description,
-          website: userForm.website,
           avatar_url: avatarUrl,
         })
         .eq("id", authData.user.id);
@@ -435,9 +421,8 @@ const Admin = () => {
                 <div className="col-span-1">Icon</div>
                 <div className="col-span-2">Name</div>
                 <div className="col-span-2">Username</div>
-                <div className="col-span-2">email address</div>
-                <div className="col-span-2">web address</div>
-                <div className="col-span-3">Description</div>
+                <div className="col-span-3">email address</div>
+                <div className="col-span-4">Description</div>
               </div>
 
               {/* Form Fields */}
@@ -479,7 +464,7 @@ const Admin = () => {
                   />
                 </div>
 
-                <div className="col-span-2">
+                <div className="col-span-3">
                   <Input
                     type="email"
                     placeholder="text"
@@ -488,15 +473,7 @@ const Admin = () => {
                   />
                 </div>
 
-                <div className="col-span-2">
-                  <Input
-                    placeholder="text"
-                    value={userForm.website}
-                    onChange={(e) => handleUserChange(userIndex, "website", e.target.value)}
-                  />
-                </div>
-
-                <div className="col-span-3">
+                <div className="col-span-4">
                   <Input
                     placeholder="text"
                     value={userForm.description}
