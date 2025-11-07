@@ -218,14 +218,8 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
           </div>
         )}
         
-        {/* Info and Follow buttons */}
+        {/* Follow and Info buttons */}
         <div className="flex gap-2 items-center">
-          <button 
-            onClick={(e) => e.stopPropagation()}
-            className="flex items-center justify-center"
-          >
-            <img src={infoIcon} alt="Info" className="h-[30px] w-auto" />
-          </button>
           <button 
             onClick={(e) => {
               e.stopPropagation();
@@ -234,6 +228,12 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
             className="flex items-center justify-center"
           >
             <img src={infoFollowIcon} alt="Follow" className="h-[30px] w-auto" />
+          </button>
+          <button 
+            onClick={(e) => e.stopPropagation()}
+            className="flex items-center justify-center"
+          >
+            <img src={infoIcon} alt="Info" className="h-[30px] w-auto" />
           </button>
         </div>
       </div>
