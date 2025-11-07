@@ -43,6 +43,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
   const [isUIHidden, setIsUIHidden] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const lastTapRef = useRef<number>(0);
+  const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { averageRating, userRating, submitRating } = useVideoRatings(video.id);
 
@@ -110,7 +111,13 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
     
     // Double tap detection (within 300ms)
     if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
-      // Double tap: toggle UI visibility
+      // Clear any pending single tap action
+      if (tapTimeoutRef.current) {
+        clearTimeout(tapTimeoutRef.current);
+        tapTimeoutRef.current = null;
+      }
+      
+      // Double tap: toggle UI visibility only
       setIsUIHidden(!isUIHidden);
       lastTapRef.current = 0; // Reset
       return;
@@ -118,22 +125,31 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
     
     lastTapRef.current = now;
 
-    // On first interaction: unmute and ensure playback without pausing
-    if (isMuted) {
-      videoRef.current.muted = false;
-      onUnmute();
-      videoRef.current.play().catch(() => {});
-      setIsPaused(false);
-      return;
+    // Delay single tap action to allow for double tap detection
+    if (tapTimeoutRef.current) {
+      clearTimeout(tapTimeoutRef.current);
     }
+    
+    tapTimeoutRef.current = setTimeout(() => {
+      if (!videoRef.current) return;
+      
+      // On first interaction: unmute and ensure playback without pausing
+      if (isMuted) {
+        videoRef.current.muted = false;
+        onUnmute();
+        videoRef.current.play().catch(() => {});
+        setIsPaused(false);
+        return;
+      }
 
-    if (isPaused) {
-      videoRef.current.play();
-      setIsPaused(false);
-    } else {
-      videoRef.current.pause();
-      setIsPaused(true);
-    }
+      if (isPaused) {
+        videoRef.current.play();
+        setIsPaused(false);
+      } else {
+        videoRef.current.pause();
+        setIsPaused(true);
+      }
+    }, 300);
   };
 
   const handleFollow = async () => {
