@@ -222,18 +222,18 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
         <div className="flex gap-2 items-center">
           <button 
             onClick={(e) => e.stopPropagation()}
-            className="h-[30px] w-[30px] flex items-center justify-center"
+            className="flex items-center justify-center"
           >
-            <img src={infoIcon} alt="Info" className="h-full w-full object-contain" />
+            <img src={infoIcon} alt="Info" className="h-[30px] w-auto" />
           </button>
           <button 
             onClick={(e) => {
               e.stopPropagation();
               handleFollow();
             }}
-            className="h-[30px] w-[30px] flex items-center justify-center"
+            className="flex items-center justify-center"
           >
-            <img src={infoFollowIcon} alt="Follow" className="h-full w-full object-contain" />
+            <img src={infoFollowIcon} alt="Follow" className="h-[30px] w-auto" />
           </button>
         </div>
       </div>
