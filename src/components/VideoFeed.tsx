@@ -196,20 +196,6 @@ export const VideoFeed = () => {
           />
         ))}
       </div>
-
-      {/* Progress indicator dots */}
-      <div className="absolute left-1/2 top-4 flex -translate-x-1/2 gap-1 z-50">
-        {videos.map((_, index) => (
-          <div
-            key={index}
-            className={`h-1 rounded-full transition-all duration-300 ${
-              index === currentIndex
-                ? "w-8 bg-primary"
-                : "w-1 bg-white/30"
-            }`}
-          />
-        ))}
-      </div>
     </div>
   );
 };

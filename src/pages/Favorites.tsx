@@ -27,18 +27,46 @@ export default function Favorites() {
         .order("created_at", { ascending: false });
 
       if (data) {
-        // Map favorites to video objects (using mock data structure)
-        const mockVideos = [
-          { id: 1, artistName: "The Rising Stars", artistUserId: user.id, videoUrl: "/videos/video1.mp4", likes: 1234, rating: 8.7, isFollowing: false, thumbnail: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&h=400&fit=crop" },
-          { id: 2, artistName: "The Midnight Keys", artistUserId: user.id, videoUrl: "/videos/video2.mp4", likes: 892, rating: 9.2, isFollowing: true, thumbnail: "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=400&h=400&fit=crop" },
-          { id: 3, artistName: "Luna Eclipse", artistUserId: user.id, videoUrl: "/videos/video3.mp4", likes: 2156, rating: 7.8, isFollowing: false, thumbnail: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=400&h=400&fit=crop" },
-        ];
+        // Fetch actual videos that are favorited
+        const videoIds = data.map(fav => fav.video_id);
+        
+        if (videoIds.length > 0) {
+          const { data: videosData } = await supabase
+            .from("videos")
+            .select("*")
+            .in("id", videoIds);
 
-        const favVideos = data
-          .map(fav => mockVideos.find(v => v.id === fav.video_id))
-          .filter(Boolean);
+          if (videosData) {
+            // Fetch profiles for video owners
+            const userIds = [...new Set(videosData.map(v => v.user_id))];
+            const { data: profilesData } = await supabase
+              .from("profiles")
+              .select("id, username, display_name, avatar_url")
+              .in("id", userIds);
 
-        setFavoriteVideos(favVideos);
+            const profilesMap = new Map(
+              profilesData?.map(p => [p.id, p]) || []
+            );
+
+            const favVideos = videosData.map((video: any) => {
+              const profile = profilesMap.get(video.user_id);
+              return {
+                id: video.id,
+                artistName: profile?.display_name || profile?.username || "Unknown Artist",
+                artistUserId: video.user_id,
+                videoUrl: video.video_url,
+                likes: video.likes_count || 0,
+                rating: 0,
+                isFollowing: false,
+                title: video.title,
+                caption: video.caption,
+                thumbnail: video.thumbnail_url
+              };
+            });
+
+            setFavoriteVideos(favVideos);
+          }
+        }
       }
     };
 
