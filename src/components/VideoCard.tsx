@@ -282,6 +282,11 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
               e.stopPropagation();
               setInfoOpen(true);
             }}
+            onTouchEnd={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              setInfoOpen(true);
+            }}
             className="flex items-center justify-center"
           >
             <img src={infoIcon} alt="Info" className="h-[30px] w-auto" />

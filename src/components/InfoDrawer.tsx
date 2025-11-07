@@ -2,7 +2,7 @@ import { X } from "lucide-react";
 import { detectPlatform } from "@/utils/platformDetection";
 import { getPlatformIcon } from "./PlatformIcons";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface InfoDrawerProps {
   isOpen: boolean;
@@ -25,6 +25,14 @@ export const InfoDrawer = ({
   const [isDragging, setIsDragging] = useState(false);
   const [startY, setStartY] = useState(0);
   const [startHeight, setStartHeight] = useState(50);
+  
+  // Reset drawer height when opening
+  useEffect(() => {
+    if (isOpen) {
+      setDrawerHeight(50);
+      setIsDragging(false);
+    }
+  }, [isOpen]);
   
   const triggerHaptic = async () => {
     try {
