@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,18 +11,22 @@ import { Progress } from "@/components/ui/progress";
 const Upload = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [step, setStep] = useState(1);
+  const [searchParams] = useSearchParams();
+  const editVideoId = searchParams.get("edit");
+  const [step, setStep] = useState(editVideoId ? 2 : 1);
   const [selectedVideo, setSelectedVideo] = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState<string>("");
   const [caption, setCaption] = useState("");
+  const [title, setTitle] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [compressionEnabled, setCompressionEnabled] = useState(true);
   const [compressionProgress, setCompressionProgress] = useState<CompressionProgress | null>(null);
   const [originalSize, setOriginalSize] = useState<number>(0);
   const [compressedSize, setCompressedSize] = useState<number>(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [existingVideoUrl, setExistingVideoUrl] = useState<string>("");
 
-  // Fetch compression setting
+  // Fetch compression setting and video data if editing
   useEffect(() => {
     const fetchSettings = async () => {
       const { data } = await supabase
@@ -37,7 +41,33 @@ const Upload = () => {
       }
     };
     fetchSettings();
-  }, []);
+
+    // Load existing video data if editing
+    if (editVideoId) {
+      const fetchVideo = async () => {
+        const { data, error } = await supabase
+          .from("videos")
+          .select("*")
+          .eq("id", editVideoId)
+          .single();
+        
+        if (data && !error) {
+          setCaption(data.caption || "");
+          setTitle(data.title || "");
+          setVideoPreview(data.video_url);
+          setExistingVideoUrl(data.video_url);
+        } else {
+          toast({
+            title: "Error",
+            description: "Could not load video data",
+            variant: "destructive",
+          });
+          navigate("/profile");
+        }
+      };
+      fetchVideo();
+    }
+  }, [editVideoId, navigate, toast]);
 
   const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -56,6 +86,40 @@ const Upload = () => {
   };
 
   const handleUpload = async () => {
+    // If editing, only update the metadata
+    if (editVideoId && existingVideoUrl) {
+      setIsUploading(true);
+      try {
+        const { error: dbError } = await supabase
+          .from("videos")
+          .update({
+            caption: caption || null,
+            title: title || null,
+          })
+          .eq("id", editVideoId);
+
+        if (dbError) throw dbError;
+
+        toast({
+          title: "Video updated!",
+          description: "Your video has been updated successfully",
+        });
+
+        navigate("/profile");
+      } catch (error) {
+        console.error("Update error:", error);
+        toast({
+          title: "Update failed",
+          description: "Unable to update video. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsUploading(false);
+      }
+      return;
+    }
+
+    // Original upload logic for new videos
     if (!selectedVideo) return;
 
     setIsUploading(true);
@@ -121,6 +185,7 @@ const Upload = () => {
           user_id: user.id,
           video_url: publicUrl,
           caption: caption || null,
+          title: title || null,
         });
 
       if (dbError) throw dbError;
@@ -149,10 +214,10 @@ const Upload = () => {
       {step === 1 && (
         <>
           <div className="flex items-center justify-between p-4">
-            <button onClick={() => navigate(-1)} className="text-white">
+            <button onClick={() => navigate("/profile")} className="text-white">
               <X size={28} />
             </button>
-            <h1 className="text-white text-lg font-semibold">New post</h1>
+            <h1 className="text-white text-lg font-semibold">{editVideoId ? "Edit post" : "New post"}</h1>
             <div className="w-7" />
           </div>
 
@@ -180,10 +245,10 @@ const Upload = () => {
       {step === 2 && (
         <>
           <div className="flex items-center justify-between p-4">
-            <button onClick={() => setStep(1)} className="text-white">
+            <button onClick={() => editVideoId ? navigate("/profile") : setStep(1)} className="text-white">
               <ArrowLeft size={28} />
             </button>
-            <h1 className="text-white text-lg font-semibold">New post</h1>
+            <h1 className="text-white text-lg font-semibold">{editVideoId ? "Edit post" : "New post"}</h1>
             <button
               onClick={() => setStep(3)}
               className="text-blue-500 font-semibold"
@@ -200,6 +265,14 @@ const Upload = () => {
                 controls
               />
             </div>
+
+            <input
+              type="text"
+              placeholder="Add a title..."
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full bg-transparent border-none text-white placeholder:text-gray-500 text-base mb-4 outline-none"
+            />
 
             <Textarea
               placeholder="Add a caption..."
@@ -219,7 +292,7 @@ const Upload = () => {
             <button onClick={() => setStep(2)} className="text-white">
               <ArrowLeft size={28} />
             </button>
-            <h1 className="text-white text-lg font-semibold">Share</h1>
+            <h1 className="text-white text-lg font-semibold">{editVideoId ? "Update" : "Share"}</h1>
             <div className="w-7" />
           </div>
 
@@ -232,6 +305,13 @@ const Upload = () => {
               />
             </div>
 
+            {title && (
+              <div className="mb-4">
+                <p className="text-white text-sm mb-1 font-semibold">Title:</p>
+                <p className="text-white/80 text-sm">{title}</p>
+              </div>
+            )}
+
             {caption && (
               <div className="mb-6">
                 <p className="text-white text-sm mb-1 font-semibold">Caption:</p>
@@ -240,7 +320,7 @@ const Upload = () => {
             )}
 
             <div className="text-white/60 text-xs text-center mb-4">
-              Your video will be visible to everyone
+              {editVideoId ? "Your changes will be saved" : "Your video will be visible to everyone"}
             </div>
           </div>
 
@@ -255,7 +335,7 @@ const Upload = () => {
               </div>
             )}
             
-            {compressionEnabled && !isUploading && (
+            {compressionEnabled && !isUploading && !editVideoId && (
               <div className="mb-3 text-center text-xs text-white/60">
                 Video will be compressed before upload
               </div>
@@ -266,7 +346,7 @@ const Upload = () => {
               disabled={isUploading}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6 text-lg rounded-xl font-semibold"
             >
-              {isUploading ? "Uploading..." : "Share"}
+              {isUploading ? (editVideoId ? "Updating..." : "Uploading...") : (editVideoId ? "Update" : "Share")}
             </Button>
           </div>
         </>

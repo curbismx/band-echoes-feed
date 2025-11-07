@@ -458,10 +458,7 @@ export default function Profile() {
                         onClick={(e) => {
                           e.stopPropagation();
                           triggerHaptic();
-                          toast({
-                            title: "Coming soon",
-                            description: "Video editing feature is coming soon",
-                          });
+                          navigate(`/upload?edit=${video.id}`);
                         }}
                       >
                         <Edit className="w-4 h-4 mr-2" />
