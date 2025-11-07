@@ -28,6 +28,9 @@ const Admin = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [checkingAdmin, setCheckingAdmin] = useState(true);
   const [users, setUsers] = useState<UserForm[]>([]);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [searchEmail, setSearchEmail] = useState("");
+  const [activeTab, setActiveTab] = useState<"accounts" | "users">("accounts");
   const [currentUser, setCurrentUser] = useState<UserForm>({
     icon: null,
     name: "",
@@ -56,6 +59,73 @@ const Admin = () => {
 
     checkAdminStatus();
   }, [user]);
+
+  useEffect(() => {
+    if (isAdmin && activeTab === "users") {
+      fetchAllUsers();
+    }
+  }, [isAdmin, activeTab]);
+
+  const fetchAllUsers = async () => {
+    try {
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, username, display_name, email, avatar_url")
+        .order("created_at", { ascending: false });
+
+      if (profilesError) throw profilesError;
+
+      // Fetch admin roles for all users
+      const { data: roles, error: rolesError } = await supabase
+        .from("user_roles")
+        .select("user_id, role")
+        .eq("role", "admin");
+
+      if (rolesError) throw rolesError;
+
+      const adminIds = new Set(roles?.map(r => r.user_id) || []);
+
+      const usersWithRoles = profiles?.map(profile => ({
+        ...profile,
+        isAdmin: adminIds.has(profile.id),
+      })) || [];
+
+      setAllUsers(usersWithRoles);
+    } catch (error: any) {
+      console.error("Error fetching users:", error);
+      toast.error("Failed to load users");
+    }
+  };
+
+  const toggleAdminRole = async (userId: string, currentlyAdmin: boolean) => {
+    try {
+      if (currentlyAdmin) {
+        // Remove admin role
+        const { error } = await supabase
+          .from("user_roles")
+          .delete()
+          .eq("user_id", userId)
+          .eq("role", "admin");
+
+        if (error) throw error;
+        toast.success("Admin role removed");
+      } else {
+        // Add admin role
+        const { error } = await supabase
+          .from("user_roles")
+          .insert({ user_id: userId, role: "admin" });
+
+        if (error) throw error;
+        toast.success("Admin role granted");
+      }
+
+      // Refresh user list
+      fetchAllUsers();
+    } catch (error: any) {
+      console.error("Error toggling admin role:", error);
+      toast.error(error.message || "Failed to update admin role");
+    }
+  };
 
   useEffect(() => {
     if (!loading && !user) {
@@ -199,32 +269,49 @@ const Admin = () => {
         <div className="flex items-center gap-8 mb-8 pb-4 border-b border-border">
           <h1 className="text-xl font-normal text-foreground">Admin</h1>
           <button 
-            className="text-xl font-normal text-primary border-b-2 border-primary pb-1"
+            onClick={() => setActiveTab("accounts")}
+            className={`text-xl font-normal transition-colors ${
+              activeTab === "accounts"
+                ? "text-primary border-b-2 border-primary pb-1"
+                : "text-foreground hover:text-primary"
+            }`}
           >
             User Accounts
           </button>
           <button 
+            onClick={() => setActiveTab("users")}
+            className={`text-xl font-normal transition-colors ${
+              activeTab === "users"
+                ? "text-primary border-b-2 border-primary pb-1"
+                : "text-foreground hover:text-primary"
+            }`}
+          >
+            Manage Admins
+          </button>
+          <button 
             onClick={handleLogout}
-            className="text-xl font-normal text-foreground hover:text-primary transition-colors"
+            className="text-xl font-normal text-foreground hover:text-primary transition-colors ml-auto"
           >
             Logout
           </button>
         </div>
 
-        {/* Add New User Button */}
-        <button
-          onClick={handleAddNewUser}
-          className="flex items-center gap-2 mb-8 text-primary hover:text-primary/80 transition-colors"
-        >
-          <div className="w-10 h-10 rounded-lg border-2 border-primary flex items-center justify-center">
-            <Plus className="w-5 h-5" />
-          </div>
-          <span className="text-base">Add new user</span>
-        </button>
+        {activeTab === "accounts" && (
+          <>
+            {/* Add New User Button */}
+            <button
+              onClick={handleAddNewUser}
+              className="flex items-center gap-2 mb-8 text-primary hover:text-primary/80 transition-colors"
+            >
+              <div className="w-10 h-10 rounded-lg border-2 border-primary flex items-center justify-center">
+                <Plus className="w-5 h-5" />
+              </div>
+              <span className="text-base">Add new user</span>
+            </button>
 
-        {/* User Forms */}
-        <div className="space-y-8">
-          {users.map((userForm, userIndex) => (
+            {/* User Forms */}
+            <div className="space-y-8">
+              {users.map((userForm, userIndex) => (
             <div key={userIndex} className="border-b border-border pb-8">
               {/* Table Header */}
               <div className="grid grid-cols-12 gap-4 mb-4 text-sm text-muted-foreground">
@@ -343,8 +430,89 @@ const Admin = () => {
                 </button>
               </div>
             </div>
-          ))}
-        </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {activeTab === "users" && (
+          <div className="space-y-6">
+            {/* Search */}
+            <div className="max-w-md">
+              <Input
+                type="email"
+                placeholder="Search by email..."
+                value={searchEmail}
+                onChange={(e) => setSearchEmail(e.target.value)}
+                className="w-full"
+              />
+            </div>
+
+            {/* Users Table */}
+            <div className="border border-border rounded-lg overflow-hidden">
+              <div className="grid grid-cols-12 gap-4 bg-muted px-6 py-3 text-sm font-medium text-muted-foreground">
+                <div className="col-span-1">Avatar</div>
+                <div className="col-span-3">Display Name</div>
+                <div className="col-span-2">Username</div>
+                <div className="col-span-3">Email</div>
+                <div className="col-span-2">Role</div>
+                <div className="col-span-1">Action</div>
+              </div>
+
+              <div className="divide-y divide-border">
+                {allUsers
+                  .filter(u => !searchEmail || u.email?.toLowerCase().includes(searchEmail.toLowerCase()))
+                  .map((userItem) => (
+                    <div key={userItem.id} className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-muted/50 transition-colors">
+                      <div className="col-span-1">
+                        {userItem.avatar_url ? (
+                          <img
+                            src={userItem.avatar_url}
+                            alt={userItem.display_name}
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                            <span className="text-muted-foreground text-sm">
+                              {userItem.display_name?.[0]?.toUpperCase() || "?"}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="col-span-3 text-foreground">{userItem.display_name || "—"}</div>
+                      <div className="col-span-2 text-muted-foreground">{userItem.username || "—"}</div>
+                      <div className="col-span-3 text-muted-foreground">{userItem.email || "—"}</div>
+                      <div className="col-span-2">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          userItem.isAdmin 
+                            ? "bg-primary/10 text-primary" 
+                            : "bg-muted text-muted-foreground"
+                        }`}>
+                          {userItem.isAdmin ? "Admin" : "User"}
+                        </span>
+                      </div>
+                      <div className="col-span-1">
+                        <Button
+                          variant={userItem.isAdmin ? "destructive" : "default"}
+                          size="sm"
+                          onClick={() => toggleAdminRole(userItem.id, userItem.isAdmin)}
+                          disabled={userItem.id === user?.id}
+                        >
+                          {userItem.isAdmin ? "Remove" : "Grant"}
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+
+              {allUsers.filter(u => !searchEmail || u.email?.toLowerCase().includes(searchEmail.toLowerCase())).length === 0 && (
+                <div className="px-6 py-8 text-center text-muted-foreground">
+                  No users found
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
