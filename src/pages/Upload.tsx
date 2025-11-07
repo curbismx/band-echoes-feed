@@ -316,7 +316,7 @@ const Upload = () => {
                     )}
                     <input
                       type="url"
-                      placeholder="https://spotify.com/..."
+                      placeholder="Add links to the music here"
                       value={link}
                       onChange={(e) => {
                         const newLinks = [...links];
