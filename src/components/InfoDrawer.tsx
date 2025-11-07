@@ -96,14 +96,16 @@ export const InfoDrawer = ({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 z-40 animate-fade-in"
+        className="fixed inset-0 bg-black/50 animate-fade-in"
+        style={{ zIndex: 9998 }}
         onClick={onClose}
       />
 
       {/* Drawer */}
       <div
-        className="fixed bottom-0 left-0 right-0 bg-[#1a1a1a] rounded-t-3xl z-50 animate-slide-in-from-bottom"
+        className="fixed bottom-0 left-0 right-0 bg-[#1a1a1a] rounded-t-3xl animate-slide-in-from-bottom"
         style={{ 
+          zIndex: 9999,
           height: `${drawerHeight}vh`,
           transition: isDragging ? 'none' : 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
         }}
