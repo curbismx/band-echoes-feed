@@ -95,12 +95,8 @@ const Upload = () => {
             description: `Saved ${savings}% (${formatFileSize(selectedVideo.size - compressedBlob.size)})`,
           });
         } catch (compressionError) {
-          console.error("Compression failed:", compressionError);
-          toast({
-            title: "Compression skipped",
-            description: "Uploading original video",
-            variant: "destructive",
-          });
+          console.error("Compression failed, uploading original:", compressionError);
+          // Silently fall back to original video without notifying user
         }
       }
 
