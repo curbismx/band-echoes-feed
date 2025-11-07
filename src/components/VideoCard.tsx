@@ -217,7 +217,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
           </div>
         )}
         {video.caption && (
-          <div className="font-normal text-white drop-shadow-lg text-sm leading-relaxed mb-3 pointer-events-none">
+          <div className="font-normal text-white drop-shadow-lg text-sm leading-relaxed mb-3 pointer-events-none line-clamp-2">
             {video.caption}
           </div>
         )}
