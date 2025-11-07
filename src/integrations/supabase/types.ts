@@ -81,19 +81,19 @@ export type Database = {
           created_at: string
           id: string
           user_id: string
-          video_id: number
+          video_id: string
         }
         Insert: {
           created_at?: string
           id?: string
           user_id: string
-          video_id: number
+          video_id: string
         }
         Update: {
           created_at?: string
           id?: string
           user_id?: string
-          video_id?: number
+          video_id?: string
         }
         Relationships: []
       }
@@ -170,7 +170,7 @@ export type Database = {
           rating: number
           updated_at: string
           user_session: string
-          video_id: number
+          video_id: string
         }
         Insert: {
           created_at?: string
@@ -178,7 +178,7 @@ export type Database = {
           rating: number
           updated_at?: string
           user_session: string
-          video_id: number
+          video_id: string
         }
         Update: {
           created_at?: string
@@ -186,7 +186,7 @@ export type Database = {
           rating?: number
           updated_at?: string
           user_session?: string
-          video_id?: number
+          video_id?: string
         }
         Relationships: []
       }
