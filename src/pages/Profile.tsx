@@ -221,9 +221,9 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-screen text-white overflow-y-auto" style={{ backgroundColor: "#252525" }}>
+    <div className="h-screen flex flex-col text-white overflow-hidden" style={{ backgroundColor: "#252525" }}>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-white/10">
+      <div className="flex items-center justify-between p-4 border-b border-white/10 flex-shrink-0">
         <button 
           onClick={() => navigate("/")}
           className="p-2 -ml-2"
@@ -236,8 +236,10 @@ export default function Profile() {
         </button>
       </div>
 
-      {/* Profile Info */}
-      <div className="p-4">
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto">
+        {/* Profile Info */}
+        <div className="p-4">
         {/* Profile Picture and Stats */}
         <div className="flex items-center gap-6 mb-4">
           <img
@@ -507,6 +509,7 @@ export default function Profile() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </div>
     </div>
   );
 }
