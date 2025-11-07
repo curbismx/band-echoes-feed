@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { CommentsDrawer } from "./CommentsDrawer";
 import followOffIcon from "@/assets/follow_OFF.png";
 import followOnIcon from "@/assets/follow_ON.png";
+import infoIcon from "@/assets/info.png";
+import infoFollowIcon from "@/assets/info-follow.png";
 
 interface Video {
   id: string;
@@ -211,10 +213,29 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
           </div>
         )}
         {video.caption && (
-          <div className="font-normal text-white drop-shadow-lg text-sm leading-relaxed pointer-events-none">
+          <div className="font-normal text-white drop-shadow-lg text-sm leading-relaxed mb-3 pointer-events-none">
             {video.caption}
           </div>
         )}
+        
+        {/* Info and Follow buttons */}
+        <div className="flex gap-2 items-center">
+          <button 
+            onClick={(e) => e.stopPropagation()}
+            className="h-[30px] w-[30px] flex items-center justify-center"
+          >
+            <img src={infoIcon} alt="Info" className="h-full w-full object-contain" />
+          </button>
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              handleFollow();
+            }}
+            className="h-[30px] w-[30px] flex items-center justify-center"
+          >
+            <img src={infoFollowIcon} alt="Follow" className="h-full w-full object-contain" />
+          </button>
+        </div>
       </div>
       
       <div className="absolute inset-0 flex flex-col justify-between p-4 pb-8 pr-[30px] pointer-events-none">
