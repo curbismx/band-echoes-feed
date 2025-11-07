@@ -191,10 +191,11 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
       
       {/* Video Info Text - Left Side */}
       <div
-        className="absolute z-20 max-w-[65%] pointer-events-auto"
+        className="absolute z-20 pointer-events-auto"
         style={{
           left: '30px',
           bottom: '50px',
+          maxWidth: 'calc(65% - 50px)',
         }}
       >
         <button
