@@ -221,7 +221,7 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-screen text-white" style={{ backgroundColor: "#252525" }}>
+    <div className="min-h-screen text-white overflow-y-auto" style={{ backgroundColor: "#252525" }}>
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-white/10">
         <button 
