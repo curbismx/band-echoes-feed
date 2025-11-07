@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CommentsDrawer } from "./CommentsDrawer";
 import followOffIcon from "@/assets/follow_OFF.png";
 import followOnIcon from "@/assets/follow_ON.png";
+import followedIcon from "@/assets/followed.png";
 import infoIcon from "@/assets/info.png";
 import infoFollowIcon from "@/assets/info-follow.png";
 
@@ -228,7 +229,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
             className="flex items-center justify-center"
           >
             <img 
-              src={isFollowing ? followOnIcon : followOffIcon} 
+              src={isFollowing ? followedIcon : infoFollowIcon} 
               alt={isFollowing ? "Following" : "Follow"} 
               className="h-[30px] w-auto" 
             />
