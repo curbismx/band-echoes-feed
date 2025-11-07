@@ -94,15 +94,20 @@ export const VideoFeed = () => {
     const isUpSwipe = distance > minSwipeDistance;
     const isDownSwipe = distance < -minSwipeDistance;
 
-    if (isUpSwipe && currentIndex < videos.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
-    } else if (isUpSwipe && currentIndex === videos.length - 1 && isPlayingFavorites) {
-      // Finished favorites, return to normal feed
-      setVideos(allVideos);
-      setCurrentIndex(0);
-      setIsPlayingFavorites(false);
-    } else if (isDownSwipe && currentIndex > 0) {
-      setCurrentIndex((prev) => prev - 1);
+    if (isUpSwipe) {
+      if (currentIndex < videos.length - 1) {
+        setCurrentIndex((prev) => prev + 1);
+      } else {
+        // At the end, loop back to the first video
+        setCurrentIndex(0);
+      }
+    } else if (isDownSwipe) {
+      if (currentIndex > 0) {
+        setCurrentIndex((prev) => prev - 1);
+      } else {
+        // At the beginning, loop to the last video
+        setCurrentIndex(videos.length - 1);
+      }
     }
     
     // Reset drag offset
@@ -112,22 +117,27 @@ export const VideoFeed = () => {
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowDown" && currentIndex < videos.length - 1) {
-        setCurrentIndex((prev) => prev + 1);
-      } else if (e.key === "ArrowDown" && currentIndex === videos.length - 1 && isPlayingFavorites) {
-        // Finished favorites, return to normal feed
-        setVideos(allVideos);
-        setCurrentIndex(0);
-        setIsPlayingFavorites(false);
+      if (e.key === "ArrowDown") {
+        if (currentIndex < videos.length - 1) {
+          setCurrentIndex((prev) => prev + 1);
+        } else {
+          // At the end, loop back to the first video
+          setCurrentIndex(0);
+        }
       }
-      if (e.key === "ArrowUp" && currentIndex > 0) {
-        setCurrentIndex((prev) => prev - 1);
+      if (e.key === "ArrowUp") {
+        if (currentIndex > 0) {
+          setCurrentIndex((prev) => prev - 1);
+        } else {
+          // At the beginning, loop to the last video
+          setCurrentIndex(videos.length - 1);
+        }
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentIndex, isPlayingFavorites, allVideos]);
+  }, [currentIndex, videos.length]);
 
   return (
     <div
