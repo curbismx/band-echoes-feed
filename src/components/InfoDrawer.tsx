@@ -2,6 +2,7 @@ import { X } from "lucide-react";
 import { detectPlatform } from "@/utils/platformDetection";
 import { getPlatformIcon } from "./PlatformIcons";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
+import { useState } from "react";
 
 interface InfoDrawerProps {
   isOpen: boolean;
@@ -20,6 +21,9 @@ export const InfoDrawer = ({
   caption,
   links = [],
 }: InfoDrawerProps) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [startY, setStartY] = useState(0);
+  
   const triggerHaptic = async () => {
     try {
       await Haptics.impact({ style: ImpactStyle.Light });
@@ -35,6 +39,34 @@ export const InfoDrawer = ({
     window.open(url, '_blank');
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setStartY(e.touches[0].clientY);
+    e.stopPropagation();
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    e.stopPropagation();
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.stopPropagation();
+    const endY = e.changedTouches[0].clientY;
+    const diff = startY - endY;
+    
+    // If swiped up significantly, expand
+    if (diff > 50 && !isExpanded) {
+      setIsExpanded(true);
+    }
+    // If swiped down significantly, collapse or close
+    else if (diff < -50) {
+      if (isExpanded) {
+        setIsExpanded(false);
+      } else {
+        onClose();
+      }
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -47,8 +79,11 @@ export const InfoDrawer = ({
 
       {/* Drawer */}
       <div
-        className="fixed bottom-0 left-0 right-0 bg-[#1a1a1a] rounded-t-3xl z-50 animate-slide-in-from-bottom"
-        style={{ maxHeight: '50vh' }}
+        className="fixed bottom-0 left-0 right-0 bg-[#1a1a1a] rounded-t-3xl z-50 animate-slide-in-from-bottom transition-all duration-300"
+        style={{ maxHeight: isExpanded ? '90vh' : '50vh' }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         {/* Handle bar */}
         <div className="flex justify-center pt-3 pb-2">
@@ -64,7 +99,7 @@ export const InfoDrawer = ({
         </button>
 
         {/* Content */}
-        <div className="px-6 pb-6 overflow-y-auto" style={{ maxHeight: 'calc(50vh - 60px)' }}>
+        <div className="px-6 pb-6 overflow-y-auto" style={{ maxHeight: isExpanded ? 'calc(90vh - 60px)' : 'calc(50vh - 60px)' }}>
           {/* Video Info */}
           {(videoTitle || artistName || caption) && (
             <div className="mb-4">
