@@ -40,10 +40,7 @@ const Admin = () => {
 
   useEffect(() => {
     const checkAdminStatus = async () => {
-      if (!user) {
-        setCheckingAdmin(false);
-        return;
-      }
+      if (!user) return;
 
       const { data, error } = await supabase
         .rpc('has_role', { _user_id: user.id, _role: 'admin' as any });
@@ -61,7 +58,11 @@ const Admin = () => {
   }, [user]);
 
   useEffect(() => {
-    if (!loading && !checkingAdmin && (!user || !isAdmin)) {
+    if (!loading && !user) {
+      navigate("/");
+      return;
+    }
+    if (!loading && !checkingAdmin && !isAdmin) {
       navigate("/");
     }
   }, [user, isAdmin, loading, checkingAdmin, navigate]);
