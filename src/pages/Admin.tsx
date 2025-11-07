@@ -6,6 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Plus, Upload } from "lucide-react";
+import user1 from "@/assets/user-profiles/user1.jpg";
+import user2 from "@/assets/user-profiles/user2.jpg";
+import user3 from "@/assets/user-profiles/user3.jpg";
+import user4 from "@/assets/user-profiles/user4.jpg";
+import user5 from "@/assets/user-profiles/user5.jpg";
+import user6 from "@/assets/user-profiles/user6.jpg";
+import user7 from "@/assets/user-profiles/user7.jpg";
+import user8 from "@/assets/user-profiles/user8.jpg";
+import user9 from "@/assets/user-profiles/user9.jpg";
+import user10 from "@/assets/user-profiles/user10.jpg";
 
 interface VideoInput {
   id: string;
@@ -13,7 +23,7 @@ interface VideoInput {
 }
 
 interface UserForm {
-  icon: File | null;
+  icon: File | string | null;
   name: string;
   username: string;
   email: string;
@@ -22,12 +32,105 @@ interface UserForm {
   videos: VideoInput[];
 }
 
+const initialUsers: UserForm[] = [
+  {
+    icon: user1,
+    name: "Sarah Martinez",
+    username: "sarahmartinez",
+    email: "sarah.martinez@musiclabel.com",
+    website: "sarahmartinez.com",
+    description: "Music producer and songwriter based in LA",
+    videos: [],
+  },
+  {
+    icon: user2,
+    name: "Michael Thompson",
+    username: "mikethompson",
+    email: "michael.thompson@studioworks.com",
+    website: "mikethompson.studio",
+    description: "Audio engineer with 15 years experience",
+    videos: [],
+  },
+  {
+    icon: user3,
+    name: "Emma Wilson",
+    username: "emmawilson",
+    email: "emma.wilson@creativemedia.com",
+    website: "emmawilson.art",
+    description: "Creative director and visual artist",
+    videos: [],
+  },
+  {
+    icon: user4,
+    name: "David Chen",
+    username: "davidchen",
+    email: "david.chen@techstudio.com",
+    website: "davidchen.tech",
+    description: "Tech entrepreneur and music enthusiast",
+    videos: [],
+  },
+  {
+    icon: user5,
+    name: "Jennifer Roberts",
+    username: "jenniferroberts",
+    email: "jennifer.roberts@executive.com",
+    website: "jenniferroberts.pro",
+    description: "Entertainment industry executive",
+    videos: [],
+  },
+  {
+    icon: user6,
+    name: "Alex Rodriguez",
+    username: "alexrodriguez",
+    email: "alex.rodriguez@indie.com",
+    website: "alexrodriguez.band",
+    description: "Indie musician and content creator",
+    videos: [],
+  },
+  {
+    icon: user7,
+    name: "Rachel Anderson",
+    username: "rachelanderson",
+    email: "rachel.anderson@management.com",
+    website: "rachelanderson.biz",
+    description: "Artist manager and talent scout",
+    videos: [],
+  },
+  {
+    icon: user8,
+    name: "Robert Sullivan",
+    username: "robertsullivan",
+    email: "robert.sullivan@legacy.com",
+    website: "robertsullivan.net",
+    description: "Music industry veteran and consultant",
+    videos: [],
+  },
+  {
+    icon: user9,
+    name: "Nina Patel",
+    username: "ninapatel",
+    email: "nina.patel@startup.com",
+    website: "ninapatel.io",
+    description: "Digital marketing specialist for artists",
+    videos: [],
+  },
+  {
+    icon: user10,
+    name: "James Mitchell",
+    username: "jamesmitchell",
+    email: "james.mitchell@venue.com",
+    website: "jamesmitchell.events",
+    description: "Live event producer and booking agent",
+    videos: [],
+  },
+];
+
 const Admin = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [checkingAdmin, setCheckingAdmin] = useState(true);
-  const [users, setUsers] = useState<UserForm[]>([]);
+  const [users, setUsers] = useState<UserForm[]>(initialUsers);
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [searchEmail, setSearchEmail] = useState("");
   const [activeTab, setActiveTab] = useState<"accounts" | "users">("accounts");
@@ -211,11 +314,25 @@ const Admin = () => {
       // Upload avatar if provided
       let avatarUrl = null;
       if (userForm.icon) {
-        const fileExt = userForm.icon.name.split(".").pop();
+        let fileToUpload: File;
+        let fileExt: string;
+        
+        if (typeof userForm.icon === 'string') {
+          // Fetch the image from the URL and convert to File
+          const response = await fetch(userForm.icon);
+          const blob = await response.blob();
+          fileExt = userForm.icon.split('.').pop() || 'jpg';
+          fileToUpload = new File([blob], `avatar.${fileExt}`, { type: blob.type });
+        } else {
+          // Use the uploaded File directly
+          fileToUpload = userForm.icon;
+          fileExt = userForm.icon.name.split(".").pop() || 'jpg';
+        }
+        
         const fileName = `${authData.user.id}.${fileExt}`;
         const { error: uploadError } = await supabase.storage
           .from("avatars")
-          .upload(fileName, userForm.icon, { upsert: true });
+          .upload(fileName, fileToUpload, { upsert: true });
 
         if (uploadError) throw uploadError;
 
@@ -336,7 +453,7 @@ const Admin = () => {
                     />
                     {userForm.icon ? (
                       <img
-                        src={URL.createObjectURL(userForm.icon)}
+                        src={typeof userForm.icon === 'string' ? userForm.icon : URL.createObjectURL(userForm.icon)}
                         alt="icon"
                         className="w-full h-full rounded-full object-cover"
                       />
