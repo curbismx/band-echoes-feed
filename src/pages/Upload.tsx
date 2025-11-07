@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { compressVideo, formatFileSize, CompressionProgress } from "@/utils/videoCompression";
 import { Progress } from "@/components/ui/progress";
 import { detectPlatform, isValidUrl } from "@/utils/platformDetection";
+import { getPlatformIcon } from "@/components/PlatformIcons";
 
 const Upload = () => {
   const navigate = useNavigate();
@@ -305,11 +306,13 @@ const Upload = () => {
             <div className="space-y-3">
               <h3 className="text-white font-semibold text-sm">Add Links</h3>
               {links.map((link, index) => {
-                const { platform, icon } = link ? detectPlatform(link) : { platform: '', icon: '' };
+                const { platform } = link ? detectPlatform(link) : { platform: '' };
                 return (
                   <div key={index} className="flex items-center gap-2">
                     {link && isValidUrl(link) && (
-                      <span className="text-xl">{icon}</span>
+                      <div className="text-white">
+                        {getPlatformIcon(platform)}
+                      </div>
                     )}
                     <input
                       type="url"
@@ -319,6 +322,12 @@ const Upload = () => {
                         const newLinks = [...links];
                         newLinks[index] = e.target.value;
                         setLinks(newLinks);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          setLinks([...links, ""]);
+                        }
                       }}
                       className="flex-1 bg-white/5 border border-white/10 text-white placeholder:text-gray-500 text-sm p-3 rounded-lg outline-none focus:border-white/30 transition-colors"
                     />

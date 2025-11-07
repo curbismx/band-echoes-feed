@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import { detectPlatform } from "@/utils/platformDetection";
+import { getPlatformIcon } from "./PlatformIcons";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 
 interface InfoDrawerProps {
@@ -47,7 +48,7 @@ export const InfoDrawer = ({
       {/* Drawer */}
       <div
         className="fixed bottom-0 left-0 right-0 bg-[#1a1a1a] rounded-t-3xl z-50 animate-slide-in-from-bottom"
-        style={{ maxHeight: '33vh' }}
+        style={{ maxHeight: '50vh' }}
       >
         {/* Handle bar */}
         <div className="flex justify-center pt-3 pb-2">
@@ -63,7 +64,7 @@ export const InfoDrawer = ({
         </button>
 
         {/* Content */}
-        <div className="px-6 pb-6 overflow-y-auto" style={{ maxHeight: 'calc(33vh - 60px)' }}>
+        <div className="px-6 pb-6 overflow-y-auto" style={{ maxHeight: 'calc(50vh - 60px)' }}>
           {/* Video Info */}
           {(videoTitle || artistName || caption) && (
             <div className="mb-4">
@@ -84,14 +85,16 @@ export const InfoDrawer = ({
             <div className="space-y-3">
               <h4 className="text-white/80 text-sm font-semibold mb-2">Listen on:</h4>
               {links.map((link, index) => {
-                const { platform, icon } = detectPlatform(link.url);
+                const { platform } = detectPlatform(link.url);
                 return (
                   <button
                     key={index}
                     onClick={() => handleLinkClick(link.url)}
                     className="w-full flex items-center gap-3 bg-white/5 hover:bg-white/10 transition-colors p-4 rounded-xl"
                   >
-                    <span className="text-2xl">{icon}</span>
+                    <div className="text-white">
+                      {getPlatformIcon(platform)}
+                    </div>
                     <div className="flex-1 text-left">
                       <p className="text-white font-medium">Listen on {platform}</p>
                     </div>
