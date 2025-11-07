@@ -181,11 +181,6 @@ export const InfoDrawer = ({
             </div>
           )}
 
-          {links.length === 0 && (
-            <div className="text-center py-8 text-white/40 text-sm">
-              No links available
-            </div>
-          )}
         </div>
       </div>
     </>,
