@@ -21,8 +21,10 @@ export const InfoDrawer = ({
   caption,
   links = [],
 }: InfoDrawerProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [drawerHeight, setDrawerHeight] = useState(50); // percentage of viewport
+  const [isDragging, setIsDragging] = useState(false);
   const [startY, setStartY] = useState(0);
+  const [startHeight, setStartHeight] = useState(50);
   
   const triggerHaptic = async () => {
     try {
@@ -41,29 +43,42 @@ export const InfoDrawer = ({
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setStartY(e.touches[0].clientY);
+    setStartHeight(drawerHeight);
+    setIsDragging(true);
     e.stopPropagation();
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
     e.stopPropagation();
+    
+    const currentY = e.touches[0].clientY;
+    const deltaY = startY - currentY;
+    const viewportHeight = window.innerHeight;
+    const deltaPercentage = (deltaY / viewportHeight) * 100;
+    
+    // Calculate new height with bounds (30% to 90%)
+    const newHeight = Math.max(30, Math.min(90, startHeight + deltaPercentage));
+    setDrawerHeight(newHeight);
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     e.stopPropagation();
+    setIsDragging(false);
+    
     const endY = e.changedTouches[0].clientY;
     const diff = startY - endY;
     
-    // If swiped up significantly, expand
-    if (diff > 50 && !isExpanded) {
-      setIsExpanded(true);
-    }
-    // If swiped down significantly, collapse or close
-    else if (diff < -50) {
-      if (isExpanded) {
-        setIsExpanded(false);
-      } else {
-        onClose();
-      }
+    // Snap to closest standard height based on final position
+    if (drawerHeight < 40) {
+      // Close if dragged below 40%
+      onClose();
+    } else if (drawerHeight < 65) {
+      // Snap to 50% (default)
+      setDrawerHeight(50);
+    } else {
+      // Snap to 80% (expanded)
+      setDrawerHeight(80);
     }
   };
 
@@ -79,8 +94,11 @@ export const InfoDrawer = ({
 
       {/* Drawer */}
       <div
-        className="fixed bottom-0 left-0 right-0 bg-[#1a1a1a] rounded-t-3xl z-50 animate-slide-in-from-bottom transition-all duration-300"
-        style={{ maxHeight: isExpanded ? '90vh' : '50vh' }}
+        className="fixed bottom-0 left-0 right-0 bg-[#1a1a1a] rounded-t-3xl z-50 animate-slide-in-from-bottom"
+        style={{ 
+          height: `${drawerHeight}vh`,
+          transition: isDragging ? 'none' : 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+        }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -99,7 +117,7 @@ export const InfoDrawer = ({
         </button>
 
         {/* Content */}
-        <div className="px-6 pb-6 overflow-y-auto" style={{ maxHeight: isExpanded ? 'calc(90vh - 60px)' : 'calc(50vh - 60px)' }}>
+        <div className="px-6 pb-6 overflow-y-auto" style={{ height: `calc(${drawerHeight}vh - 60px)` }}>
           {/* Video Info */}
           {(videoTitle || artistName || caption) && (
             <div className="mb-4">
