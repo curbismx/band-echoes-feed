@@ -48,6 +48,12 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
 
   const { averageRating, userRating, submitRating } = useVideoRatings(video.id);
 
+  // Sync state with video prop changes
+  useEffect(() => {
+    setIsFollowing(video.isFollowing);
+    setLikes(video.likes);
+  }, [video.id, video.isFollowing, video.likes]);
+
   // Reset UI visibility when switching to a new video
   useEffect(() => {
     if (isActive) {
