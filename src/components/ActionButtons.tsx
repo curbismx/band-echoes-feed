@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import starIcon from "@/assets/star.png";
 import starOnIcon from "@/assets/star-on.png";
 import starSingleIcon from "@/assets/star-single.png";
@@ -127,6 +128,17 @@ export const ActionButtons = ({
     }
   };
 
+  const triggerHaptic = async () => {
+    try {
+      await Haptics.impact({ style: ImpactStyle.Light });
+    } catch (error) {
+      // Haptics not available, fallback to vibrate
+      if ("vibrate" in navigator) {
+        navigator.vibrate(50);
+      }
+    }
+  };
+
   const formatNumber = (num: number) => {
     if (num >= 1000) {
       return (num / 1000).toFixed(1) + "k";
@@ -135,14 +147,12 @@ export const ActionButtons = ({
   };
 
   const handleRateClick = () => {
+    triggerHaptic();
     setShowRating(!showRating);
   };
 
   const handleStarClick = (starRating: number) => {
-    if ("vibrate" in navigator) {
-      navigator.vibrate(50);
-    }
-
+    triggerHaptic();
     setSelectedStar(starRating);
     setTimeout(() => {
       setShowRating(false);
@@ -152,16 +162,12 @@ export const ActionButtons = ({
   };
 
   const handleLikeClick = () => {
-    if ("vibrate" in navigator) {
-      navigator.vibrate(50);
-    }
+    triggerHaptic();
     onLike();
   };
 
   const handleShare = async () => {
-    if ("vibrate" in navigator) {
-      navigator.vibrate(50);
-    }
+    triggerHaptic();
 
     const url = window.location.href;
     const shareData = {
@@ -276,7 +282,10 @@ export const ActionButtons = ({
       {/* Comments */}
       <div className="relative h-[30px] mt-[40px]">
         <button 
-          onClick={onOpenComments}
+          onClick={() => {
+            triggerHaptic();
+            onOpenComments();
+          }}
           className="action-button flex items-center justify-center"
         >
           <img src={commentsIcon} alt="Comments" className="h-[30px] w-[30px]" />
@@ -295,9 +304,7 @@ export const ActionButtons = ({
         <button 
           onClick={(e) => {
             e.stopPropagation();
-            if ("vibrate" in navigator) {
-              navigator.vibrate(50);
-            }
+            triggerHaptic();
             handleFollowToggle();
           }}
           disabled={followLoading}
@@ -318,9 +325,7 @@ export const ActionButtons = ({
         <button 
           onClick={(e) => {
             e.stopPropagation();
-            if ("vibrate" in navigator) {
-              navigator.vibrate(50);
-            }
+            triggerHaptic();
             navigate("/upload");
           }}
           className="action-button flex items-center justify-center"
@@ -334,6 +339,7 @@ export const ActionButtons = ({
         <button
           onClick={(e) => {
             e.stopPropagation();
+            triggerHaptic();
             navigate("/profile");
           }}
           className="action-button flex items-center justify-center"
