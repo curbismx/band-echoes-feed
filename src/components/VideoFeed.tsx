@@ -60,6 +60,7 @@ export const VideoFeed = () => {
           isFollowing: false,
           title: video.title,
           caption: video.caption,
+          links: video.links || [],
         };
       });
       

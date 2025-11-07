@@ -60,7 +60,8 @@ export default function Favorites() {
                 isFollowing: false,
                 title: video.title,
                 caption: video.caption,
-                thumbnail: video.thumbnail_url
+                thumbnail: video.thumbnail_url,
+                links: video.links || [],
               };
             });
 

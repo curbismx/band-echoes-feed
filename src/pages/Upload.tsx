@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, X } from "lucide-react";
+import { ArrowLeft, X, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { compressVideo, formatFileSize, CompressionProgress } from "@/utils/videoCompression";
 import { Progress } from "@/components/ui/progress";
+import { detectPlatform, isValidUrl } from "@/utils/platformDetection";
 
 const Upload = () => {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ const Upload = () => {
   const [compressedSize, setCompressedSize] = useState<number>(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [existingVideoUrl, setExistingVideoUrl] = useState<string>("");
+  const [links, setLinks] = useState<string[]>(["", ""]);
 
   // Fetch compression setting and video data if editing
   useEffect(() => {
@@ -56,6 +58,10 @@ const Upload = () => {
           setTitle(data.title || "");
           setVideoPreview(data.video_url);
           setExistingVideoUrl(data.video_url);
+          // Load existing links
+          if (data.links && Array.isArray(data.links) && data.links.length > 0) {
+            setLinks(data.links.map((l: any) => l.url || ""));
+          }
         } else {
           toast({
             title: "Error",
@@ -90,11 +96,18 @@ const Upload = () => {
     if (editVideoId && existingVideoUrl) {
       setIsUploading(true);
       try {
+        // Filter out empty links and validate
+        const validLinks = links
+          .filter(link => link.trim() !== "")
+          .filter(link => isValidUrl(link))
+          .map(url => ({ url }));
+
         const { error: dbError } = await supabase
           .from("videos")
           .update({
             caption: caption || null,
             title: title || null,
+            links: validLinks,
           })
           .eq("id", editVideoId);
 
@@ -179,6 +192,11 @@ const Upload = () => {
         .getPublicUrl(fileName);
 
       // Create video record
+      const validLinks = links
+        .filter(link => link.trim() !== "")
+        .filter(link => isValidUrl(link))
+        .map(url => ({ url }));
+
       const { error: dbError } = await supabase
         .from("videos")
         .insert({
@@ -186,6 +204,7 @@ const Upload = () => {
           video_url: publicUrl,
           caption: caption || null,
           title: title || null,
+          links: validLinks,
         });
 
       if (dbError) throw dbError;
@@ -278,9 +297,50 @@ const Upload = () => {
               placeholder="Add a caption..."
               value={caption}
               onChange={(e) => setCaption(e.target.value)}
-              className="bg-transparent border-none text-white placeholder:text-gray-500 resize-none text-base"
-              rows={6}
+              className="bg-transparent border-none text-white placeholder:text-gray-500 resize-none text-base mb-6"
+              rows={4}
             />
+
+            {/* Links Section */}
+            <div className="space-y-3">
+              <h3 className="text-white font-semibold text-sm">Add Links</h3>
+              {links.map((link, index) => {
+                const { platform, icon } = link ? detectPlatform(link) : { platform: '', icon: '' };
+                return (
+                  <div key={index} className="flex items-center gap-2">
+                    {link && isValidUrl(link) && (
+                      <span className="text-xl">{icon}</span>
+                    )}
+                    <input
+                      type="url"
+                      placeholder="https://spotify.com/..."
+                      value={link}
+                      onChange={(e) => {
+                        const newLinks = [...links];
+                        newLinks[index] = e.target.value;
+                        setLinks(newLinks);
+                      }}
+                      className="flex-1 bg-white/5 border border-white/10 text-white placeholder:text-gray-500 text-sm p-3 rounded-lg outline-none focus:border-white/30 transition-colors"
+                    />
+                    {links.length > 2 && (
+                      <button
+                        onClick={() => setLinks(links.filter((_, i) => i !== index))}
+                        className="text-red-400 hover:text-red-300 p-2"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+              <button
+                onClick={() => setLinks([...links, ""])}
+                className="flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm font-medium"
+              >
+                <Plus className="w-4 h-4" />
+                Add another link
+              </button>
+            </div>
           </div>
         </>
       )}

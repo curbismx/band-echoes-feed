@@ -196,6 +196,7 @@ export type Database = {
           created_at: string
           id: string
           likes_count: number | null
+          links: Json | null
           thumbnail_url: string | null
           title: string | null
           updated_at: string
@@ -208,6 +209,7 @@ export type Database = {
           created_at?: string
           id?: string
           likes_count?: number | null
+          links?: Json | null
           thumbnail_url?: string | null
           title?: string | null
           updated_at?: string
@@ -220,6 +222,7 @@ export type Database = {
           created_at?: string
           id?: string
           likes_count?: number | null
+          links?: Json | null
           thumbnail_url?: string | null
           title?: string | null
           updated_at?: string

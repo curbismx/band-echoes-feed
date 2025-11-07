@@ -4,6 +4,7 @@ import { ActionButtons } from "./ActionButtons";
 import { useVideoRatings } from "@/hooks/useVideoRatings";
 import { supabase } from "@/integrations/supabase/client";
 import { CommentsDrawer } from "./CommentsDrawer";
+import { InfoDrawer } from "./InfoDrawer";
 import followOffIcon from "@/assets/follow_OFF.png";
 import followOnIcon from "@/assets/follow_ON.png";
 import followedIcon from "@/assets/followed.png";
@@ -20,6 +21,7 @@ interface Video {
   isFollowing: boolean;
   title?: string;
   caption?: string;
+  links?: Array<{ url: string }>;
 }
 
 interface VideoCardProps {
@@ -37,6 +39,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
   const [isPaused, setIsPaused] = useState(false);
   const [artistAvatar, setArtistAvatar] = useState<string>("");
   const [commentsOpen, setCommentsOpen] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const { averageRating, userRating, submitRating } = useVideoRatings(video.id);
@@ -235,7 +238,10 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
             />
           </button>
           <button 
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              setInfoOpen(true);
+            }}
             className="flex items-center justify-center"
           >
             <img src={infoIcon} alt="Info" className="h-[30px] w-auto" />
@@ -269,6 +275,15 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
         videoId={video.id.toString()}
         isOpen={commentsOpen}
         onClose={() => setCommentsOpen(false)}
+      />
+
+      <InfoDrawer 
+        isOpen={infoOpen}
+        onClose={() => setInfoOpen(false)}
+        videoTitle={video.title}
+        artistName={video.artistName}
+        caption={video.caption}
+        links={video.links}
       />
     </div>
   );
