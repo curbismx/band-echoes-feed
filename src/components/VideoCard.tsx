@@ -40,9 +40,18 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
   const [artistAvatar, setArtistAvatar] = useState<string>("");
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
+  const [isUIHidden, setIsUIHidden] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const lastTapRef = useRef<number>(0);
 
   const { averageRating, userRating, submitRating } = useVideoRatings(video.id);
+
+  // Reset UI visibility when switching to a new video
+  useEffect(() => {
+    if (isActive) {
+      setIsUIHidden(false);
+    }
+  }, [isActive]);
 
   // Check if video is favorited
   useEffect(() => {
@@ -95,6 +104,19 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
 
   const handleVideoClick = () => {
     if (!videoRef.current) return;
+
+    const now = Date.now();
+    const timeSinceLastTap = now - lastTapRef.current;
+    
+    // Double tap detection (within 300ms)
+    if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
+      // Double tap: toggle UI visibility
+      setIsUIHidden(!isUIHidden);
+      lastTapRef.current = 0; // Reset
+      return;
+    }
+    
+    lastTapRef.current = now;
 
     // On first interaction: unmute and ensure playback without pausing
     if (isMuted) {
@@ -190,14 +212,15 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
       />
       
       {/* Video Info Text - Left Side */}
-      <div
-        className="absolute z-20 pointer-events-auto"
-        style={{
-          left: '30px',
-          bottom: '50px',
-          maxWidth: 'calc(65% - 50px)',
-        }}
-      >
+      {!isUIHidden && (
+        <div
+          className="absolute z-20 pointer-events-auto"
+          style={{
+            left: '30px',
+            bottom: '50px',
+            maxWidth: 'calc(65% - 50px)',
+          }}
+        >
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -249,8 +272,10 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
           </button>
         </div>
       </div>
+      )}
       
-      <div className="absolute inset-0 flex flex-col justify-between p-4 pb-8 pr-[30px] pointer-events-none">
+      {!isUIHidden && (
+        <div className="absolute inset-0 flex flex-col justify-between p-4 pb-8 pr-[30px] pointer-events-none">
         {/* Bottom Content */}
         <div className="mt-auto flex items-end justify-end pointer-events-auto">
           {/* Action Buttons */}
@@ -271,6 +296,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
         </div>
 
       </div>
+      )}
       
       <CommentsDrawer 
         videoId={video.id.toString()}
