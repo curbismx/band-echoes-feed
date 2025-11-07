@@ -203,12 +203,18 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
           }}
           className="font-bold text-white drop-shadow-lg mb-1 cursor-pointer hover:underline text-left touch-manipulation"
         >
-          The Guitarman
+          {video.artistName}
         </button>
-        <div className="font-medium text-white drop-shadow-lg mb-1 pointer-events-none">Crosstown Traffic</div>
-        <div className="font-normal text-white drop-shadow-lg text-sm leading-relaxed pointer-events-none">
-          Jimi Hendrix playing at the Rainbow<br />Theatre, London in 1967
-        </div>
+        {video.title && (
+          <div className="font-medium text-white drop-shadow-lg mb-1 pointer-events-none">
+            {video.title}
+          </div>
+        )}
+        {video.caption && (
+          <div className="font-normal text-white drop-shadow-lg text-sm leading-relaxed pointer-events-none">
+            {video.caption}
+          </div>
+        )}
       </div>
       
       <div className="absolute inset-0 flex flex-col justify-between p-4 pb-8 pr-[30px] pointer-events-none">
