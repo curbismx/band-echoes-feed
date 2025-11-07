@@ -3,6 +3,7 @@ import { detectPlatform } from "@/utils/platformDetection";
 import { getPlatformIcon } from "./PlatformIcons";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 interface InfoDrawerProps {
   isOpen: boolean;
@@ -92,7 +93,7 @@ export const InfoDrawer = ({
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <>
       {/* Backdrop */}
       <div
@@ -187,6 +188,7 @@ export const InfoDrawer = ({
           )}
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 };
