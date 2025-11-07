@@ -380,8 +380,8 @@ const Admin = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-background p-8 overflow-y-auto">
+      <div className="max-w-7xl mx-auto pb-20">
         {/* Header */}
         <div className="flex items-center gap-8 mb-8 pb-4 border-b border-border">
           <h1 className="text-xl font-normal text-foreground">Admin</h1>
