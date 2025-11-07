@@ -29,14 +29,15 @@ interface VideoCardProps {
   isActive: boolean;
   isMuted: boolean;
   onUnmute: () => void;
+  isGloballyPaused: boolean;
+  onTogglePause: (paused: boolean) => void;
 }
 
-export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps) => {
+export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused, onTogglePause }: VideoCardProps) => {
   const navigate = useNavigate();
   const [isFollowing, setIsFollowing] = useState(video.isFollowing);
   const [isLiked, setIsLiked] = useState(false);
   const [likes, setLikes] = useState(video.likes);
-  const [isPaused, setIsPaused] = useState(false);
   const [artistAvatar, setArtistAvatar] = useState<string>("");
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
@@ -93,7 +94,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
 
   useEffect(() => {
     if (videoRef.current) {
-      if (isActive && !isPaused) {
+      if (isActive && !isGloballyPaused) {
         videoRef.current.play().catch(() => {
           // Handle autoplay restrictions
         });
@@ -101,7 +102,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
         videoRef.current.pause();
       }
     }
-  }, [isActive, isPaused]);
+  }, [isActive, isGloballyPaused]);
 
   const handleVideoClick = () => {
     if (!videoRef.current) return;
@@ -138,16 +139,16 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
         videoRef.current.muted = false;
         onUnmute();
         videoRef.current.play().catch(() => {});
-        setIsPaused(false);
+        onTogglePause(false);
         return;
       }
 
-      if (isPaused) {
+      if (isGloballyPaused) {
         videoRef.current.play();
-        setIsPaused(false);
+        onTogglePause(false);
       } else {
         videoRef.current.pause();
-        setIsPaused(true);
+        onTogglePause(true);
       }
     }, 300);
   };

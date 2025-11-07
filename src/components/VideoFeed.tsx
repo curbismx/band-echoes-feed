@@ -9,6 +9,7 @@ export const VideoFeed = () => {
   const location = useLocation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMuted, setIsMuted] = useState(true);
+  const [isGloballyPaused, setIsGloballyPaused] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -194,6 +195,8 @@ export const VideoFeed = () => {
             isActive={index === currentIndex}
             isMuted={isMuted}
             onUnmute={() => setIsMuted(false)}
+            isGloballyPaused={isGloballyPaused}
+            onTogglePause={(paused) => setIsGloballyPaused(paused)}
           />
         ))}
       </div>
