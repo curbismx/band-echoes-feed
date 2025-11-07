@@ -219,7 +219,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
         )}
         
         {/* Follow and Info buttons */}
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-[30px] items-center" style={{ transform: 'translateY(3px)' }}>
           <button 
             onClick={(e) => {
               e.stopPropagation();
