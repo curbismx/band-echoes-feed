@@ -227,7 +227,11 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute }: VideoCardProps
             }}
             className="flex items-center justify-center"
           >
-            <img src={infoFollowIcon} alt="Follow" className="h-[30px] w-auto" />
+            <img 
+              src={isFollowing ? followOnIcon : followOffIcon} 
+              alt={isFollowing ? "Following" : "Follow"} 
+              className="h-[30px] w-auto" 
+            />
           </button>
           <button 
             onClick={(e) => e.stopPropagation()}
