@@ -36,7 +36,7 @@ const initialUsers: UserForm[] = [
   {
     icon: user1,
     name: "Sarah Martinez",
-    username: "sarahmartinez",
+    username: "soundwave_sara",
     email: "sarah.martinez@musiclabel.com",
     website: "sarahmartinez.com",
     description: "Music producer and songwriter based in LA",
@@ -45,7 +45,7 @@ const initialUsers: UserForm[] = [
   {
     icon: user2,
     name: "Michael Thompson",
-    username: "mikethompson",
+    username: "mikebeats",
     email: "michael.thompson@studioworks.com",
     website: "mikethompson.studio",
     description: "Audio engineer with 15 years experience",
@@ -54,7 +54,7 @@ const initialUsers: UserForm[] = [
   {
     icon: user3,
     name: "Emma Wilson",
-    username: "emmawilson",
+    username: "artsy.emma",
     email: "emma.wilson@creativemedia.com",
     website: "emmawilson.art",
     description: "Creative director and visual artist",
@@ -63,7 +63,7 @@ const initialUsers: UserForm[] = [
   {
     icon: user4,
     name: "David Chen",
-    username: "davidchen",
+    username: "techbeats_dave",
     email: "david.chen@techstudio.com",
     website: "davidchen.tech",
     description: "Tech entrepreneur and music enthusiast",
@@ -72,7 +72,7 @@ const initialUsers: UserForm[] = [
   {
     icon: user5,
     name: "Jennifer Roberts",
-    username: "jenniferroberts",
+    username: "hendrix_fan",
     email: "jennifer.roberts@executive.com",
     website: "jenniferroberts.pro",
     description: "Entertainment industry executive",
@@ -81,7 +81,7 @@ const initialUsers: UserForm[] = [
   {
     icon: user6,
     name: "Alex Rodriguez",
-    username: "alexrodriguez",
+    username: "alexdrum",
     email: "alex.rodriguez@indie.com",
     website: "alexrodriguez.band",
     description: "Indie musician and content creator",
@@ -90,7 +90,7 @@ const initialUsers: UserForm[] = [
   {
     icon: user7,
     name: "Rachel Anderson",
-    username: "rachelanderson",
+    username: "vinyl_queen",
     email: "rachel.anderson@management.com",
     website: "rachelanderson.biz",
     description: "Artist manager and talent scout",
@@ -99,7 +99,7 @@ const initialUsers: UserForm[] = [
   {
     icon: user8,
     name: "Robert Sullivan",
-    username: "robertsullivan",
+    username: "classic_rock_bob",
     email: "robert.sullivan@legacy.com",
     website: "robertsullivan.net",
     description: "Music industry veteran and consultant",
@@ -108,7 +108,7 @@ const initialUsers: UserForm[] = [
   {
     icon: user9,
     name: "Nina Patel",
-    username: "ninapatel",
+    username: "ninarocks",
     email: "nina.patel@startup.com",
     website: "ninapatel.io",
     description: "Digital marketing specialist for artists",
@@ -117,7 +117,7 @@ const initialUsers: UserForm[] = [
   {
     icon: user10,
     name: "James Mitchell",
-    username: "jamesmitchell",
+    username: "live_music_jam",
     email: "james.mitchell@venue.com",
     website: "jamesmitchell.events",
     description: "Live event producer and booking agent",
