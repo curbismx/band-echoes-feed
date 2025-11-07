@@ -57,7 +57,21 @@ export const VideoFeed = () => {
     };
 
     fetchVideos();
-  }, []);
+
+    // Refetch when navigating back to this page
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchVideos();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Also refetch on location change (when navigating back)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [location.pathname]);
 
   // Check if we're playing favorites from navigation state
   useEffect(() => {
