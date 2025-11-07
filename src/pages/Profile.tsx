@@ -300,22 +300,34 @@ export default function Profile() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 mb-4">
+        <div className="grid grid-cols-2 gap-2 mb-4">
           <button 
             onClick={() => navigate("/edit-profile")}
-            className="flex-1 bg-white/10 hover:bg-white/20 transition-colors py-2 rounded-lg font-semibold text-sm"
+            className="bg-white/10 hover:bg-white/20 transition-colors py-2 rounded-lg font-semibold text-sm"
           >
             Edit Profile
           </button>
           <button 
+            onClick={() => {
+              triggerHaptic();
+              navigate("/upload");
+            }}
+            className="bg-white/10 hover:bg-white/20 transition-colors py-2 rounded-lg font-semibold text-sm flex items-center justify-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+            </svg>
+            Add Video
+          </button>
+          <button 
             onClick={() => navigate("/favorites")}
-            className="flex-1 bg-white/10 hover:bg-white/20 transition-colors py-2 rounded-lg font-semibold text-sm"
+            className="bg-white/10 hover:bg-white/20 transition-colors py-2 rounded-lg font-semibold text-sm"
           >
             View Favs
           </button>
           <button 
             onClick={handleShareProfile}
-            className="flex-1 bg-white/10 hover:bg-white/20 transition-colors py-2 rounded-lg font-semibold text-sm"
+            className="bg-white/10 hover:bg-white/20 transition-colors py-2 rounded-lg font-semibold text-sm"
           >
             Share Profile
           </button>
