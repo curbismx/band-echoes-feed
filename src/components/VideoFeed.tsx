@@ -2,37 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { VideoCard } from "./VideoCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "react-router-dom";
-
-// Test videos - will use current user's ID
-const getMockVideos = (userId: string) => [
-  {
-    id: 1,
-    artistName: "The Rising Stars",
-    artistUserId: userId,
-    videoUrl: "/videos/video1.mp4",
-    likes: 1234,
-    rating: 8.7,
-    isFollowing: false,
-  },
-  {
-    id: 2,
-    artistName: "The Midnight Keys",
-    artistUserId: userId,
-    videoUrl: "/videos/video2.mp4",
-    likes: 892,
-    rating: 9.2,
-    isFollowing: true,
-  },
-  {
-    id: 3,
-    artistName: "Luna Eclipse",
-    artistUserId: userId,
-    videoUrl: "/videos/video3.mp4",
-    likes: 2156,
-    rating: 7.8,
-    isFollowing: false,
-  },
-];
+import { supabase } from "@/integrations/supabase/client";
 
 export const VideoFeed = () => {
   const { user } = useAuth();
@@ -45,13 +15,49 @@ export const VideoFeed = () => {
   const [dragOffset, setDragOffset] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const [videos, setVideos] = useState(getMockVideos(""));
+  const [videos, setVideos] = useState<any[]>([]);
   const [isPlayingFavorites, setIsPlayingFavorites] = useState(false);
-  const [allVideos] = useState(getMockVideos(""));
+  const [allVideos, setAllVideos] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
+  // Fetch videos from database
   useEffect(() => {
-    if (user?.id) setVideos(getMockVideos(user.id));
-  }, [user?.id]);
+    const fetchVideos = async () => {
+      const { data: videosData, error } = await supabase
+        .from("videos")
+        .select(`
+          *,
+          profiles:user_id (
+            id,
+            username,
+            display_name,
+            avatar_url
+          )
+        `)
+        .order("created_at", { ascending: false });
+
+      if (videosData && !error) {
+        const formattedVideos = videosData.map((video: any) => ({
+          id: video.id,
+          artistName: video.profiles?.display_name || video.profiles?.username || "Unknown Artist",
+          artistUserId: video.user_id,
+          videoUrl: video.video_url,
+          likes: video.likes_count || 0,
+          rating: 0,
+          isFollowing: false,
+          title: video.title,
+          caption: video.caption,
+        }));
+        
+        setVideos(formattedVideos);
+        setAllVideos(formattedVideos);
+      }
+      
+      setLoading(false);
+    };
+
+    fetchVideos();
+  }, []);
 
   // Check if we're playing favorites from navigation state
   useEffect(() => {
