@@ -23,23 +23,36 @@ export const VideoFeed = () => {
   // Fetch videos from database
   useEffect(() => {
     const fetchVideos = async () => {
-      const { data: videosData, error } = await supabase
+      // First fetch videos
+      const { data: videosData, error: videosError } = await supabase
         .from("videos")
-        .select(`
-          *,
-          profiles:user_id (
-            id,
-            username,
-            display_name,
-            avatar_url
-          )
-        `)
+        .select("*")
         .order("created_at", { ascending: false });
 
-      if (videosData && !error) {
-        const formattedVideos = videosData.map((video: any) => ({
+      if (videosError || !videosData) {
+        console.error("Error fetching videos:", videosError);
+        setLoading(false);
+        return;
+      }
+
+      // Then fetch profiles for all unique user IDs
+      const userIds = [...new Set(videosData.map(v => v.user_id))];
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("id, username, display_name, avatar_url")
+        .in("id", userIds);
+
+      // Create a map of user_id to profile
+      const profilesMap = new Map(
+        profilesData?.map(p => [p.id, p]) || []
+      );
+
+      // Combine videos with profile data
+      const formattedVideos = videosData.map((video: any) => {
+        const profile = profilesMap.get(video.user_id);
+        return {
           id: video.id,
-          artistName: video.profiles?.display_name || video.profiles?.username || "Unknown Artist",
+          artistName: profile?.display_name || profile?.username || "Unknown Artist",
           artistUserId: video.user_id,
           videoUrl: video.video_url,
           likes: video.likes_count || 0,
@@ -47,12 +60,11 @@ export const VideoFeed = () => {
           isFollowing: false,
           title: video.title,
           caption: video.caption,
-        }));
-        
-        setVideos(formattedVideos);
-        setAllVideos(formattedVideos);
-      }
+        };
+      });
       
+      setVideos(formattedVideos);
+      setAllVideos(formattedVideos);
       setLoading(false);
     };
 
