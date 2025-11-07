@@ -41,6 +41,8 @@ export const VideoFeed = () => {
   const [isMuted, setIsMuted] = useState(true);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const [videos, setVideos] = useState(getMockVideos(""));
@@ -66,14 +68,27 @@ export const VideoFeed = () => {
   const onTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(0);
     setTouchStart(e.targetTouches[0].clientY);
+    setIsDragging(true);
   };
 
   const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientY);
+    if (!touchStart) return;
+    
+    const currentTouch = e.targetTouches[0].clientY;
+    setTouchEnd(currentTouch);
+    
+    // Calculate drag distance and update offset in real-time
+    const distance = currentTouch - touchStart;
+    setDragOffset(distance);
   };
 
   const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
+    setIsDragging(false);
+    
+    if (!touchStart || !touchEnd) {
+      setDragOffset(0);
+      return;
+    }
 
     const distance = touchStart - touchEnd;
     const isUpSwipe = distance > minSwipeDistance;
@@ -86,11 +101,12 @@ export const VideoFeed = () => {
       setVideos(allVideos);
       setCurrentIndex(0);
       setIsPlayingFavorites(false);
-    }
-
-    if (isDownSwipe && currentIndex > 0) {
+    } else if (isDownSwipe && currentIndex > 0) {
       setCurrentIndex((prev) => prev - 1);
     }
+    
+    // Reset drag offset
+    setDragOffset(0);
   };
 
   // Keyboard navigation
@@ -122,9 +138,10 @@ export const VideoFeed = () => {
       onTouchEnd={onTouchEnd}
     >
       <div
-        className="relative h-full transition-transform duration-500 ease-out"
+        className="relative h-full"
         style={{
-          transform: `translateY(-${currentIndex * 100}vh)`,
+          transform: `translateY(calc(-${currentIndex * 100}vh + ${dragOffset}px))`,
+          transition: isDragging ? 'none' : 'transform 0.5s ease-out',
         }}
       >
         {videos.map((video, index) => (
