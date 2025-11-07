@@ -61,8 +61,10 @@ export const ActionButtons = ({
   useEffect(() => {
     if (user && artistUserId && user.id !== artistUserId) {
       checkFollowStatus();
+    } else {
+      setIsFollowing(false);
     }
-  }, [user, artistUserId]);
+  }, [user, artistUserId, videoId]);
 
   const checkFollowStatus = async () => {
     if (!user || !artistUserId) return;
