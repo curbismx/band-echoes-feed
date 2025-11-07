@@ -11,7 +11,7 @@ const getSessionId = () => {
   return sessionId;
 };
 
-export const useVideoRatings = (videoId: number) => {
+export const useVideoRatings = (videoId: string) => {
   const [averageRating, setAverageRating] = useState<number>(0);
   const [userRating, setUserRating] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);

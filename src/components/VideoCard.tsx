@@ -8,7 +8,7 @@ import followOffIcon from "@/assets/follow_OFF.png";
 import followOnIcon from "@/assets/follow_ON.png";
 
 interface Video {
-  id: number;
+  id: string;
   artistName: string;
   artistUserId: string;
   videoUrl: string;
