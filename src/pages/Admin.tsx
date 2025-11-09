@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Plus, Upload } from "lucide-react";
+import { Plus, Upload, ChevronDown, ChevronRight, Trash2, Edit2 } from "lucide-react";
 
 
 interface VideoInput {
@@ -73,6 +73,10 @@ const Admin = () => {
   const [batchCount, setBatchCount] = useState(30);
   const [batchPrefix, setBatchPrefix] = useState("starter");
   const [batchDomain, setBatchDomain] = useState("example.com");
+  const [collapsedUsers, setCollapsedUsers] = useState<Set<string>>(new Set());
+  const [userVideos, setUserVideos] = useState<Record<string, any[]>>({});
+  const [editingVideo, setEditingVideo] = useState<string | null>(null);
+  const [videoEditForm, setVideoEditForm] = useState<{ title: string; description: string; itunes: string; spotify: string }>({ title: "", description: "", itunes: "", spotify: "" });
 
 
   useEffect(() => {
@@ -118,6 +122,27 @@ const Admin = () => {
 
       if (error) throw error;
       setCreatedUsers(profiles || []);
+      
+      // Fetch videos for all users
+      if (profiles && profiles.length > 0) {
+        const userIds = profiles.map(p => p.id);
+        const { data: videos, error: videosError } = await supabase
+          .from("videos")
+          .select("*")
+          .in("user_id", userIds)
+          .order("created_at", { ascending: false });
+        
+        if (!videosError && videos) {
+          const videosByUser: Record<string, any[]> = {};
+          videos.forEach(video => {
+            if (!videosByUser[video.user_id]) {
+              videosByUser[video.user_id] = [];
+            }
+            videosByUser[video.user_id].push(video);
+          });
+          setUserVideos(videosByUser);
+        }
+      }
     } catch (error: any) {
       console.error("Error fetching created users:", error);
       toast.error("Failed to load your created users");
@@ -435,6 +460,9 @@ const Admin = () => {
 
       // Reset form so another upload can happen immediately
       setVideoForms((prev) => ({ ...prev, [userId]: getDefaultVideoForm() }));
+      
+      // Refresh video list
+      fetchCreatedUsers();
     } catch (e: any) {
       console.error("Add video error:", e);
       if ((toast as any).error) (toast as any).error(e.message || "Failed to add video");
@@ -515,6 +543,75 @@ const Admin = () => {
       toast.error(e.message || "Failed to update user");
     }
   };
+
+  const toggleUserCollapse = (userId: string) => {
+    setCollapsedUsers((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(userId)) {
+        newSet.delete(userId);
+      } else {
+        newSet.add(userId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleDeleteVideo = async (videoId: string, userId: string) => {
+    if (!confirm("Delete this video?")) return;
+    try {
+      const { error } = await supabase
+        .from("videos")
+        .delete()
+        .eq("id", videoId);
+      
+      if (error) throw error;
+      toast.success("Video deleted");
+      fetchCreatedUsers();
+    } catch (e: any) {
+      console.error("Delete video error:", e);
+      toast.error(e.message || "Failed to delete video");
+    }
+  };
+
+  const handleEditVideo = (video: any) => {
+    setEditingVideo(video.id);
+    const links = video.links || [];
+    const itunes = links.find((l: any) => l.url?.includes("apple.com") || l.url?.includes("itunes"))?.url || "";
+    const spotify = links.find((l: any) => l.url?.includes("spotify.com"))?.url || "";
+    
+    setVideoEditForm({
+      title: video.title || "",
+      description: video.caption || "",
+      itunes,
+      spotify,
+    });
+  };
+
+  const handleSaveVideoEdit = async (videoId: string) => {
+    try {
+      const links = [videoEditForm.itunes, videoEditForm.spotify]
+        .filter(u => !!u && u.trim() !== "")
+        .map(url => ({ url }));
+
+      const { error } = await supabase
+        .from("videos")
+        .update({
+          title: videoEditForm.title || null,
+          caption: videoEditForm.description || null,
+          links,
+        })
+        .eq("id", videoId);
+
+      if (error) throw error;
+      toast.success("Video updated");
+      setEditingVideo(null);
+      fetchCreatedUsers();
+    } catch (e: any) {
+      console.error("Update video error:", e);
+      toast.error(e.message || "Failed to update video");
+    }
+  };
+
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -614,8 +711,20 @@ const Admin = () => {
                         <>
                           {/* Border around entire user section */}
                           <div className="border border-border rounded-lg overflow-hidden">
-                            {/* Line 1: User info with Edit and Del buttons */}
+                            {/* Line 1: User info with collapse button, Edit and Del buttons */}
                             <div className="grid grid-cols-12 gap-4 items-center p-4 bg-card hover:bg-muted/50 transition-colors">
+                              {/* Collapse button */}
+                              <button
+                                onClick={() => toggleUserCollapse(usr.id)}
+                                className="col-span-1 flex items-center justify-center hover:text-primary transition-colors"
+                              >
+                                {collapsedUsers.has(usr.id) ? (
+                                  <ChevronRight className="w-5 h-5" />
+                                ) : (
+                                  <ChevronDown className="w-5 h-5" />
+                                )}
+                              </button>
+                              
                               <div className="col-span-1">
                                 {usr.avatar_url ? (
                                   <img src={usr.avatar_url} alt={usr.display_name} className="w-10 h-10 rounded-full object-cover" />
@@ -627,7 +736,7 @@ const Admin = () => {
                               </div>
                               <div className="col-span-2 text-foreground">{usr.display_name || "—"}</div>
                               <div className="col-span-2 text-muted-foreground">{usr.username || "—"}</div>
-                              <div className="col-span-4 text-muted-foreground text-sm">{usr.email || "—"}</div>
+                              <div className="col-span-3 text-muted-foreground text-sm">{usr.email || "—"}</div>
                               <div className="col-span-2 text-muted-foreground text-sm truncate">{usr.bio || "—"}</div>
                               <div className="col-span-1 flex gap-1 justify-start">
                                 <Button variant="ghost" size="sm" onClick={() => handleEditUser(usr)}>Edit</Button>
@@ -635,8 +744,98 @@ const Admin = () => {
                               </div>
                             </div>
 
-                            {/* Line 2: File upload, title, description */}
-                            {(() => { const form = videoForms[usr.id] || getDefaultVideoForm(); return (
+                            {/* Show rest of content only when NOT collapsed */}
+                            {!collapsedUsers.has(usr.id) && (
+                              <>
+                                {/* Existing videos list */}
+                                {userVideos[usr.id] && userVideos[usr.id].length > 0 && (
+                                  <div className="border-t border-border bg-muted/10 p-4">
+                                    <h3 className="text-sm font-medium text-foreground mb-3">Videos ({userVideos[usr.id].length})</h3>
+                                    <div className="space-y-2">
+                                      {userVideos[usr.id].map((video) => (
+                                        <div key={video.id} className="bg-card rounded-lg p-3 border border-border">
+                                          {editingVideo === video.id ? (
+                                            <div className="space-y-2">
+                                              <Input
+                                                placeholder="Video Title"
+                                                value={videoEditForm.title}
+                                                onChange={(e) => setVideoEditForm({ ...videoEditForm, title: e.target.value })}
+                                                className="h-8"
+                                              />
+                                              <Textarea
+                                                placeholder="Description"
+                                                rows={2}
+                                                value={videoEditForm.description}
+                                                onChange={(e) => setVideoEditForm({ ...videoEditForm, description: e.target.value })}
+                                                className="min-h-[60px] resize-none"
+                                              />
+                                              <Input
+                                                placeholder="iTunes Link"
+                                                value={videoEditForm.itunes}
+                                                onChange={(e) => setVideoEditForm({ ...videoEditForm, itunes: e.target.value })}
+                                                className="h-8"
+                                              />
+                                              <Input
+                                                placeholder="Spotify Link"
+                                                value={videoEditForm.spotify}
+                                                onChange={(e) => setVideoEditForm({ ...videoEditForm, spotify: e.target.value })}
+                                                className="h-8"
+                                              />
+                                              <div className="flex gap-2">
+                                                <Button size="sm" onClick={() => handleSaveVideoEdit(video.id)}>Save</Button>
+                                                <Button variant="ghost" size="sm" onClick={() => setEditingVideo(null)}>Cancel</Button>
+                                              </div>
+                                            </div>
+                                          ) : (
+                                            <div className="flex items-start justify-between gap-4">
+                                              <div className="flex-1 min-w-0">
+                                                <video src={video.video_url} className="w-32 h-20 object-cover rounded mb-2" controls />
+                                                <p className="text-sm font-medium text-foreground truncate">{video.title || "Untitled"}</p>
+                                                <p className="text-xs text-muted-foreground line-clamp-2">{video.caption || "No description"}</p>
+                                                {video.links && video.links.length > 0 && (
+                                                  <div className="flex gap-2 mt-1">
+                                                    {video.links.map((link: any, idx: number) => (
+                                                      <a
+                                                        key={idx}
+                                                        href={link.url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-xs text-primary hover:underline"
+                                                      >
+                                                        Link {idx + 1}
+                                                      </a>
+                                                    ))}
+                                                  </div>
+                                                )}
+                                              </div>
+                                              <div className="flex gap-1 shrink-0">
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  onClick={() => handleEditVideo(video)}
+                                                  className="h-8 w-8 p-0"
+                                                >
+                                                  <Edit2 className="w-4 h-4" />
+                                                </Button>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  onClick={() => handleDeleteVideo(video.id, usr.id)}
+                                                  className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                                >
+                                                  <Trash2 className="w-4 h-4" />
+                                                </Button>
+                                              </div>
+                                            </div>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Line 2: File upload, title, description */}
+                                {(() => { const form = videoForms[usr.id] || getDefaultVideoForm(); return (
                               <>
                                 <div className="grid grid-cols-12 gap-3 p-4 border-t border-border bg-muted/20">
                                   {/* Video File */}
@@ -776,6 +975,8 @@ const Admin = () => {
                                 </div>
                               </>
                             ); })()}
+                            </>
+                            )}
                           </div>
                         </>
                       )}
