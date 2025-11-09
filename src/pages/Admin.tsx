@@ -18,9 +18,10 @@ interface VideoForm {
   file: File | null;
   previewUrl: string;
   title: string;
-  caption: string;
+  description: string;
   itunes: string;
   spotify: string;
+  otherLinks: string[];
 }
 
 interface UserForm {
@@ -36,9 +37,10 @@ const getDefaultVideoForm = (): VideoForm => ({
   file: null,
   previewUrl: "",
   title: "",
-  caption: "",
+  description: "",
   itunes: "",
   spotify: "",
+  otherLinks: [],
 });
 
 // Removed initialUsers - start fresh
@@ -402,8 +404,8 @@ const Admin = () => {
         .from("videos")
         .getPublicUrl(path);
 
-      // Build links (iTunes, Spotify)
-      const links = [form.itunes, form.spotify]
+      // Build links (iTunes, Spotify, other)
+      const links = [form.itunes, form.spotify, ...form.otherLinks]
         .filter((u) => !!u && u.trim() !== "")
         .map((url) => ({ url }));
 
@@ -412,7 +414,7 @@ const Admin = () => {
           user_id: userId,
           video_url: publicUrl,
           title: form.title || null,
-          caption: form.caption || null,
+          caption: form.description || null,
           links,
         },
       });
@@ -587,112 +589,152 @@ const Admin = () => {
                         </div>
                       ) : (
                         <>
-                          <div className="grid grid-cols-12 gap-4 items-center p-4 hover:bg-muted/50 transition-colors rounded-lg border border-border">
-                            <div className="col-span-1">
-                              {usr.avatar_url ? (
-                                <img src={usr.avatar_url} alt={usr.display_name} className="w-10 h-10 rounded-full object-cover" />
-                              ) : (
-                                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                                  <span className="text-muted-foreground text-sm">{usr.display_name?.[0]?.toUpperCase() || "?"}</span>
-                                </div>
-                              )}
-                            </div>
-                            <div className="col-span-2 text-foreground">{usr.display_name || "—"}</div>
-                            <div className="col-span-2 text-muted-foreground">{usr.username || "—"}</div>
-                            <div className="col-span-3 text-muted-foreground text-sm">{usr.email || "—"}</div>
-                            <div className="col-span-3 text-muted-foreground text-sm truncate">{usr.bio || "—"}</div>
-                            <div className="col-span-1">
-                              <div className="flex gap-1">
+                          {/* Border around entire user section */}
+                          <div className="border border-border rounded-lg overflow-hidden">
+                            {/* Line 1: User info with Edit and Del buttons */}
+                            <div className="grid grid-cols-12 gap-4 items-center p-4 bg-card hover:bg-muted/50 transition-colors">
+                              <div className="col-span-1">
+                                {usr.avatar_url ? (
+                                  <img src={usr.avatar_url} alt={usr.display_name} className="w-10 h-10 rounded-full object-cover" />
+                                ) : (
+                                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                                    <span className="text-muted-foreground text-sm">{usr.display_name?.[0]?.toUpperCase() || "?"}</span>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="col-span-2 text-foreground">{usr.display_name || "—"}</div>
+                              <div className="col-span-2 text-muted-foreground">{usr.username || "—"}</div>
+                              <div className="col-span-4 text-muted-foreground text-sm">{usr.email || "—"}</div>
+                              <div className="col-span-2 text-muted-foreground text-sm truncate">{usr.bio || "—"}</div>
+                              <div className="col-span-1 flex gap-1 justify-end">
                                 <Button variant="ghost" size="sm" onClick={() => handleEditUser(usr)}>Edit</Button>
                                 <Button variant="destructive" size="sm" onClick={() => handleDeleteCreatedUser(usr.id, usr.username || usr.display_name)}>Del</Button>
                               </div>
                             </div>
-                          </div>
 
-                          {/* Line 2: Video upload + music links (responsive, within viewport) */}
-                          <div className="px-4 pb-6">
+                            {/* Line 2: File upload, title, description */}
                             {(() => { const form = videoForms[usr.id] || getDefaultVideoForm(); return (
-                              <div className="grid grid-cols-12 gap-3">
-                                {/* Video File */}
-                                <div className="col-span-12 md:col-span-4">
-                                  <label className="block text-sm text-muted-foreground mb-2">Video File</label>
-                                  <input
-                                    type="file"
-                                    accept="video/*"
-                                    onChange={(e) => {
-                                      const file = e.target.files?.[0] || null;
-                                      setVideoForms((prev) => ({
+                              <>
+                                <div className="grid grid-cols-12 gap-3 p-4 border-t border-border bg-muted/20">
+                                  {/* Video File */}
+                                  <div className="col-span-12 md:col-span-3">
+                                    <label className="block text-xs text-muted-foreground mb-1">Choose File</label>
+                                    <input
+                                      type="file"
+                                      accept="video/*"
+                                      onChange={(e) => {
+                                        const file = e.target.files?.[0] || null;
+                                        setVideoForms((prev) => ({
+                                          ...prev,
+                                          [usr.id]: {
+                                            ...(prev[usr.id] || getDefaultVideoForm()),
+                                            file,
+                                            previewUrl: file ? URL.createObjectURL(file) : "",
+                                          },
+                                        }));
+                                      }}
+                                      className="block w-full text-xs text-muted-foreground file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                                    />
+                                  </div>
+
+                                  {/* Title */}
+                                  <div className="col-span-12 md:col-span-3">
+                                    <label className="block text-xs text-muted-foreground mb-1">Video Title</label>
+                                    <Input
+                                      placeholder="Enter title"
+                                      value={form.title}
+                                      onChange={(e) => setVideoForms((prev) => ({
                                         ...prev,
-                                        [usr.id]: {
-                                          ...(prev[usr.id] || getDefaultVideoForm()),
-                                          file,
-                                          previewUrl: file ? URL.createObjectURL(file) : "",
-                                        },
-                                      }));
-                                    }}
-                                    className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
-                                  />
+                                        [usr.id]: { ...(prev[usr.id] || getDefaultVideoForm()), title: e.target.value },
+                                      }))}
+                                      className="h-9"
+                                    />
+                                  </div>
+
+                                  {/* Description */}
+                                  <div className="col-span-12 md:col-span-6">
+                                    <label className="block text-xs text-muted-foreground mb-1">Description</label>
+                                    <Textarea
+                                      placeholder="Enter description"
+                                      rows={1}
+                                      value={form.description}
+                                      onChange={(e) => setVideoForms((prev) => ({
+                                        ...prev,
+                                        [usr.id]: { ...(prev[usr.id] || getDefaultVideoForm()), description: e.target.value },
+                                      }))}
+                                      className="min-h-[36px] resize-none"
+                                    />
+                                  </div>
                                 </div>
 
-                                {/* Title */}
-                                <div className="col-span-12 md:col-span-3">
-                                  <label className="block text-sm text-muted-foreground mb-2">Title</label>
-                                  <Input
-                                    placeholder="Video title"
-                                    value={form.title}
-                                    onChange={(e) => setVideoForms((prev) => ({
-                                      ...prev,
-                                      [usr.id]: { ...(prev[usr.id] || getDefaultVideoForm()), title: e.target.value },
-                                    }))}
-                                  />
-                                </div>
+                                {/* Line 3: iTunes, Spotify, other links */}
+                                <div className="grid grid-cols-12 gap-3 p-4 border-t border-border bg-card">
+                                  {/* iTunes */}
+                                  <div className="col-span-12 md:col-span-4">
+                                    <label className="block text-xs text-muted-foreground mb-1">iTunes Link</label>
+                                    <Input
+                                      type="url"
+                                      placeholder="https://music.apple.com/..."
+                                      value={form.itunes}
+                                      onChange={(e) => setVideoForms((prev) => ({
+                                        ...prev,
+                                        [usr.id]: { ...(prev[usr.id] || getDefaultVideoForm()), itunes: e.target.value },
+                                      }))}
+                                      className="h-9"
+                                    />
+                                  </div>
 
-                                {/* iTunes link */}
-                                <div className="col-span-12 md:col-span-3">
-                                  <label className="block text-sm text-muted-foreground mb-2">iTunes Link</label>
-                                  <Input
-                                    type="url"
-                                    placeholder="https://music.apple.com/..."
-                                    value={form.itunes}
-                                    onChange={(e) => setVideoForms((prev) => ({
-                                      ...prev,
-                                      [usr.id]: { ...(prev[usr.id] || getDefaultVideoForm()), itunes: e.target.value },
-                                    }))}
-                                  />
-                                </div>
+                                  {/* Spotify */}
+                                  <div className="col-span-12 md:col-span-4">
+                                    <label className="block text-xs text-muted-foreground mb-1">Spotify Link</label>
+                                    <Input
+                                      type="url"
+                                      placeholder="https://open.spotify.com/..."
+                                      value={form.spotify}
+                                      onChange={(e) => setVideoForms((prev) => ({
+                                        ...prev,
+                                        [usr.id]: { ...(prev[usr.id] || getDefaultVideoForm()), spotify: e.target.value },
+                                      }))}
+                                      className="h-9"
+                                    />
+                                  </div>
 
-                                {/* Spotify link */}
-                                <div className="col-span-12 md:col-span-3">
-                                  <label className="block text-sm text-muted-foreground mb-2">Spotify Link</label>
-                                  <Input
-                                    type="url"
-                                    placeholder="https://open.spotify.com/..."
-                                    value={form.spotify}
-                                    onChange={(e) => setVideoForms((prev) => ({
-                                      ...prev,
-                                      [usr.id]: { ...(prev[usr.id] || getDefaultVideoForm()), spotify: e.target.value },
-                                    }))}
-                                  />
-                                </div>
+                                  {/* Other Links */}
+                                  <div className="col-span-12 md:col-span-4">
+                                    <label className="block text-xs text-muted-foreground mb-1">Other Links</label>
+                                    <div className="flex gap-2">
+                                      <Input
+                                        type="url"
+                                        placeholder="Add another link"
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                                            e.preventDefault();
+                                            setVideoForms((prev) => ({
+                                              ...prev,
+                                              [usr.id]: {
+                                                ...(prev[usr.id] || getDefaultVideoForm()),
+                                                otherLinks: [...(prev[usr.id]?.otherLinks || []), e.currentTarget.value.trim()],
+                                              },
+                                            }));
+                                            e.currentTarget.value = '';
+                                          }
+                                        }}
+                                        className="h-9"
+                                      />
+                                      {form.otherLinks.length > 0 && (
+                                        <span className="text-xs text-muted-foreground self-center whitespace-nowrap">
+                                          +{form.otherLinks.length}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
 
-                                {/* Caption (full width below) */}
-                                <div className="col-span-12">
-                                  <label className="block text-sm text-muted-foreground mb-2">Caption</label>
-                                  <Textarea
-                                    placeholder="Video caption"
-                                    rows={3}
-                                    value={form.caption}
-                                    onChange={(e) => setVideoForms((prev) => ({
-                                      ...prev,
-                                      [usr.id]: { ...(prev[usr.id] || getDefaultVideoForm()), caption: e.target.value },
-                                    }))}
-                                  />
+                                  {/* Add Video Button */}
+                                  <div className="col-span-12 flex justify-end">
+                                    <Button onClick={() => handleSubmitAddVideo(usr.id)} size="sm">Add Video</Button>
+                                  </div>
                                 </div>
-
-                                <div className="col-span-12 md:col-span-2">
-                                  <Button className="w-full" onClick={() => handleSubmitAddVideo(usr.id)}>Add Video</Button>
-                                </div>
-                              </div>
+                              </>
                             ); })()}
                           </div>
                         </>
