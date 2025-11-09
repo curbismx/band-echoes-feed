@@ -22,6 +22,8 @@ interface VideoForm {
   itunes: string;
   spotify: string;
   otherLinks: string[];
+  uploading: boolean;
+  fileInputKey: number;
 }
 
 interface UserForm {
@@ -41,6 +43,8 @@ const getDefaultVideoForm = (): VideoForm => ({
   itunes: "",
   spotify: "",
   otherLinks: [],
+  uploading: false,
+  fileInputKey: Date.now(),
 });
 
 // Removed initialUsers - start fresh
@@ -110,7 +114,6 @@ const Admin = () => {
       const { data: profiles, error } = await supabase
         .from("profiles")
         .select("id, username, display_name, email, avatar_url, bio, created_at")
-        .eq("created_by", user.id)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -384,12 +387,20 @@ const Admin = () => {
   };
 
   const handleSubmitAddVideo = async (userId: string) => {
+    const form = videoForms[userId] || getDefaultVideoForm();
+    if (form.uploading) return;
     try {
-      const form = videoForms[userId] || getDefaultVideoForm();
       if (!form.file) {
         toast.error("Please choose a video file");
         return;
       }
+
+      // Set uploading state and show loading toast
+      setVideoForms((prev) => ({
+        ...prev,
+        [userId]: { ...(prev[userId] || getDefaultVideoForm()), ...form, uploading: true },
+      }));
+      const toastId = (toast as any).loading ? (toast as any).loading("Uploading video...") : null;
 
       // Upload video file to storage
       const ext = form.file.name.split('.').pop();
@@ -405,7 +416,7 @@ const Admin = () => {
         .getPublicUrl(path);
 
       // Build links (iTunes, Spotify, other)
-      const links = [form.itunes, form.spotify, ...form.otherLinks]
+      const links = [form.itunes, form.spotify, ...(form.otherLinks || [])]
         .filter((u) => !!u && u.trim() !== "")
         .map((url) => ({ url }));
 
@@ -421,11 +432,25 @@ const Admin = () => {
 
       if (error) throw error as any;
 
-      toast.success("Video added");
+      if (toastId) (toast as any).success ? (toast as any).success("Video added", { id: toastId }) : toast.success("Video added");
+      else toast.success("Video added");
+
+      // Reset form so another upload can happen immediately
       setVideoForms((prev) => ({ ...prev, [userId]: getDefaultVideoForm() }));
     } catch (e: any) {
       console.error("Add video error:", e);
-      toast.error(e.message || "Failed to add video");
+      if ((toast as any).error) (toast as any).error(e.message || "Failed to add video");
+      else toast.error(e.message || "Failed to add video");
+    } finally {
+      // Ensure uploading resets if not already reset on success
+      setVideoForms((prev) => {
+        const current = prev[userId];
+        if (!current) return prev;
+        if (current.file === null && current.title === "" && current.description === "" && (current.otherLinks?.length || 0) === 0 && current.uploading === false) {
+          return prev;
+        }
+        return { ...prev, [userId]: { ...current, uploading: false } };
+      });
     }
   };
 
@@ -560,7 +585,7 @@ const Admin = () => {
 
             {createdUsers.length > 0 && (
               <div className="mb-8">
-                <h2 className="text-lg font-medium text-foreground mb-4">Your Created Users ({createdUsers.length})</h2>
+                <h2 className="text-lg font-medium text-foreground mb-4">All Users ({createdUsers.length})</h2>
                 <div className="space-y-4">
                   {createdUsers.map((usr) => (
                     <div key={usr.id}>
@@ -606,7 +631,7 @@ const Admin = () => {
                               <div className="col-span-2 text-muted-foreground">{usr.username || "—"}</div>
                               <div className="col-span-4 text-muted-foreground text-sm">{usr.email || "—"}</div>
                               <div className="col-span-2 text-muted-foreground text-sm truncate">{usr.bio || "—"}</div>
-                              <div className="col-span-1 flex gap-1 justify-end">
+                              <div className="col-span-1 flex gap-1 justify-start">
                                 <Button variant="ghost" size="sm" onClick={() => handleEditUser(usr)}>Edit</Button>
                                 <Button variant="destructive" size="sm" onClick={() => handleDeleteCreatedUser(usr.id, usr.username || usr.display_name)}>Del</Button>
                               </div>
@@ -620,8 +645,10 @@ const Admin = () => {
                                   <div className="col-span-12 md:col-span-3">
                                     <label className="block text-xs text-muted-foreground mb-1">Choose File</label>
                                     <input
+                                      key={form.fileInputKey}
                                       type="file"
                                       accept="video/*"
+                                      disabled={form.uploading}
                                       onChange={(e) => {
                                         const file = e.target.files?.[0] || null;
                                         setVideoForms((prev) => ({
@@ -643,6 +670,7 @@ const Admin = () => {
                                     <Input
                                       placeholder="Enter title"
                                       value={form.title}
+                                      disabled={form.uploading}
                                       onChange={(e) => setVideoForms((prev) => ({
                                         ...prev,
                                         [usr.id]: { ...(prev[usr.id] || getDefaultVideoForm()), title: e.target.value },
@@ -658,6 +686,7 @@ const Admin = () => {
                                       placeholder="Enter description"
                                       rows={1}
                                       value={form.description}
+                                      disabled={form.uploading}
                                       onChange={(e) => setVideoForms((prev) => ({
                                         ...prev,
                                         [usr.id]: { ...(prev[usr.id] || getDefaultVideoForm()), description: e.target.value },
@@ -676,6 +705,7 @@ const Admin = () => {
                                       type="url"
                                       placeholder="https://music.apple.com/..."
                                       value={form.itunes}
+                                      disabled={form.uploading}
                                       onChange={(e) => setVideoForms((prev) => ({
                                         ...prev,
                                         [usr.id]: { ...(prev[usr.id] || getDefaultVideoForm()), itunes: e.target.value },
@@ -691,6 +721,7 @@ const Admin = () => {
                                       type="url"
                                       placeholder="https://open.spotify.com/..."
                                       value={form.spotify}
+                                      disabled={form.uploading}
                                       onChange={(e) => setVideoForms((prev) => ({
                                         ...prev,
                                         [usr.id]: { ...(prev[usr.id] || getDefaultVideoForm()), spotify: e.target.value },
@@ -706,6 +737,7 @@ const Admin = () => {
                                       <Input
                                         type="url"
                                         placeholder="Add another link"
+                                        disabled={form.uploading}
                                         onKeyDown={(e) => {
                                           if (e.key === 'Enter' && e.currentTarget.value.trim()) {
                                             e.preventDefault();
@@ -729,9 +761,19 @@ const Admin = () => {
                                     </div>
                                   </div>
 
-                                  {/* Add Video Button */}
-                                  <div className="col-span-12 flex justify-end">
-                                    <Button onClick={() => handleSubmitAddVideo(usr.id)} size="sm">Add Video</Button>
+                                  {/* Add Video Button & Uploading Indicator */}
+                                  <div className="col-span-12 flex items-center justify-between">
+                                    {form.uploading && (
+                                      <div className="flex-1 mr-4">
+                                        <div className="h-2 w-full rounded-full bg-secondary overflow-hidden">
+                                          <div className="h-full w-1/2 bg-primary animate-pulse" />
+                                        </div>
+                                        <p className="mt-1 text-xs text-muted-foreground">Uploading...</p>
+                                      </div>
+                                    )}
+                                    <Button onClick={() => handleSubmitAddVideo(usr.id)} size="sm" disabled={!form.file || form.uploading}>
+                                      {form.uploading ? "Uploading..." : "Add Video"}
+                                    </Button>
                                   </div>
                                 </div>
                               </>
