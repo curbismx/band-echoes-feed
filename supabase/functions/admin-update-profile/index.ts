@@ -88,7 +88,7 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { user_id, bio, avatar_base64, avatar_ext, username, display_name, email } = body || {};
+    const { user_id, bio, avatar_base64, avatar_ext, username, display_name, email, created_by } = body || {};
 
     if (!user_id || typeof user_id !== 'string') {
       return new Response(JSON.stringify({ error: 'user_id is required' }), {
@@ -143,6 +143,7 @@ serve(async (req) => {
       if (typeof username === 'string') insertPayload.username = username;
       if (typeof display_name === 'string') insertPayload.display_name = display_name;
       if (typeof email === 'string') insertPayload.email = email;
+      if (typeof created_by === 'string') insertPayload.created_by = created_by;
 
       const { error: insErr } = await serviceClient.from('profiles').insert(insertPayload);
       if (insErr) {

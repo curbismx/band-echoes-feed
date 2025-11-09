@@ -119,7 +119,8 @@ const Admin = () => {
   const { user, loading } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [checkingAdmin, setCheckingAdmin] = useState(true);
-  const [users, setUsers] = useState<UserForm[]>(initialUsers);
+  const [users, setUsers] = useState<UserForm[]>([]);
+  const [createdUsers, setCreatedUsers] = useState<any[]>([]);
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [searchEmail, setSearchEmail] = useState("");
   const [activeTab, setActiveTab] = useState<"accounts" | "users">("accounts");
@@ -155,7 +156,27 @@ const Admin = () => {
     if (isAdmin && activeTab === "users") {
       fetchAllUsers();
     }
+    if (isAdmin && activeTab === "accounts") {
+      fetchCreatedUsers();
+    }
   }, [isAdmin, activeTab]);
+
+  const fetchCreatedUsers = async () => {
+    if (!user) return;
+    try {
+      const { data: profiles, error } = await supabase
+        .from("profiles")
+        .select("id, username, display_name, email, avatar_url, bio, created_at")
+        .eq("created_by", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setCreatedUsers(profiles || []);
+    } catch (error: any) {
+      console.error("Error fetching created users:", error);
+      toast.error("Failed to load your created users");
+    }
+  };
 
   // Health check for edge function on admin page load
   useEffect(() => {
@@ -353,6 +374,7 @@ const Admin = () => {
           bio: userForm.description || null,
           avatar_base64,
           avatar_ext,
+          created_by: user?.id,
         },
       });
 
@@ -360,9 +382,26 @@ const Admin = () => {
 
       toast.success(`User ${userForm.name} created successfully!`);
       handleDeleteUser(index);
+      fetchCreatedUsers(); // Refresh the list
     } catch (error: any) {
       console.error("Error creating user:", error);
       toast.error(error.message || "Failed to create user");
+    }
+  };
+
+  const handleDeleteCreatedUser = async (userId: string, username: string) => {
+    if (!confirm(`Delete user ${username}? This will permanently remove their account.`)) return;
+
+    try {
+      // Delete from auth.users (cascades to profiles)
+      const { error } = await supabase.auth.admin.deleteUser(userId);
+      if (error) throw error;
+
+      toast.success(`User ${username} deleted`);
+      fetchCreatedUsers();
+    } catch (error: any) {
+      console.error("Error deleting user:", error);
+      toast.error(error.message || "Failed to delete user");
     }
   };
 
@@ -429,6 +468,51 @@ const Admin = () => {
 
         {activeTab === "accounts" && (
           <>
+            {/* Created Users List */}
+            {createdUsers.length > 0 && (
+              <div className="mb-8">
+                <h2 className="text-lg font-medium text-foreground mb-4">Your Created Users ({createdUsers.length})</h2>
+                <div className="border border-border rounded-lg overflow-hidden">
+                  <div className="grid grid-cols-12 gap-4 bg-muted px-6 py-3 text-sm font-medium text-muted-foreground">
+                    <div className="col-span-1">Avatar</div>
+                    <div className="col-span-2">Name</div>
+                    <div className="col-span-2">Username</div>
+                    <div className="col-span-3">Email</div>
+                    <div className="col-span-3">Bio</div>
+                    <div className="col-span-1">Actions</div>
+                  </div>
+                  <div className="divide-y divide-border">
+                    {createdUsers.map((usr) => (
+                      <div key={usr.id} className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-muted/50 transition-colors">
+                        <div className="col-span-1">
+                          {usr.avatar_url ? (
+                            <img src={usr.avatar_url} alt={usr.display_name} className="w-10 h-10 rounded-full object-cover" />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                              <span className="text-muted-foreground text-sm">{usr.display_name?.[0]?.toUpperCase() || "?"}</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="col-span-2 text-foreground">{usr.display_name || "—"}</div>
+                        <div className="col-span-2 text-muted-foreground">{usr.username || "—"}</div>
+                        <div className="col-span-3 text-muted-foreground text-sm">{usr.email || "—"}</div>
+                        <div className="col-span-3 text-muted-foreground text-sm truncate">{usr.bio || "—"}</div>
+                        <div className="col-span-1">
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteCreatedUser(usr.id, usr.username || usr.display_name)}
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Add New User Button */}
             <button
               onClick={handleAddNewUser}
