@@ -14,6 +14,15 @@ interface VideoInput {
   title: string;
 }
 
+interface VideoForm {
+  file: File | null;
+  previewUrl: string;
+  title: string;
+  caption: string;
+  itunes: string;
+  spotify: string;
+}
+
 interface UserForm {
   icon: File | string | null;
   name: string;
@@ -22,6 +31,15 @@ interface UserForm {
   description: string;
   videos: VideoInput[];
 }
+
+const getDefaultVideoForm = (): VideoForm => ({
+  file: null,
+  previewUrl: "",
+  title: "",
+  caption: "",
+  itunes: "",
+  spotify: "",
+});
 
 // Removed initialUsers - start fresh
 
@@ -35,8 +53,7 @@ const Admin = () => {
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [searchEmail, setSearchEmail] = useState("");
   const [activeTab, setActiveTab] = useState<"accounts" | "users">("accounts");
-  const [addVideoForUser, setAddVideoForUser] = useState<string | null>(null);
-  const [newVideo, setNewVideo] = useState<{ url: string; title: string; caption: string; linksText: string }>({ url: "", title: "", caption: "", linksText: "" });
+  const [videoForms, setVideoForms] = useState<Record<string, VideoForm>>({});
   const [editingUser, setEditingUser] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<{ username: string; display_name: string; email: string; bio: string; avatar: File | null }>({ username: "", display_name: "", email: "", bio: "", avatar: null });
   const [currentUser, setCurrentUser] = useState<UserForm>({
@@ -366,22 +383,36 @@ const Admin = () => {
 
   const handleSubmitAddVideo = async (userId: string) => {
     try {
-      if (!newVideo.url) {
-        toast.error("Please provide a video URL");
+      const form = videoForms[userId] || getDefaultVideoForm();
+      if (!form.file) {
+        toast.error("Please choose a video file");
         return;
       }
-      const links = newVideo.linksText
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean)
-        .map((u) => ({ url: u }));
+
+      // Upload video file to storage
+      const ext = form.file.name.split('.').pop();
+      const path = `${userId}/${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("videos")
+        .upload(path, form.file);
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from("videos")
+        .getPublicUrl(path);
+
+      // Build links (iTunes, Spotify)
+      const links = [form.itunes, form.spotify]
+        .filter((u) => !!u && u.trim() !== "")
+        .map((url) => ({ url }));
 
       const { error } = await supabase.functions.invoke("admin-add-video-record", {
         body: {
           user_id: userId,
-          video_url: newVideo.url,
-          title: newVideo.title || null,
-          caption: newVideo.caption || null,
+          video_url: publicUrl,
+          title: form.title || null,
+          caption: form.caption || null,
           links,
         },
       });
@@ -389,8 +420,7 @@ const Admin = () => {
       if (error) throw error as any;
 
       toast.success("Video added");
-      setAddVideoForUser(null);
-      setNewVideo({ url: "", title: "", caption: "", linksText: "" });
+      setVideoForms((prev) => ({ ...prev, [userId]: getDefaultVideoForm() }));
     } catch (e: any) {
       console.error("Add video error:", e);
       toast.error(e.message || "Failed to add video");
@@ -574,99 +604,97 @@ const Admin = () => {
                             <div className="col-span-1">
                               <div className="flex gap-1">
                                 <Button variant="ghost" size="sm" onClick={() => handleEditUser(usr)}>Edit</Button>
-                                <Button
-                                  variant="secondary"
-                                  size="sm"
-                                  onClick={() => {
-                                    setAddVideoForUser(usr.id === addVideoForUser ? null : usr.id);
-                                    setNewVideo({ url: "", title: "", caption: "", linksText: "" });
-                                  }}
-                                >
-                                  Video
-                                </Button>
                                 <Button variant="destructive" size="sm" onClick={() => handleDeleteCreatedUser(usr.id, usr.username || usr.display_name)}>Del</Button>
                               </div>
                             </div>
                           </div>
-                          {addVideoForUser === usr.id && (
-                            <div className="mt-4 p-6 border border-border rounded-lg bg-card/50">
-                              <h3 className="text-sm font-medium text-foreground mb-4">Add Video for {usr.display_name}</h3>
-                              
-                              {/* Video Upload */}
-                              <div className="mb-4">
-                                <label className="block text-sm text-muted-foreground mb-2">Video File</label>
-                                <input
-                                  type="file"
-                                  accept="video/*"
-                                  onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) {
-                                      setNewVideo({ ...newVideo, url: URL.createObjectURL(file) });
-                                    }
-                                  }}
-                                  className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
-                                />
-                              </div>
 
-                              {/* Title */}
-                              <div className="mb-4">
-                                <label className="block text-sm text-muted-foreground mb-2">Title</label>
-                                <Input placeholder="Video title" value={newVideo.title} onChange={(e) => setNewVideo({ ...newVideo, title: e.target.value })} />
-                              </div>
-
-                              {/* Caption */}
-                              <div className="mb-4">
-                                <label className="block text-sm text-muted-foreground mb-2">Caption</label>
-                                <Textarea placeholder="Video caption" value={newVideo.caption} onChange={(e) => setNewVideo({ ...newVideo, caption: e.target.value })} rows={3} />
-                              </div>
-
-                              {/* Links (iTunes, Spotify, etc) */}
-                              <div className="mb-4">
-                                <label className="block text-sm text-muted-foreground mb-2">Music Links (iTunes, Spotify, etc.)</label>
-                                <div className="space-y-2">
-                                  {newVideo.linksText.split(',').filter(l => l.trim()).map((link, idx) => (
-                                    <Input
-                                      key={idx}
-                                      placeholder="Add music link (iTunes, Spotify, etc.)"
-                                      value={link.trim()}
-                                      onChange={(e) => {
-                                        const links = newVideo.linksText.split(',').filter(l => l.trim());
-                                        links[idx] = e.target.value;
-                                        setNewVideo({ ...newVideo, linksText: links.join(',') });
-                                      }}
-                                    />
-                                  ))}
-                                  <Input
-                                    placeholder="Add music link (iTunes, Spotify, etc.)"
-                                    onFocus={(e) => {
-                                      if (!newVideo.linksText.trim()) {
-                                        setNewVideo({ ...newVideo, linksText: '' });
-                                      }
-                                    }}
+                          {/* Line 2: Video upload + music links (responsive, within viewport) */}
+                          <div className="px-4 pb-6">
+                            {(() => { const form = videoForms[usr.id] || getDefaultVideoForm(); return (
+                              <div className="grid grid-cols-12 gap-3">
+                                {/* Video File */}
+                                <div className="col-span-12 md:col-span-4">
+                                  <label className="block text-sm text-muted-foreground mb-2">Video File</label>
+                                  <input
+                                    type="file"
+                                    accept="video/*"
                                     onChange={(e) => {
-                                      const existing = newVideo.linksText.split(',').filter(l => l.trim());
-                                      setNewVideo({ ...newVideo, linksText: [...existing, e.target.value].join(',') });
+                                      const file = e.target.files?.[0] || null;
+                                      setVideoForms((prev) => ({
+                                        ...prev,
+                                        [usr.id]: {
+                                          ...(prev[usr.id] || getDefaultVideoForm()),
+                                          file,
+                                          previewUrl: file ? URL.createObjectURL(file) : "",
+                                        },
+                                      }));
                                     }}
+                                    className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
                                   />
-                                  <button
-                                    onClick={() => {
-                                      const existing = newVideo.linksText.split(',').filter(l => l.trim());
-                                      setNewVideo({ ...newVideo, linksText: [...existing, ''].join(',') });
-                                    }}
-                                    className="flex items-center gap-2 text-primary hover:text-primary/80 text-sm font-medium"
-                                  >
-                                    <Plus className="w-4 h-4" />
-                                    Add another link
-                                  </button>
+                                </div>
+
+                                {/* Title */}
+                                <div className="col-span-12 md:col-span-3">
+                                  <label className="block text-sm text-muted-foreground mb-2">Title</label>
+                                  <Input
+                                    placeholder="Video title"
+                                    value={form.title}
+                                    onChange={(e) => setVideoForms((prev) => ({
+                                      ...prev,
+                                      [usr.id]: { ...(prev[usr.id] || getDefaultVideoForm()), title: e.target.value },
+                                    }))}
+                                  />
+                                </div>
+
+                                {/* iTunes link */}
+                                <div className="col-span-12 md:col-span-3">
+                                  <label className="block text-sm text-muted-foreground mb-2">iTunes Link</label>
+                                  <Input
+                                    type="url"
+                                    placeholder="https://music.apple.com/..."
+                                    value={form.itunes}
+                                    onChange={(e) => setVideoForms((prev) => ({
+                                      ...prev,
+                                      [usr.id]: { ...(prev[usr.id] || getDefaultVideoForm()), itunes: e.target.value },
+                                    }))}
+                                  />
+                                </div>
+
+                                {/* Spotify link */}
+                                <div className="col-span-12 md:col-span-3">
+                                  <label className="block text-sm text-muted-foreground mb-2">Spotify Link</label>
+                                  <Input
+                                    type="url"
+                                    placeholder="https://open.spotify.com/..."
+                                    value={form.spotify}
+                                    onChange={(e) => setVideoForms((prev) => ({
+                                      ...prev,
+                                      [usr.id]: { ...(prev[usr.id] || getDefaultVideoForm()), spotify: e.target.value },
+                                    }))}
+                                  />
+                                </div>
+
+                                {/* Caption (full width below) */}
+                                <div className="col-span-12">
+                                  <label className="block text-sm text-muted-foreground mb-2">Caption</label>
+                                  <Textarea
+                                    placeholder="Video caption"
+                                    rows={3}
+                                    value={form.caption}
+                                    onChange={(e) => setVideoForms((prev) => ({
+                                      ...prev,
+                                      [usr.id]: { ...(prev[usr.id] || getDefaultVideoForm()), caption: e.target.value },
+                                    }))}
+                                  />
+                                </div>
+
+                                <div className="col-span-12 md:col-span-2">
+                                  <Button className="w-full" onClick={() => handleSubmitAddVideo(usr.id)}>Add Video</Button>
                                 </div>
                               </div>
-
-                              <div className="flex gap-2">
-                                <Button onClick={() => handleSubmitAddVideo(usr.id)}>Add Video</Button>
-                                <Button variant="ghost" onClick={() => setAddVideoForUser(null)}>Cancel</Button>
-                              </div>
-                            </div>
-                          )}
+                            ); })()}
+                          </div>
                         </>
                       )}
                     </div>
