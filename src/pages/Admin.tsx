@@ -338,40 +338,40 @@ const Admin = () => {
       let createdUserId: string | undefined;
       let emailToSave: string | undefined = undefined;
 
-      if (providedEmail) {
-        // Create full login-enabled account only when an email was provided
-        const password = crypto.randomUUID();
+      // ALWAYS create an auth user first (required for profile to link to)
+      const useEmail = providedEmail || `${userForm.username}-${Date.now()}@temp-noemail.local`;
+      const password = crypto.randomUUID();
 
-        console.log("Creating auth user with email:", providedEmail);
-        const { data: fnData, error: fnError } = await supabase.functions.invoke("admin-create-user", {
-          body: {
-            email: providedEmail,
-            password,
-            username: userForm.username,
-            display_name: userForm.name,
-          },
-        });
+      console.log("Creating auth user:", useEmail);
+      const { data: fnData, error: fnError } = await supabase.functions.invoke("admin-create-user", {
+        body: {
+          email: useEmail,
+          password,
+          username: userForm.username,
+          display_name: userForm.name,
+        },
+      });
 
-        if (fnError) {
-          console.error("admin-create-user error:", fnError);
-          if (fnError.message?.includes("already been registered") || fnError.message?.includes("email_exists")) {
-            throw new Error("Email already exists. Please use a different email address.");
-          }
-          throw new Error(`Failed to create user: ${fnError.message || JSON.stringify(fnError)}`);
+      if (fnError) {
+        console.error("admin-create-user error:", fnError);
+        if (fnError.message?.includes("already been registered") || fnError.message?.includes("email_exists")) {
+          throw new Error("Email already exists. Please use a different email address.");
         }
-
-        createdUserId = (fnData as any)?.user_id as string | undefined;
-        if (!createdUserId) {
-          console.error("No user_id returned from admin-create-user:", fnData);
-          throw new Error("User creation failed - no user ID returned");
-        }
-        emailToSave = providedEmail;
-        console.log("Auth user created successfully:", createdUserId);
-      } else {
-        // No email provided: create a profile-only entry (no login attached)
-        createdUserId = crypto.randomUUID();
-        console.log("Profile-only user id generated:", createdUserId);
+        throw new Error(`Failed to create user: ${fnError.message || JSON.stringify(fnError)}`);
       }
+
+      createdUserId = (fnData as any)?.user_id as string | undefined;
+      if (!createdUserId) {
+        console.error("No user_id returned:", fnData);
+        throw new Error("User creation failed - no user ID returned");
+      }
+      
+      // Only save email to profile if user actually provided one
+      if (providedEmail) {
+        emailToSave = providedEmail;
+      }
+      
+      console.log("Auth user created:", createdUserId);
 
       // Prepare optional avatar
       let avatar_base64: string | undefined;
