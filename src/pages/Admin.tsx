@@ -736,33 +736,38 @@ const Admin = () => {
                           {/* Border around entire user section */}
                           <div className="border border-border rounded-lg overflow-hidden">
                             {/* Line 1: User info with collapse button, Edit and Del buttons */}
-                            <div className="grid grid-cols-12 gap-4 items-center p-4 bg-card hover:bg-muted/50 transition-colors">
-                              {/* Collapse button */}
-                              <button
-                                onClick={() => toggleUserCollapse(usr.id)}
-                                className="col-span-1 flex items-center justify-center hover:text-primary transition-colors"
-                              >
-                                {collapsedUsers.has(usr.id) ? (
-                                  <ChevronRight className="w-5 h-5" />
-                                ) : (
-                                  <ChevronDown className="w-5 h-5" />
-                                )}
-                              </button>
-                              
-                              <div className="col-span-1">
-                                {usr.avatar_url ? (
-                                  <img src={usr.avatar_url} alt={usr.display_name} className="w-10 h-10 rounded-full object-cover" />
-                                ) : (
-                                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                                    <span className="text-muted-foreground text-sm">{usr.display_name?.[0]?.toUpperCase() || "?"}</span>
-                                  </div>
-                                )}
+                            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center p-4 bg-card hover:bg-muted/50 transition-colors">
+                              {/* First row on mobile, inline on desktop */}
+                              <div className="flex items-center gap-4 md:contents">
+                                {/* Collapse button */}
+                                <button
+                                  onClick={() => toggleUserCollapse(usr.id)}
+                                  className="md:col-span-1 flex items-center justify-center hover:text-primary transition-colors shrink-0"
+                                >
+                                  {collapsedUsers.has(usr.id) ? (
+                                    <ChevronRight className="w-5 h-5" />
+                                  ) : (
+                                    <ChevronDown className="w-5 h-5" />
+                                  )}
+                                </button>
+                                
+                                <div className="md:col-span-1 shrink-0">
+                                  {usr.avatar_url ? (
+                                    <img src={usr.avatar_url} alt={usr.display_name} className="w-10 h-10 rounded-full object-cover" />
+                                  ) : (
+                                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                                      <span className="text-muted-foreground text-sm">{usr.display_name?.[0]?.toUpperCase() || "?"}</span>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="md:col-span-2 text-foreground font-medium min-w-0 truncate">{usr.display_name || "—"}</div>
+                                <div className="md:col-span-2 text-muted-foreground min-w-0 truncate">{usr.username || "—"}</div>
+                                <div className="md:col-span-3 text-muted-foreground text-sm min-w-0 truncate">{usr.email || "—"}</div>
+                                <div className="md:col-span-2 text-muted-foreground text-sm min-w-0 truncate">{usr.bio || "—"}</div>
                               </div>
-                              <div className="col-span-2 text-foreground">{usr.display_name || "—"}</div>
-                              <div className="col-span-2 text-muted-foreground">{usr.username || "—"}</div>
-                              <div className="col-span-3 text-muted-foreground text-sm">{usr.email || "—"}</div>
-                              <div className="col-span-2 text-muted-foreground text-sm truncate">{usr.bio || "—"}</div>
-                              <div className="col-span-1 flex gap-1 justify-start">
+                              
+                              {/* Buttons - separate row on mobile, inline on desktop */}
+                              <div className="flex gap-2 justify-end md:col-span-1 md:justify-start">
                                 <Button variant="ghost" size="sm" onClick={() => handleEditUser(usr)}>Edit</Button>
                                 <Button variant="destructive" size="sm" onClick={() => handleDeleteCreatedUser(usr.id, usr.username || usr.display_name)}>Del</Button>
                               </div>
