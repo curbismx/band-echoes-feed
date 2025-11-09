@@ -202,6 +202,21 @@ const Admin = () => {
     }
   };
 
+  const handleDeleteFromManageAdmins = async (userId: string, username: string) => {
+    if (!confirm(`Delete user ${username}? This will permanently remove their account.`)) return;
+    try {
+      const { error } = await supabase.functions.invoke("admin-delete-user", {
+        body: { user_id: userId },
+      });
+      if (error) throw error as any;
+      toast.success(`User ${username} deleted`);
+      fetchAllUsers();
+    } catch (error: any) {
+      console.error("Error deleting user:", error);
+      toast.error(error.message || "Failed to delete user");
+    }
+  };
+
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth?redirect=/admin");
@@ -508,31 +523,6 @@ const Admin = () => {
 
         {activeTab === "accounts" && (
           <>
-            {/* Starter Accounts - Batch Create */}
-            <div className="mb-8 border border-border rounded-lg p-6 bg-card/30">
-              <h2 className="text-lg font-medium text-foreground mb-4">Starter Accounts (Batch)</h2>
-              <div className="grid grid-cols-12 gap-4 items-end">
-                <div className="col-span-2">
-                  <label className="block text-sm text-muted-foreground mb-1">Count</label>
-                  <Input type="number" min={1} max={100} value={batchCount} onChange={(e) => setBatchCount(Number(e.target.value))} />
-                </div>
-                <div className="col-span-4">
-                  <label className="block text-sm text-muted-foreground mb-1">Email/Username Prefix</label>
-                  <Input value={batchPrefix} onChange={(e) => setBatchPrefix(e.target.value)} />
-                </div>
-                <div className="col-span-4">
-                  <label className="block text-sm text-muted-foreground mb-1">Email Domain</label>
-                  <Input value={batchDomain} onChange={(e) => setBatchDomain(e.target.value)} />
-                </div>
-                <div className="col-span-2 flex justify-end">
-                  <Button onClick={handleBatchCreate} className="w-full">
-                    Generate {batchCount}
-                  </Button>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">Example email: {`${batchPrefix}-${Date.now()}-1@${batchDomain}`}</p>
-            </div>
-
             {/* Created Users List */}
 
             {createdUsers.length > 0 && (
@@ -775,7 +765,7 @@ const Admin = () => {
                 <div className="col-span-2">Username</div>
                 <div className="col-span-3">Email</div>
                 <div className="col-span-2">Role</div>
-                <div className="col-span-1">Action</div>
+                <div className="col-span-1">Actions</div>
               </div>
 
               <div className="divide-y divide-border">
@@ -811,14 +801,24 @@ const Admin = () => {
                         </span>
                       </div>
                       <div className="col-span-1">
-                        <Button
-                          variant={userItem.isAdmin ? "destructive" : "default"}
-                          size="sm"
-                          onClick={() => toggleAdminRole(userItem.id, userItem.isAdmin)}
-                          disabled={userItem.id === user?.id}
-                        >
-                          {userItem.isAdmin ? "Remove" : "Grant"}
-                        </Button>
+                        <div className="flex gap-1">
+                          <Button
+                            variant={userItem.isAdmin ? "destructive" : "default"}
+                            size="sm"
+                            onClick={() => toggleAdminRole(userItem.id, userItem.isAdmin)}
+                            disabled={userItem.id === user?.id}
+                          >
+                            {userItem.isAdmin ? "Remove" : "Grant"}
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteFromManageAdmins(userItem.id, userItem.username || userItem.display_name || "user")}
+                            disabled={userItem.id === user?.id}
+                          >
+                            Del
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}
