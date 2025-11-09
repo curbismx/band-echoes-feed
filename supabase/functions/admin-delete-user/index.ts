@@ -71,13 +71,18 @@ serve(async (req) => {
       });
     }
 
-    // Delete the auth user (will cascade to profile if FK is set)
+    // Try to delete the auth user (may not exist for profile-only entries)
     const { error: delErr } = await serviceClient.auth.admin.deleteUser(user_id);
     if (delErr) {
-      return new Response(JSON.stringify({ error: delErr.message }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      const msg = (delErr as any)?.message?.toLowerCase?.() || "";
+      const notFound = msg.includes("not found") || msg.includes("no user") || msg.includes("does not exist");
+      if (!notFound) {
+        return new Response(JSON.stringify({ error: delErr.message }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      // If auth user doesn't exist, continue to clean up profile only
     }
 
     // Best-effort profile cleanup
