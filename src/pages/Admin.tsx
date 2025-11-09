@@ -73,7 +73,14 @@ const Admin = () => {
   const [batchCount, setBatchCount] = useState(30);
   const [batchPrefix, setBatchPrefix] = useState("starter");
   const [batchDomain, setBatchDomain] = useState("example.com");
-  const [collapsedUsers, setCollapsedUsers] = useState<Set<string>>(new Set());
+  const [collapsedUsers, setCollapsedUsers] = useState<Set<string>>(() => {
+    try {
+      const stored = localStorage.getItem("admin-collapsed-users");
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
   const [userVideos, setUserVideos] = useState<Record<string, any[]>>({});
   const [editingVideo, setEditingVideo] = useState<string | null>(null);
   const [videoEditForm, setVideoEditForm] = useState<{ title: string; description: string; itunes: string; spotify: string }>({ title: "", description: "", itunes: "", spotify: "" });
@@ -551,6 +558,12 @@ const Admin = () => {
         newSet.delete(userId);
       } else {
         newSet.add(userId);
+      }
+      // Persist to localStorage
+      try {
+        localStorage.setItem("admin-collapsed-users", JSON.stringify(Array.from(newSet)));
+      } catch (e) {
+        console.error("Failed to save collapse state:", e);
       }
       return newSet;
     });
