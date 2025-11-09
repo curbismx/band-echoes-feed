@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Plus, Upload } from "lucide-react";
 
@@ -528,90 +529,148 @@ const Admin = () => {
             {createdUsers.length > 0 && (
               <div className="mb-8">
                 <h2 className="text-lg font-medium text-foreground mb-4">Your Created Users ({createdUsers.length})</h2>
-                <div className="border border-border rounded-lg overflow-hidden">
-                  <div className="grid grid-cols-12 gap-4 bg-muted px-6 py-3 text-sm font-medium text-muted-foreground">
-                    <div className="col-span-1">Avatar</div>
-                    <div className="col-span-2">Name</div>
-                    <div className="col-span-2">Username</div>
-                    <div className="col-span-3">Email</div>
-                    <div className="col-span-3">Bio</div>
-                    <div className="col-span-1">Actions</div>
-                  </div>
-                  <div className="divide-y divide-border">
-                    {createdUsers.map((usr) => (
-                      <div key={usr.id}>
-                        {editingUser === usr.id ? (
-                          <div className="grid grid-cols-12 gap-4 px-6 py-4 items-center bg-muted/30">
+                <div className="space-y-4">
+                  {createdUsers.map((usr) => (
+                    <div key={usr.id}>
+                      {editingUser === usr.id ? (
+                        <div className="grid grid-cols-12 gap-4 items-center bg-muted/30 p-4 rounded-lg">
+                          <div className="col-span-1">
+                            <label className="w-10 h-10 rounded-full border-2 border-input flex items-center justify-center cursor-pointer hover:border-primary transition-colors">
+                              <input type="file" accept="image/*" className="hidden" onChange={(e) => setEditForm({ ...editForm, avatar: e.target.files?.[0] || null })} />
+                              {editForm.avatar ? (
+                                <img src={URL.createObjectURL(editForm.avatar)} alt="avatar" className="w-full h-full rounded-full object-cover" />
+                              ) : usr.avatar_url ? (
+                                <img src={usr.avatar_url} alt={usr.display_name} className="w-10 h-10 rounded-full object-cover" />
+                              ) : (
+                                <Plus className="w-5 h-5 text-muted-foreground" />
+                              )}
+                            </label>
+                          </div>
+                          <Input className="col-span-2" placeholder="Display Name" value={editForm.display_name} onChange={(e) => setEditForm({ ...editForm, display_name: e.target.value })} />
+                          <Input className="col-span-2" placeholder="Username" value={editForm.username} onChange={(e) => setEditForm({ ...editForm, username: e.target.value })} />
+                          <Input className="col-span-3" placeholder="Email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} />
+                          <Input className="col-span-3" placeholder="Bio" value={editForm.bio} onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })} />
+                          <div className="col-span-1 flex gap-1">
+                            <Button variant="default" size="sm" onClick={() => handleSaveEdit(usr.id)}>Save</Button>
+                            <Button variant="ghost" size="sm" onClick={() => setEditingUser(null)}>Cancel</Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="grid grid-cols-12 gap-4 items-center p-4 hover:bg-muted/50 transition-colors rounded-lg border border-border">
                             <div className="col-span-1">
-                              <label className="w-10 h-10 rounded-full border-2 border-input flex items-center justify-center cursor-pointer hover:border-primary transition-colors">
-                                <input type="file" accept="image/*" className="hidden" onChange={(e) => setEditForm({ ...editForm, avatar: e.target.files?.[0] || null })} />
-                                {editForm.avatar ? (
-                                  <img src={URL.createObjectURL(editForm.avatar)} alt="avatar" className="w-full h-full rounded-full object-cover" />
-                                ) : usr.avatar_url ? (
-                                  <img src={usr.avatar_url} alt={usr.display_name} className="w-10 h-10 rounded-full object-cover" />
-                                ) : (
-                                  <Plus className="w-5 h-5 text-muted-foreground" />
-                                )}
-                              </label>
+                              {usr.avatar_url ? (
+                                <img src={usr.avatar_url} alt={usr.display_name} className="w-10 h-10 rounded-full object-cover" />
+                              ) : (
+                                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                                  <span className="text-muted-foreground text-sm">{usr.display_name?.[0]?.toUpperCase() || "?"}</span>
+                                </div>
+                              )}
                             </div>
-                            <Input className="col-span-2" placeholder="Display Name" value={editForm.display_name} onChange={(e) => setEditForm({ ...editForm, display_name: e.target.value })} />
-                            <Input className="col-span-2" placeholder="Username" value={editForm.username} onChange={(e) => setEditForm({ ...editForm, username: e.target.value })} />
-                            <Input className="col-span-3" placeholder="Email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} />
-                            <Input className="col-span-3" placeholder="Bio" value={editForm.bio} onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })} />
-                            <div className="col-span-1 flex gap-1">
-                              <Button variant="default" size="sm" onClick={() => handleSaveEdit(usr.id)}>Save</Button>
-                              <Button variant="ghost" size="sm" onClick={() => setEditingUser(null)}>Cancel</Button>
+                            <div className="col-span-2 text-foreground">{usr.display_name || "—"}</div>
+                            <div className="col-span-2 text-muted-foreground">{usr.username || "—"}</div>
+                            <div className="col-span-3 text-muted-foreground text-sm">{usr.email || "—"}</div>
+                            <div className="col-span-3 text-muted-foreground text-sm truncate">{usr.bio || "—"}</div>
+                            <div className="col-span-1">
+                              <div className="flex gap-1">
+                                <Button variant="ghost" size="sm" onClick={() => handleEditUser(usr)}>Edit</Button>
+                                <Button
+                                  variant="secondary"
+                                  size="sm"
+                                  onClick={() => {
+                                    setAddVideoForUser(usr.id === addVideoForUser ? null : usr.id);
+                                    setNewVideo({ url: "", title: "", caption: "", linksText: "" });
+                                  }}
+                                >
+                                  Video
+                                </Button>
+                                <Button variant="destructive" size="sm" onClick={() => handleDeleteCreatedUser(usr.id, usr.username || usr.display_name)}>Del</Button>
+                              </div>
                             </div>
                           </div>
-                        ) : (
-                          <>
-                            <div className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-muted/50 transition-colors">
-                              <div className="col-span-1">
-                                {usr.avatar_url ? (
-                                  <img src={usr.avatar_url} alt={usr.display_name} className="w-10 h-10 rounded-full object-cover" />
-                                ) : (
-                                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                                    <span className="text-muted-foreground text-sm">{usr.display_name?.[0]?.toUpperCase() || "?"}</span>
-                                  </div>
-                                )}
+                          {addVideoForUser === usr.id && (
+                            <div className="mt-4 p-6 border border-border rounded-lg bg-card/50">
+                              <h3 className="text-sm font-medium text-foreground mb-4">Add Video for {usr.display_name}</h3>
+                              
+                              {/* Video Upload */}
+                              <div className="mb-4">
+                                <label className="block text-sm text-muted-foreground mb-2">Video File</label>
+                                <input
+                                  type="file"
+                                  accept="video/*"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      setNewVideo({ ...newVideo, url: URL.createObjectURL(file) });
+                                    }
+                                  }}
+                                  className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                                />
                               </div>
-                              <div className="col-span-2 text-foreground">{usr.display_name || "—"}</div>
-                              <div className="col-span-2 text-muted-foreground">{usr.username || "—"}</div>
-                              <div className="col-span-3 text-muted-foreground text-sm">{usr.email || "—"}</div>
-                              <div className="col-span-3 text-muted-foreground text-sm truncate">{usr.bio || "—"}</div>
-                              <div className="col-span-1">
-                                <div className="flex gap-1">
-                                  <Button variant="ghost" size="sm" onClick={() => handleEditUser(usr)}>Edit</Button>
-                                  <Button
-                                    variant="secondary"
-                                    size="sm"
-                                    onClick={() => {
-                                      setAddVideoForUser(usr.id === addVideoForUser ? null : usr.id);
-                                      setNewVideo({ url: "", title: "", caption: "", linksText: "" });
+
+                              {/* Title */}
+                              <div className="mb-4">
+                                <label className="block text-sm text-muted-foreground mb-2">Title</label>
+                                <Input placeholder="Video title" value={newVideo.title} onChange={(e) => setNewVideo({ ...newVideo, title: e.target.value })} />
+                              </div>
+
+                              {/* Caption */}
+                              <div className="mb-4">
+                                <label className="block text-sm text-muted-foreground mb-2">Caption</label>
+                                <Textarea placeholder="Video caption" value={newVideo.caption} onChange={(e) => setNewVideo({ ...newVideo, caption: e.target.value })} rows={3} />
+                              </div>
+
+                              {/* Links (iTunes, Spotify, etc) */}
+                              <div className="mb-4">
+                                <label className="block text-sm text-muted-foreground mb-2">Music Links (iTunes, Spotify, etc.)</label>
+                                <div className="space-y-2">
+                                  {newVideo.linksText.split(',').filter(l => l.trim()).map((link, idx) => (
+                                    <Input
+                                      key={idx}
+                                      placeholder="Add music link (iTunes, Spotify, etc.)"
+                                      value={link.trim()}
+                                      onChange={(e) => {
+                                        const links = newVideo.linksText.split(',').filter(l => l.trim());
+                                        links[idx] = e.target.value;
+                                        setNewVideo({ ...newVideo, linksText: links.join(',') });
+                                      }}
+                                    />
+                                  ))}
+                                  <Input
+                                    placeholder="Add music link (iTunes, Spotify, etc.)"
+                                    onFocus={(e) => {
+                                      if (!newVideo.linksText.trim()) {
+                                        setNewVideo({ ...newVideo, linksText: '' });
+                                      }
                                     }}
+                                    onChange={(e) => {
+                                      const existing = newVideo.linksText.split(',').filter(l => l.trim());
+                                      setNewVideo({ ...newVideo, linksText: [...existing, e.target.value].join(',') });
+                                    }}
+                                  />
+                                  <button
+                                    onClick={() => {
+                                      const existing = newVideo.linksText.split(',').filter(l => l.trim());
+                                      setNewVideo({ ...newVideo, linksText: [...existing, ''].join(',') });
+                                    }}
+                                    className="flex items-center gap-2 text-primary hover:text-primary/80 text-sm font-medium"
                                   >
-                                    Video
-                                  </Button>
-                                  <Button variant="destructive" size="sm" onClick={() => handleDeleteCreatedUser(usr.id, usr.username || usr.display_name)}>Del</Button>
+                                    <Plus className="w-4 h-4" />
+                                    Add another link
+                                  </button>
                                 </div>
+                              </div>
+
+                              <div className="flex gap-2">
+                                <Button onClick={() => handleSubmitAddVideo(usr.id)}>Add Video</Button>
+                                <Button variant="ghost" onClick={() => setAddVideoForUser(null)}>Cancel</Button>
                               </div>
                             </div>
-                            {addVideoForUser === usr.id && (
-                              <div className="px-6 pb-4">
-                                <div className="grid grid-cols-12 gap-3 items-center">
-                                  <Input className="col-span-4" placeholder="Video URL (required)" value={newVideo.url} onChange={(e) => setNewVideo({ ...newVideo, url: e.target.value })} />
-                                  <Input className="col-span-2" placeholder="Title" value={newVideo.title} onChange={(e) => setNewVideo({ ...newVideo, title: e.target.value })} />
-                                  <Input className="col-span-3" placeholder="Caption" value={newVideo.caption} onChange={(e) => setNewVideo({ ...newVideo, caption: e.target.value })} />
-                                  <Input className="col-span-2" placeholder="Links (comma separated)" value={newVideo.linksText} onChange={(e) => setNewVideo({ ...newVideo, linksText: e.target.value })} />
-                                  <Button className="col-span-1" size="sm" onClick={() => handleSubmitAddVideo(usr.id)}>Add</Button>
-                                </div>
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
