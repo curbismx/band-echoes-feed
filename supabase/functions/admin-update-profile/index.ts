@@ -161,6 +161,10 @@ serve(async (req) => {
     const updatePayload: Record<string, unknown> = {};
     if (typeof bio === 'string') updatePayload.bio = bio;
     if (avatar_url !== undefined) updatePayload.avatar_url = avatar_url;
+    if (typeof username === 'string') updatePayload.username = username;
+    if (typeof display_name === 'string') updatePayload.display_name = display_name;
+    if (typeof email === 'string') updatePayload.email = email;
+    if (typeof created_by === 'string') updatePayload.created_by = created_by;
 
     if (Object.keys(updatePayload).length > 0) {
       const { error: profileError } = await serviceClient
