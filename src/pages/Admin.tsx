@@ -393,9 +393,10 @@ const Admin = () => {
     if (!confirm(`Delete user ${username}? This will permanently remove their account.`)) return;
 
     try {
-      // Delete from auth.users (cascades to profiles)
-      const { error } = await supabase.auth.admin.deleteUser(userId);
-      if (error) throw error;
+      const { error } = await supabase.functions.invoke("admin-delete-user", {
+        body: { user_id: userId },
+      });
+      if (error) throw error as any;
 
       toast.success(`User ${username} deleted`);
       fetchCreatedUsers();
