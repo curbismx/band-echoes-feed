@@ -88,7 +88,7 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { user_id, bio, avatar_base64, avatar_ext } = body || {};
+    const { user_id, bio, avatar_base64, avatar_ext, username, display_name, email } = body || {};
 
     if (!user_id || typeof user_id !== 'string') {
       return new Response(JSON.stringify({ error: 'user_id is required' }), {
@@ -131,6 +131,32 @@ serve(async (req) => {
       avatar_url = pub.publicUrl;
     }
 
+    // Ensure profile row exists (create if missing)
+    const { data: existing, error: selErr } = await serviceClient
+      .from('profiles')
+      .select('id')
+      .eq('id', user_id)
+      .maybeSingle();
+
+    if (!existing) {
+      const insertPayload: Record<string, unknown> = { id: user_id };
+      if (typeof username === 'string') insertPayload.username = username;
+      if (typeof display_name === 'string') insertPayload.display_name = display_name;
+      if (typeof email === 'string') insertPayload.email = email;
+
+      const { error: insErr } = await serviceClient.from('profiles').insert(insertPayload);
+      if (insErr) {
+        // If conflict (already exists), ignore; else return error
+        if (!('code' in insErr) || insErr.code !== '23505') {
+          return new Response(JSON.stringify({ error: insErr.message }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      }
+    }
+
+    // Update remaining fields
     const updatePayload: Record<string, unknown> = {};
     if (typeof bio === 'string') updatePayload.bio = bio;
     if (avatar_url !== undefined) updatePayload.avatar_url = avatar_url;

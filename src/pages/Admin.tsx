@@ -347,6 +347,9 @@ const Admin = () => {
       const { data: updateData, error: updateError } = await supabase.functions.invoke("admin-update-profile", {
         body: {
           user_id: createdUserId,
+          username: userForm.username,
+          display_name: userForm.name,
+          email,
           bio: userForm.description || null,
           avatar_base64,
           avatar_ext,
