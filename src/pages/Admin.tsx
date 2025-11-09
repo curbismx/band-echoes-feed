@@ -565,10 +565,9 @@ const Admin = () => {
         [userId]: (prev[userId] || []).filter((v) => v.id !== videoId),
       }));
 
-      const { error } = await supabase
-        .from("videos")
-        .delete()
-        .eq("id", videoId);
+      const { error } = await supabase.functions.invoke("admin-delete-video", {
+        body: { video_id: videoId },
+      });
       
       if (error) throw error;
       toast.success("Video deleted");
