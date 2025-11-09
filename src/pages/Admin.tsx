@@ -709,24 +709,28 @@ const Admin = () => {
                   {createdUsers.map((usr) => (
                     <div key={usr.id}>
                       {editingUser === usr.id ? (
-                        <div className="grid grid-cols-12 gap-4 items-center bg-muted/30 p-4 rounded-lg">
-                          <div className="col-span-1">
-                            <label className="w-10 h-10 rounded-full border-2 border-input flex items-center justify-center cursor-pointer hover:border-primary transition-colors">
-                              <input type="file" accept="image/*" className="hidden" onChange={(e) => setEditForm({ ...editForm, avatar: e.target.files?.[0] || null })} />
-                              {editForm.avatar ? (
-                                <img src={URL.createObjectURL(editForm.avatar)} alt="avatar" className="w-full h-full rounded-full object-cover" />
-                              ) : usr.avatar_url ? (
-                                <img src={usr.avatar_url} alt={usr.display_name} className="w-10 h-10 rounded-full object-cover" />
-                              ) : (
-                                <Plus className="w-5 h-5 text-muted-foreground" />
-                              )}
-                            </label>
+                        <div className="bg-muted/30 p-4 rounded-lg">
+                          {/* First row: Edit fields */}
+                          <div className="grid grid-cols-12 gap-4 items-center mb-3">
+                            <div className="col-span-1">
+                              <label className="w-10 h-10 rounded-full border-2 border-input flex items-center justify-center cursor-pointer hover:border-primary transition-colors">
+                                <input type="file" accept="image/*" className="hidden" onChange={(e) => setEditForm({ ...editForm, avatar: e.target.files?.[0] || null })} />
+                                {editForm.avatar ? (
+                                  <img src={URL.createObjectURL(editForm.avatar)} alt="avatar" className="w-full h-full rounded-full object-cover" />
+                                ) : usr.avatar_url ? (
+                                  <img src={usr.avatar_url} alt={usr.display_name} className="w-10 h-10 rounded-full object-cover" />
+                                ) : (
+                                  <Plus className="w-5 h-5 text-muted-foreground" />
+                                )}
+                              </label>
+                            </div>
+                            <Input className="col-span-2" placeholder="Display Name" value={editForm.display_name} onChange={(e) => setEditForm({ ...editForm, display_name: e.target.value })} />
+                            <Input className="col-span-2" placeholder="Username" value={editForm.username} onChange={(e) => setEditForm({ ...editForm, username: e.target.value })} />
+                            <Input className="col-span-3" placeholder="Email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} />
+                            <Input className="col-span-4" placeholder="Bio" value={editForm.bio} onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })} />
                           </div>
-                          <Input className="col-span-2" placeholder="Display Name" value={editForm.display_name} onChange={(e) => setEditForm({ ...editForm, display_name: e.target.value })} />
-                          <Input className="col-span-2" placeholder="Username" value={editForm.username} onChange={(e) => setEditForm({ ...editForm, username: e.target.value })} />
-                          <Input className="col-span-3" placeholder="Email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} />
-                          <Input className="col-span-3" placeholder="Bio" value={editForm.bio} onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })} />
-                          <div className="col-span-1 flex gap-1">
+                          {/* Second row: Action buttons */}
+                          <div className="flex gap-2 pl-16">
                             <Button variant="default" size="sm" onClick={() => handleSaveEdit(usr.id)}>Save</Button>
                             <Button variant="ghost" size="sm" onClick={() => setEditingUser(null)}>Cancel</Button>
                           </div>
