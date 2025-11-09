@@ -6,16 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Plus, Upload } from "lucide-react";
-import user1 from "@/assets/user-profiles/user1.jpg";
-import user2 from "@/assets/user-profiles/user2.jpg";
-import user3 from "@/assets/user-profiles/user3.jpg";
-import user4 from "@/assets/user-profiles/user4.jpg";
-import user5 from "@/assets/user-profiles/user5.jpg";
-import user6 from "@/assets/user-profiles/user6.jpg";
-import user7 from "@/assets/user-profiles/user7.jpg";
-import user8 from "@/assets/user-profiles/user8.jpg";
-import user9 from "@/assets/user-profiles/user9.jpg";
-import user10 from "@/assets/user-profiles/user10.jpg";
+
 
 interface VideoInput {
   id: string;
@@ -31,88 +22,7 @@ interface UserForm {
   videos: VideoInput[];
 }
 
-const initialUsers: UserForm[] = [
-  {
-    icon: user1,
-    name: "Sarah Martinez",
-    username: "soundwave_sara",
-    email: "sarah.martinez@musiclabel.com",
-    description: "Music producer and songwriter based in LA",
-    videos: [],
-  },
-  {
-    icon: user2,
-    name: "Michael Thompson",
-    username: "mikebeats",
-    email: "michael.thompson@studioworks.com",
-    description: "Audio engineer with 15 years experience",
-    videos: [],
-  },
-  {
-    icon: user3,
-    name: "Emma Wilson",
-    username: "artsy.emma",
-    email: "emma.wilson@creativemedia.com",
-    description: "Creative director and visual artist",
-    videos: [],
-  },
-  {
-    icon: user4,
-    name: "David Chen",
-    username: "techbeats_dave",
-    email: "david.chen@techstudio.com",
-    description: "Tech entrepreneur and music enthusiast",
-    videos: [],
-  },
-  {
-    icon: user5,
-    name: "Jennifer Roberts",
-    username: "hendrix_fan",
-    email: "jennifer.roberts@executive.com",
-    description: "Entertainment industry executive",
-    videos: [],
-  },
-  {
-    icon: user6,
-    name: "Alex Rodriguez",
-    username: "alexdrum",
-    email: "alex.rodriguez@indie.com",
-    description: "Indie musician and content creator",
-    videos: [],
-  },
-  {
-    icon: user7,
-    name: "Rachel Anderson",
-    username: "vinyl_queen",
-    email: "rachel.anderson@management.com",
-    description: "Artist manager and talent scout",
-    videos: [],
-  },
-  {
-    icon: user8,
-    name: "Robert Sullivan",
-    username: "classic_rock_bob",
-    email: "robert.sullivan@legacy.com",
-    description: "Music industry veteran and consultant",
-    videos: [],
-  },
-  {
-    icon: user9,
-    name: "Nina Patel",
-    username: "ninarocks",
-    email: "nina.patel@startup.com",
-    description: "Digital marketing specialist for artists",
-    videos: [],
-  },
-  {
-    icon: user10,
-    name: "James Mitchell",
-    username: "live_music_jam",
-    email: "james.mitchell@venue.com",
-    description: "Live event producer and booking agent",
-    videos: [],
-  },
-];
+// Removed initialUsers - start fresh
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -126,6 +36,8 @@ const Admin = () => {
   const [activeTab, setActiveTab] = useState<"accounts" | "users">("accounts");
   const [addVideoForUser, setAddVideoForUser] = useState<string | null>(null);
   const [newVideo, setNewVideo] = useState<{ url: string; title: string; caption: string; linksText: string }>({ url: "", title: "", caption: "", linksText: "" });
+  const [editingUser, setEditingUser] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<{ username: string; display_name: string; email: string; bio: string; avatar: File | null }>({ username: "", display_name: "", email: "", bio: "", avatar: null });
   const [currentUser, setCurrentUser] = useState<UserForm>({
     icon: null,
     name: "",
@@ -486,6 +398,53 @@ const Admin = () => {
     }
   };
 
+  const handleEditUser = (usr: any) => {
+    setEditingUser(usr.id);
+    setEditForm({
+      username: usr.username || "",
+      display_name: usr.display_name || "",
+      email: usr.email || "",
+      bio: usr.bio || "",
+      avatar: null,
+    });
+  };
+
+  const handleSaveEdit = async (userId: string) => {
+    try {
+      let avatar_base64: string | undefined;
+      let avatar_ext: string | undefined;
+      if (editForm.avatar) {
+        const arrayBuffer = await editForm.avatar.arrayBuffer();
+        const bytes = new Uint8Array(arrayBuffer);
+        let binary = '';
+        for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+        avatar_base64 = btoa(binary);
+        avatar_ext = editForm.avatar.name.split(".").pop() || 'jpg';
+      }
+
+      const { error } = await supabase.functions.invoke("admin-update-profile", {
+        body: {
+          user_id: userId,
+          username: editForm.username,
+          display_name: editForm.display_name,
+          email: editForm.email,
+          bio: editForm.bio,
+          avatar_base64,
+          avatar_ext,
+          created_by: user?.id,
+        },
+      });
+      if (error) throw error as any;
+
+      toast.success("User updated");
+      setEditingUser(null);
+      fetchCreatedUsers();
+    } catch (e: any) {
+      console.error("Edit error:", e);
+      toast.error(e.message || "Failed to update user");
+    }
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/");
@@ -590,53 +549,77 @@ const Admin = () => {
                   </div>
                   <div className="divide-y divide-border">
                     {createdUsers.map((usr) => (
-                      <div key={usr.id} className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-muted/50 transition-colors">
-                        <div className="col-span-1">
-                          {usr.avatar_url ? (
-                            <img src={usr.avatar_url} alt={usr.display_name} className="w-10 h-10 rounded-full object-cover" />
-                          ) : (
-                            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                              <span className="text-muted-foreground text-sm">{usr.display_name?.[0]?.toUpperCase() || "?"}</span>
+                      <div key={usr.id}>
+                        {editingUser === usr.id ? (
+                          <div className="grid grid-cols-12 gap-4 px-6 py-4 items-center bg-muted/30">
+                            <div className="col-span-1">
+                              <label className="w-10 h-10 rounded-full border-2 border-input flex items-center justify-center cursor-pointer hover:border-primary transition-colors">
+                                <input type="file" accept="image/*" className="hidden" onChange={(e) => setEditForm({ ...editForm, avatar: e.target.files?.[0] || null })} />
+                                {editForm.avatar ? (
+                                  <img src={URL.createObjectURL(editForm.avatar)} alt="avatar" className="w-full h-full rounded-full object-cover" />
+                                ) : usr.avatar_url ? (
+                                  <img src={usr.avatar_url} alt={usr.display_name} className="w-10 h-10 rounded-full object-cover" />
+                                ) : (
+                                  <Plus className="w-5 h-5 text-muted-foreground" />
+                                )}
+                              </label>
                             </div>
-                          )}
-                        </div>
-                        <div className="col-span-2 text-foreground">{usr.display_name || "—"}</div>
-                        <div className="col-span-2 text-muted-foreground">{usr.username || "—"}</div>
-                        <div className="col-span-3 text-muted-foreground text-sm">{usr.email || "—"}</div>
-                        <div className="col-span-3 text-muted-foreground text-sm truncate">{usr.bio || "—"}</div>
-                        <div className="col-span-1">
-                          <div className="flex gap-2">
-                            <Button
-                              variant="secondary"
-                              size="sm"
-                              onClick={() => {
-                                setAddVideoForUser(usr.id === addVideoForUser ? null : usr.id);
-                                setNewVideo({ url: "", title: "", caption: "", linksText: "" });
-                              }}
-                            >
-                              Add Video
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleDeleteCreatedUser(usr.id, usr.username || usr.display_name)}
-                            >
-                              Delete
-                             </Button>
-                           </div>
-                         </div>
-                         {addVideoForUser === usr.id && (
-                           <div className="col-span-12 mt-3">
-                             <div className="grid grid-cols-12 gap-3 items-center">
-                               <Input className="col-span-4" placeholder="Video URL (required)" value={newVideo.url} onChange={(e) => setNewVideo({ ...newVideo, url: e.target.value })} />
-                               <Input className="col-span-2" placeholder="Title" value={newVideo.title} onChange={(e) => setNewVideo({ ...newVideo, title: e.target.value })} />
-                               <Input className="col-span-3" placeholder="Caption" value={newVideo.caption} onChange={(e) => setNewVideo({ ...newVideo, caption: e.target.value })} />
-                               <Input className="col-span-2" placeholder="Links (comma separated)" value={newVideo.linksText} onChange={(e) => setNewVideo({ ...newVideo, linksText: e.target.value })} />
-                               <Button className="col-span-1" size="sm" onClick={() => handleSubmitAddVideo(usr.id)}>Add</Button>
-                             </div>
-                           </div>
-                         )}
-                       </div>
+                            <Input className="col-span-2" placeholder="Display Name" value={editForm.display_name} onChange={(e) => setEditForm({ ...editForm, display_name: e.target.value })} />
+                            <Input className="col-span-2" placeholder="Username" value={editForm.username} onChange={(e) => setEditForm({ ...editForm, username: e.target.value })} />
+                            <Input className="col-span-3" placeholder="Email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} />
+                            <Input className="col-span-3" placeholder="Bio" value={editForm.bio} onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })} />
+                            <div className="col-span-1 flex gap-1">
+                              <Button variant="default" size="sm" onClick={() => handleSaveEdit(usr.id)}>Save</Button>
+                              <Button variant="ghost" size="sm" onClick={() => setEditingUser(null)}>Cancel</Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-muted/50 transition-colors">
+                              <div className="col-span-1">
+                                {usr.avatar_url ? (
+                                  <img src={usr.avatar_url} alt={usr.display_name} className="w-10 h-10 rounded-full object-cover" />
+                                ) : (
+                                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                                    <span className="text-muted-foreground text-sm">{usr.display_name?.[0]?.toUpperCase() || "?"}</span>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="col-span-2 text-foreground">{usr.display_name || "—"}</div>
+                              <div className="col-span-2 text-muted-foreground">{usr.username || "—"}</div>
+                              <div className="col-span-3 text-muted-foreground text-sm">{usr.email || "—"}</div>
+                              <div className="col-span-3 text-muted-foreground text-sm truncate">{usr.bio || "—"}</div>
+                              <div className="col-span-1">
+                                <div className="flex gap-1">
+                                  <Button variant="ghost" size="sm" onClick={() => handleEditUser(usr)}>Edit</Button>
+                                  <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={() => {
+                                      setAddVideoForUser(usr.id === addVideoForUser ? null : usr.id);
+                                      setNewVideo({ url: "", title: "", caption: "", linksText: "" });
+                                    }}
+                                  >
+                                    Video
+                                  </Button>
+                                  <Button variant="destructive" size="sm" onClick={() => handleDeleteCreatedUser(usr.id, usr.username || usr.display_name)}>Del</Button>
+                                </div>
+                              </div>
+                            </div>
+                            {addVideoForUser === usr.id && (
+                              <div className="px-6 pb-4">
+                                <div className="grid grid-cols-12 gap-3 items-center">
+                                  <Input className="col-span-4" placeholder="Video URL (required)" value={newVideo.url} onChange={(e) => setNewVideo({ ...newVideo, url: e.target.value })} />
+                                  <Input className="col-span-2" placeholder="Title" value={newVideo.title} onChange={(e) => setNewVideo({ ...newVideo, title: e.target.value })} />
+                                  <Input className="col-span-3" placeholder="Caption" value={newVideo.caption} onChange={(e) => setNewVideo({ ...newVideo, caption: e.target.value })} />
+                                  <Input className="col-span-2" placeholder="Links (comma separated)" value={newVideo.linksText} onChange={(e) => setNewVideo({ ...newVideo, linksText: e.target.value })} />
+                                  <Button className="col-span-1" size="sm" onClick={() => handleSubmitAddVideo(usr.id)}>Add</Button>
+                                </div>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
                     ))}
                   </div>
                 </div>
