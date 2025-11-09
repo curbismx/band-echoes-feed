@@ -276,16 +276,19 @@ const Admin = () => {
     const userForm = users[index];
     
     // Validation
-    if (!userForm.email || !userForm.username || !userForm.name) {
-      toast.error("Please fill in required fields: email, username, and name");
+    if (!userForm.username || !userForm.name) {
+      toast.error("Please fill in required fields: username and name");
       return;
     }
+    
+    // Generate email if not provided
+    const email = userForm.email || `${userForm.username}@temp.com`;
 
     try {
       // Create user account
       const password = crypto.randomUUID(); // Generate random password
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: userForm.email,
+        email: email,
         password: password,
         options: {
           data: {
