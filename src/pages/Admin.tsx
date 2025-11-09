@@ -321,47 +321,39 @@ const Admin = () => {
       const createdUserId = (fnData as any)?.user_id as string | undefined;
       if (!createdUserId) throw new Error("User creation failed");
 
-      // Upload avatar if provided
-      let avatarUrl = null;
+      // Update profile via backend function (service role)
+      let avatar_base64: string | undefined;
+      let avatar_ext: string | undefined;
       if (userForm.icon) {
-        let fileToUpload: File;
-        let fileExt: string;
-        
+        let file: File;
         if (typeof userForm.icon === 'string') {
           // Fetch the image from the URL and convert to File
           const response = await fetch(userForm.icon);
           const blob = await response.blob();
-          fileExt = userForm.icon.split('.').pop() || 'jpg';
-          fileToUpload = new File([blob], `avatar.${fileExt}`, { type: blob.type });
+          file = new File([blob], 'avatar', { type: blob.type });
+          avatar_ext = (userForm.icon.split('.').pop() || 'jpg').toLowerCase();
         } else {
           // Use the uploaded File directly
-          fileToUpload = userForm.icon;
-          fileExt = userForm.icon.name.split(".").pop() || 'jpg';
+          file = userForm.icon;
+          avatar_ext = (userForm.icon.name.split(".").pop() || 'jpg').toLowerCase();
         }
-        
-        const fileName = `${createdUserId}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage
-          .from("avatars")
-          .upload(fileName, fileToUpload, { upsert: true });
-
-        if (uploadError) throw uploadError;
-
-        const { data: { publicUrl } } = supabase.storage
-          .from("avatars")
-          .getPublicUrl(fileName);
-        avatarUrl = publicUrl;
+        const arrayBuffer = await file.arrayBuffer();
+        const bytes = new Uint8Array(arrayBuffer);
+        let binary = '';
+        for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+        avatar_base64 = btoa(binary);
       }
 
-      // Update profile
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({
-          bio: userForm.description,
-          avatar_url: avatarUrl,
-        })
-        .eq("id", createdUserId);
+      const { data: updateData, error: updateError } = await supabase.functions.invoke("admin-update-profile", {
+        body: {
+          user_id: createdUserId,
+          bio: userForm.description || null,
+          avatar_base64,
+          avatar_ext,
+        },
+      });
 
-      if (profileError) throw profileError;
+      if (updateError) throw updateError as any;
 
       toast.success(`User ${userForm.name} created successfully!`);
       handleDeleteUser(index);
