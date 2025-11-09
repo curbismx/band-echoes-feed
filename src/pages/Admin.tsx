@@ -368,32 +368,9 @@ const Admin = () => {
         emailToSave = providedEmail;
         console.log("Auth user created successfully:", createdUserId);
       } else {
-        // No email provided: still need to create an auth user (but they won't know the password)
-        // Create a dummy auth account with random credentials
-        const dummyEmail = `${userForm.username}-${Date.now()}@noemail.local`;
-        const password = crypto.randomUUID();
-        
-        console.log("Creating profile-only user (dummy auth):", dummyEmail);
-        const { data: fnData, error: fnError } = await supabase.functions.invoke("admin-create-user", {
-          body: {
-            email: dummyEmail,
-            password,
-            username: userForm.username,
-            display_name: userForm.name,
-          },
-        });
-
-        if (fnError) {
-          console.error("admin-create-user error (profile-only):", fnError);
-          throw new Error(`Failed to create profile: ${fnError.message || JSON.stringify(fnError)}`);
-        }
-
-        createdUserId = (fnData as any)?.user_id as string | undefined;
-        if (!createdUserId) {
-          console.error("No user_id returned:", fnData);
-          throw new Error("Profile creation failed - no user ID returned");
-        }
-        console.log("Profile-only user created:", createdUserId);
+        // No email provided: create a profile-only entry (no login attached)
+        createdUserId = crypto.randomUUID();
+        console.log("Profile-only user id generated:", createdUserId);
       }
 
       // Prepare optional avatar
