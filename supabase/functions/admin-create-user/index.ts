@@ -20,6 +20,14 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Health check endpoint
+  if (req.method === "GET") {
+    return new Response(
+      JSON.stringify({ status: "ok", message: "admin-create-user function is healthy" }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), {
       status: 405,

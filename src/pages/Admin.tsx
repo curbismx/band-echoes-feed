@@ -157,6 +157,29 @@ const Admin = () => {
     }
   }, [isAdmin, activeTab]);
 
+  // Health check for edge function on admin page load
+  useEffect(() => {
+    const checkEdgeFunctionHealth = async () => {
+      if (!isAdmin) return;
+      
+      try {
+        const { error } = await supabase.functions.invoke("admin-create-user", {
+          method: "GET",
+        });
+        
+        if (error) {
+          console.error("Edge function health check failed:", error);
+          toast.error("Warning: User creation service may be unavailable. Try refreshing the page.");
+        }
+      } catch (err) {
+        console.error("Edge function health check error:", err);
+        toast.warning("Unable to verify user creation service. You may encounter issues creating users.");
+      }
+    };
+
+    checkEdgeFunctionHealth();
+  }, [isAdmin]);
+
   const fetchAllUsers = async () => {
     try {
       const { data: profiles, error: profilesError } = await supabase
