@@ -134,6 +134,10 @@ const Admin = () => {
     description: "",
     videos: [],
   });
+  const [batchCount, setBatchCount] = useState(30);
+  const [batchPrefix, setBatchPrefix] = useState("starter");
+  const [batchDomain, setBatchDomain] = useState("example.com");
+
 
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -153,6 +157,11 @@ const Admin = () => {
 
     checkAdminStatus();
   }, [user]);
+
+  useEffect(() => {
+    document.title = "Admin | Starter Accounts";
+  }, []);
+
 
   useEffect(() => {
     if (isAdmin && activeTab === "users") {
@@ -179,6 +188,23 @@ const Admin = () => {
       toast.error("Failed to load your created users");
     }
   };
+
+  const handleBatchCreate = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-batch-create-users", {
+        body: { count: batchCount, prefix: batchPrefix, domain: batchDomain },
+      });
+      if (error) throw error as any;
+      const createdCount = (data as any)?.created_count ?? 0;
+      const failedCount = (data as any)?.failed_count ?? 0;
+      toast.success(`Created ${createdCount} accounts${failedCount ? `, ${failedCount} failed` : ""}`);
+      fetchCreatedUsers();
+    } catch (e: any) {
+      console.error("Batch create error:", e);
+      toast.error(e.message || "Failed to create accounts");
+    }
+  };
+
 
   // Health check for edge function on admin page load
   useEffect(() => {
@@ -523,7 +549,33 @@ const Admin = () => {
 
         {activeTab === "accounts" && (
           <>
+            {/* Starter Accounts - Batch Create */}
+            <div className="mb-8 border border-border rounded-lg p-6 bg-card/30">
+              <h2 className="text-lg font-medium text-foreground mb-4">Starter Accounts (Batch)</h2>
+              <div className="grid grid-cols-12 gap-4 items-end">
+                <div className="col-span-2">
+                  <label className="block text-sm text-muted-foreground mb-1">Count</label>
+                  <Input type="number" min={1} max={100} value={batchCount} onChange={(e) => setBatchCount(Number(e.target.value))} />
+                </div>
+                <div className="col-span-4">
+                  <label className="block text-sm text-muted-foreground mb-1">Email/Username Prefix</label>
+                  <Input value={batchPrefix} onChange={(e) => setBatchPrefix(e.target.value)} />
+                </div>
+                <div className="col-span-4">
+                  <label className="block text-sm text-muted-foreground mb-1">Email Domain</label>
+                  <Input value={batchDomain} onChange={(e) => setBatchDomain(e.target.value)} />
+                </div>
+                <div className="col-span-2 flex justify-end">
+                  <Button onClick={handleBatchCreate} className="w-full">
+                    Generate {batchCount}
+                  </Button>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">Example email: {`${batchPrefix}-${Date.now()}-1@${batchDomain}`}</p>
+            </div>
+
             {/* Created Users List */}
+
             {createdUsers.length > 0 && (
               <div className="mb-8">
                 <h2 className="text-lg font-medium text-foreground mb-4">Your Created Users ({createdUsers.length})</h2>
