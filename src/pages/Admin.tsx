@@ -342,6 +342,7 @@ const Admin = () => {
         // Create full login-enabled account only when an email was provided
         const password = crypto.randomUUID();
 
+        console.log("Creating auth user with email:", providedEmail);
         const { data: fnData, error: fnError } = await supabase.functions.invoke("admin-create-user", {
           body: {
             email: providedEmail,
@@ -352,18 +353,47 @@ const Admin = () => {
         });
 
         if (fnError) {
+          console.error("admin-create-user error:", fnError);
           if (fnError.message?.includes("already been registered") || fnError.message?.includes("email_exists")) {
             throw new Error("Email already exists. Please use a different email address.");
           }
-          throw fnError as any;
+          throw new Error(`Failed to create user: ${fnError.message || JSON.stringify(fnError)}`);
         }
 
         createdUserId = (fnData as any)?.user_id as string | undefined;
-        if (!createdUserId) throw new Error("User creation failed");
+        if (!createdUserId) {
+          console.error("No user_id returned from admin-create-user:", fnData);
+          throw new Error("User creation failed - no user ID returned");
+        }
         emailToSave = providedEmail;
+        console.log("Auth user created successfully:", createdUserId);
       } else {
-        // No email provided: create a profile-only entry (no login attached)
-        createdUserId = crypto.randomUUID();
+        // No email provided: still need to create an auth user (but they won't know the password)
+        // Create a dummy auth account with random credentials
+        const dummyEmail = `${userForm.username}-${Date.now()}@noemail.local`;
+        const password = crypto.randomUUID();
+        
+        console.log("Creating profile-only user (dummy auth):", dummyEmail);
+        const { data: fnData, error: fnError } = await supabase.functions.invoke("admin-create-user", {
+          body: {
+            email: dummyEmail,
+            password,
+            username: userForm.username,
+            display_name: userForm.name,
+          },
+        });
+
+        if (fnError) {
+          console.error("admin-create-user error (profile-only):", fnError);
+          throw new Error(`Failed to create profile: ${fnError.message || JSON.stringify(fnError)}`);
+        }
+
+        createdUserId = (fnData as any)?.user_id as string | undefined;
+        if (!createdUserId) {
+          console.error("No user_id returned:", fnData);
+          throw new Error("Profile creation failed - no user ID returned");
+        }
+        console.log("Profile-only user created:", createdUserId);
       }
 
       // Prepare optional avatar
@@ -388,22 +418,32 @@ const Admin = () => {
       }
 
       // Create/update profile with service function
-      const { error: updateError } = await supabase.functions.invoke("admin-update-profile", {
-        body: {
-          user_id: createdUserId,
-          username: userForm.username,
-          display_name: userForm.name,
-          // Only persist email if it was provided by the admin
-          ...(emailToSave ? { email: emailToSave } : {}),
-          bio: userForm.description || null,
-          avatar_base64,
-          avatar_ext,
-          created_by: user?.id,
-        },
+      console.log("Updating profile for user:", createdUserId);
+      const updatePayload: any = {
+        user_id: createdUserId,
+        username: userForm.username,
+        display_name: userForm.name,
+        bio: userForm.description || null,
+        avatar_base64,
+        avatar_ext,
+        created_by: user?.id,
+      };
+      
+      // Only include email if user provided one
+      if (emailToSave) {
+        updatePayload.email = emailToSave;
+      }
+
+      const { data: updateData, error: updateError } = await supabase.functions.invoke("admin-update-profile", {
+        body: updatePayload,
       });
 
-      if (updateError) throw updateError as any;
+      if (updateError) {
+        console.error("admin-update-profile error:", updateError);
+        throw new Error(`Failed to update profile: ${updateError.message || JSON.stringify(updateError)}`);
+      }
 
+      console.log("Profile updated successfully");
       toast.success(
         providedEmail
           ? `User ${userForm.name} created successfully!`
@@ -412,7 +452,7 @@ const Admin = () => {
       handleDeleteUser(index);
       fetchCreatedUsers(); // Refresh the list
     } catch (error: any) {
-      console.error("Error creating user:", error);
+      console.error("Error creating user - full details:", error);
       toast.error(error.message || "Failed to create user");
     }
   };
