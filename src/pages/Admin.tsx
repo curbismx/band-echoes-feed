@@ -559,6 +559,12 @@ const Admin = () => {
   const handleDeleteVideo = async (videoId: string, userId: string) => {
     if (!confirm("Delete this video?")) return;
     try {
+      // Immediately update local state for instant UI feedback
+      setUserVideos((prev) => ({
+        ...prev,
+        [userId]: (prev[userId] || []).filter((v) => v.id !== videoId),
+      }));
+
       const { error } = await supabase
         .from("videos")
         .delete()
@@ -566,10 +572,14 @@ const Admin = () => {
       
       if (error) throw error;
       toast.success("Video deleted");
+      
+      // Refresh to ensure everything is in sync
       fetchCreatedUsers();
     } catch (e: any) {
       console.error("Delete video error:", e);
       toast.error(e.message || "Failed to delete video");
+      // Revert on error
+      fetchCreatedUsers();
     }
   };
 
