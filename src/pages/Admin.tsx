@@ -124,6 +124,8 @@ const Admin = () => {
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [searchEmail, setSearchEmail] = useState("");
   const [activeTab, setActiveTab] = useState<"accounts" | "users">("accounts");
+  const [addVideoForUser, setAddVideoForUser] = useState<string | null>(null);
+  const [newVideo, setNewVideo] = useState<{ url: string; title: string; caption: string; linksText: string }>({ url: "", title: "", caption: "", linksText: "" });
   const [currentUser, setCurrentUser] = useState<UserForm>({
     icon: null,
     name: "",
@@ -408,6 +410,39 @@ const Admin = () => {
     }
   };
 
+  const handleSubmitAddVideo = async (userId: string) => {
+    try {
+      if (!newVideo.url) {
+        toast.error("Please provide a video URL");
+        return;
+      }
+      const links = newVideo.linksText
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .map((u) => ({ url: u }));
+
+      const { error } = await supabase.functions.invoke("admin-add-video-record", {
+        body: {
+          user_id: userId,
+          video_url: newVideo.url,
+          title: newVideo.title || null,
+          caption: newVideo.caption || null,
+          links,
+        },
+      });
+
+      if (error) throw error as any;
+
+      toast.success("Video added");
+      setAddVideoForUser(null);
+      setNewVideo({ url: "", title: "", caption: "", linksText: "" });
+    } catch (e: any) {
+      console.error("Add video error:", e);
+      toast.error(e.message || "Failed to add video");
+    }
+  };
+
   const handleDeleteCreatedUser = async (userId: string, username: string) => {
     if (!confirm(`Delete user ${username}? This will permanently remove their account.`)) return;
 
@@ -518,15 +553,38 @@ const Admin = () => {
                         <div className="col-span-3 text-muted-foreground text-sm">{usr.email || "—"}</div>
                         <div className="col-span-3 text-muted-foreground text-sm truncate">{usr.bio || "—"}</div>
                         <div className="col-span-1">
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleDeleteCreatedUser(usr.id, usr.username || usr.display_name)}
-                          >
-                            Delete
-                          </Button>
-                        </div>
-                      </div>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => {
+                                setAddVideoForUser(usr.id === addVideoForUser ? null : usr.id);
+                                setNewVideo({ url: "", title: "", caption: "", linksText: "" });
+                              }}
+                            >
+                              Add Video
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDeleteCreatedUser(usr.id, usr.username || usr.display_name)}
+                            >
+                              Delete
+                             </Button>
+                           </div>
+                         </div>
+                         {addVideoForUser === usr.id && (
+                           <div className="col-span-12 mt-3">
+                             <div className="grid grid-cols-12 gap-3 items-center">
+                               <Input className="col-span-4" placeholder="Video URL (required)" value={newVideo.url} onChange={(e) => setNewVideo({ ...newVideo, url: e.target.value })} />
+                               <Input className="col-span-2" placeholder="Title" value={newVideo.title} onChange={(e) => setNewVideo({ ...newVideo, title: e.target.value })} />
+                               <Input className="col-span-3" placeholder="Caption" value={newVideo.caption} onChange={(e) => setNewVideo({ ...newVideo, caption: e.target.value })} />
+                               <Input className="col-span-2" placeholder="Links (comma separated)" value={newVideo.linksText} onChange={(e) => setNewVideo({ ...newVideo, linksText: e.target.value })} />
+                               <Button className="col-span-1" size="sm" onClick={() => handleSubmitAddVideo(usr.id)}>Add</Button>
+                             </div>
+                           </div>
+                         )}
+                       </div>
                     ))}
                   </div>
                 </div>
