@@ -220,13 +220,10 @@ const Admin = () => {
 
   useEffect(() => {
     if (!loading && !user) {
-      navigate("/");
+      navigate("/auth?redirect=/admin");
       return;
     }
-    if (!loading && !checkingAdmin && !isAdmin) {
-      navigate("/");
-    }
-  }, [user, isAdmin, loading, checkingAdmin, navigate]);
+  }, [user, loading, navigate]);
 
   const handleAddVideo = (userIndex: number) => {
     const updatedUsers = [...users];
@@ -365,7 +362,17 @@ const Admin = () => {
   }
 
   if (!isAdmin) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <h1 className="text-2xl font-semibold text-foreground">Access Denied</h1>
+          <p className="text-muted-foreground">You don't have admin privileges.</p>
+          <Button onClick={handleLogout} variant="outline">
+            Sign Out
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   return (
