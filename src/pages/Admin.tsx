@@ -702,7 +702,9 @@ const Admin = () => {
 
             {createdUsers.length > 0 && (
               <div className="mb-8">
-                <h2 className="text-lg font-medium text-foreground mb-4">All Users ({createdUsers.length})</h2>
+                <h2 className="text-lg font-medium text-foreground mb-4">
+                  All Users ({createdUsers.length}) • {Object.values(userVideos).flat().length} Videos
+                </h2>
                 <div className="space-y-4">
                   {createdUsers.map((usr) => (
                     <div key={usr.id}>
