@@ -283,20 +283,20 @@ const Admin = () => {
 
     try {
       // Create user account
+      // Create user account via backend function (keeps current admin session)
       const password = crypto.randomUUID(); // Generate random password
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: email,
-        password: password,
-        options: {
-          data: {
-            username: userForm.username,
-            display_name: userForm.name,
-          },
+      const { data: fnData, error: fnError } = await supabase.functions.invoke("admin-create-user", {
+        body: {
+          email,
+          password,
+          username: userForm.username,
+          display_name: userForm.name,
         },
       });
 
-      if (authError) throw authError;
-      if (!authData.user) throw new Error("User creation failed");
+      if (fnError) throw fnError as any;
+      const createdUserId = (fnData as any)?.user_id as string | undefined;
+      if (!createdUserId) throw new Error("User creation failed");
 
       // Upload avatar if provided
       let avatarUrl = null;
@@ -316,7 +316,7 @@ const Admin = () => {
           fileExt = userForm.icon.name.split(".").pop() || 'jpg';
         }
         
-        const fileName = `${authData.user.id}.${fileExt}`;
+        const fileName = `${createdUserId}.${fileExt}`;
         const { error: uploadError } = await supabase.storage
           .from("avatars")
           .upload(fileName, fileToUpload, { upsert: true });
@@ -336,7 +336,7 @@ const Admin = () => {
           bio: userForm.description,
           avatar_url: avatarUrl,
         })
-        .eq("id", authData.user.id);
+        .eq("id", createdUserId);
 
       if (profileError) throw profileError;
 
