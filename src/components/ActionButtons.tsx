@@ -9,7 +9,7 @@ import starOnIcon from "@/assets/star-on.png";
 import starSingleIcon from "@/assets/star-single.png";
 import heartIcon from "@/assets/heart.png";
 import heartRedIcon from "@/assets/heart-red.png";
-import accountIcon from "@/assets/account.png";
+import accountIcon from "@/assets/account-new.png";
 import circleIcon from "@/assets/circle-2.png";
 import shareIcon from "@/assets/new_share.png";
 import plusIcon from "@/assets/plus-3.png";
@@ -301,7 +301,7 @@ export const ActionButtons = ({
         </button>
       </div>
 
-      {/* Follow Artist */}
+      {/* Artist Profile */}
       <div className="relative h-[30px] mt-[40px]">
         <button 
           onClick={(e) => {
@@ -328,21 +328,26 @@ export const ActionButtons = ({
               draggable={false}
             />
           )}
-          {/* Follow/Unfollow indicator */}
-          <div 
-            className="absolute -bottom-1 -right-1 cursor-pointer z-10"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleFollowToggle();
-            }}
-          >
-            <img 
-              src={isFollowing ? followOnIcon : followOffIcon} 
-              alt={isFollowing ? "Following" : "Follow"} 
-              className="h-[18px] w-[18px]"
-              draggable={false}
-            />
-          </div>
+        </button>
+      </div>
+
+      {/* Follow/Unfollow Artist */}
+      <div className="relative h-[30px] mt-[40px]">
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            triggerHaptic();
+            handleFollowToggle();
+          }}
+          disabled={followLoading}
+          className="action-button flex items-center justify-center"
+        >
+          <img 
+            src={isFollowing ? followOnIcon : followOffIcon} 
+            alt={isFollowing ? "Following" : "Follow"} 
+            className="h-[30px] w-[30px]"
+            draggable={false}
+          />
         </button>
       </div>
 
