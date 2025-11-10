@@ -4,6 +4,7 @@ import { getPlatformIcon } from "./PlatformIcons";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 interface InfoDrawerProps {
   isOpen: boolean;
@@ -34,6 +35,17 @@ export const InfoDrawer = ({
       setIsDragging(false);
     }
   }, [isOpen]);
+  
+  // Links handling and search state
+  const [displayLinks, setDisplayLinks] = useState<Array<{ url: string }>>(links);
+  const [searching, setSearching] = useState(false);
+  const [matchedInfo, setMatchedInfo] = useState<{ track?: string; artist?: string } | null>(null);
+
+  useEffect(() => {
+    setDisplayLinks(links || []);
+    setMatchedInfo(null);
+    setSearching(false);
+  }, [links, isOpen]);
   
   const triggerHaptic = async () => {
     try {
@@ -91,6 +103,33 @@ export const InfoDrawer = ({
     }
   };
 
+  const handleFindLinks = async () => {
+    if (!videoTitle || !videoTitle.trim()) return;
+    try {
+      setSearching(true);
+      const { data, error } = await supabase.functions.invoke('find-music-links', {
+        body: { title: videoTitle.trim() }
+      });
+      if (error) throw error;
+
+      if (data?.links) {
+        const urls: string[] = [
+          data.links.apple_music,
+          data.links.spotify,
+          data.links.tidal,
+          data.links.youtube_music,
+        ].filter((u: string | undefined) => !!u && u.trim() !== "");
+
+        setDisplayLinks(urls.map((u) => ({ url: u })));
+        setMatchedInfo({ track: data.track_name, artist: data.artist_name });
+      }
+    } catch (e) {
+      console.error('Find links (InfoDrawer) error:', e);
+    } finally {
+      setSearching(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   return createPortal(
@@ -145,10 +184,10 @@ export const InfoDrawer = ({
           )}
 
           {/* Links */}
-          {links.length > 0 && (
-            <div className="space-y-3">
-              <h4 className="text-white/80 text-sm font-semibold mb-2">Listen on:</h4>
-              {links.map((link, index) => {
+          <div className="space-y-3">
+            <h4 className="text-white/80 text-sm font-semibold mb-2">Listen on:</h4>
+            {displayLinks.length > 0 ? (
+              displayLinks.map((link, index) => {
                 const { platform } = detectPlatform(link.url);
                 return (
                   <button
@@ -177,9 +216,26 @@ export const InfoDrawer = ({
                     </svg>
                   </button>
                 );
-              })}
-            </div>
-          )}
+              })
+            ) : (
+              <div className="flex items-center justify-between bg-white/5 p-3 rounded-xl">
+                <p className="text-white/70 text-sm">No links yet.</p>
+                <button
+                  onClick={handleFindLinks}
+                  disabled={!videoTitle || searching}
+                  className="px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white text-sm disabled:opacity-60"
+                >
+                  {searching ? "Searching..." : "Find Links"}
+                </button>
+              </div>
+            )}
+
+            {matchedInfo && (
+              <p className="text-white/50 text-xs">
+                Matched: {matchedInfo.track} {matchedInfo.artist ? `— ${matchedInfo.artist}` : ""}
+              </p>
+            )}
+          </div>
 
         </div>
       </div>
