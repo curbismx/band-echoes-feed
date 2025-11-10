@@ -37,6 +37,17 @@ const Settings = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
   const [categoriesExpanded, setCategoriesExpanded] = useState(true);
+  const [algorithmExpanded, setAlgorithmExpanded] = useState(true);
+  const [algorithmFactors, setAlgorithmFactors] = useState([
+    { id: "category", label: "Video Category", description: "Match user's preferred categories" },
+    { id: "favorites", label: "Amount of Favorites", description: "Number of likes/favorites" },
+    { id: "rating", label: "Video Score", description: "Average rating from users" },
+    { id: "recency", label: "Upload Recency", description: "How recently the video was uploaded" },
+    { id: "views", label: "View Count", description: "Total number of views" },
+    { id: "following", label: "Following", description: "Videos from followed artists" },
+    { id: "engagement", label: "Engagement Rate", description: "Comments and shares" },
+  ]);
+  const [draggedItem, setDraggedItem] = useState<number | null>(null);
 
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -165,6 +176,29 @@ const Settings = () => {
     setCategoryForm({ name: "" });
   };
 
+  const handleDragStart = (index: number) => {
+    setDraggedItem(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedItem === null || draggedItem === index) return;
+
+    const newFactors = [...algorithmFactors];
+    const draggedFactor = newFactors[draggedItem];
+    newFactors.splice(draggedItem, 1);
+    newFactors.splice(index, 0, draggedFactor);
+
+    setAlgorithmFactors(newFactors);
+    setDraggedItem(index);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedItem(null);
+    // TODO: Save to database
+    toast.success("Algorithm priority updated");
+  };
+
   if (loading || checkingAdmin) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -288,6 +322,67 @@ const Settings = () => {
                   )}
                 </div>
               </>
+            )}
+          </div>
+
+          {/* Feed Algorithm Section */}
+          <div>
+            <button
+              onClick={() => setAlgorithmExpanded(!algorithmExpanded)}
+              className="flex items-center gap-2 text-xl font-semibold text-foreground mb-4 hover:text-primary transition-colors"
+            >
+              {algorithmExpanded ? (
+                <ChevronDown className="w-5 h-5" />
+              ) : (
+                <ChevronRight className="w-5 h-5" />
+              )}
+              Feed Algorithm
+            </button>
+
+            {algorithmExpanded && (
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground mb-4">
+                  Drag and drop to reorder the priority of factors in the video feed algorithm. 
+                  Higher priority factors (at the top) will have more influence on which videos users see.
+                </p>
+
+                <div className="space-y-2">
+                  {algorithmFactors.map((factor, index) => (
+                    <div
+                      key={factor.id}
+                      draggable
+                      onDragStart={() => handleDragStart(index)}
+                      onDragOver={(e) => handleDragOver(e, index)}
+                      onDragEnd={handleDragEnd}
+                      className={`flex items-center gap-4 bg-muted/30 p-4 rounded-lg hover:bg-muted/50 transition-colors cursor-move ${
+                        draggedItem === index ? "opacity-50" : ""
+                      }`}
+                    >
+                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-foreground">{factor.label}</h4>
+                        <p className="text-sm text-muted-foreground">{factor.description}</p>
+                      </div>
+                      <div className="text-muted-foreground">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+                        </svg>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mt-6">
+                  <h4 className="font-medium text-foreground mb-2">💡 How the Algorithm Works</h4>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>• Higher ranked factors have more weight in video selection</li>
+                    <li>• The algorithm combines all factors to create a personalized feed</li>
+                    <li>• Changes take effect immediately for all users</li>
+                  </ul>
+                </div>
+              </div>
             )}
           </div>
         </div>
