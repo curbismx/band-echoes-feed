@@ -841,6 +841,12 @@ const Admin = () => {
             Manage Admins
           </button>
           <button 
+            onClick={() => navigate("/settings")}
+            className="text-xl font-normal text-foreground hover:text-primary transition-colors"
+          >
+            Settings
+          </button>
+          <button 
             onClick={handleLogout}
             className="text-xl font-normal text-foreground hover:text-primary transition-colors ml-auto"
           >
