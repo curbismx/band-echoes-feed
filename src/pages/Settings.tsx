@@ -36,6 +36,9 @@ const Settings = () => {
   const [categoryForm, setCategoryForm] = useState({ name: "" });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
+  const [adminEmail, setAdminEmail] = useState("");
+  const [allAdmins, setAllAdmins] = useState<any[]>([]);
+  const [adminsLoading, setAdminsLoading] = useState(false);
   const [categoriesExpanded, setCategoriesExpanded] = useState(() => {
     const saved = localStorage.getItem('settings-categories-expanded');
     return saved !== null ? JSON.parse(saved) : true;
@@ -88,8 +91,102 @@ const Settings = () => {
   useEffect(() => {
     if (isAdmin && !checkingAdmin) {
       fetchCategories();
+      fetchAdmins();
     }
   }, [isAdmin, checkingAdmin]);
+
+  const fetchAdmins = async () => {
+    setAdminsLoading(true);
+    try {
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, username, display_name, email, avatar_url")
+        .order("created_at", { ascending: false });
+
+      if (profilesError) throw profilesError;
+
+      const { data: roles, error: rolesError } = await supabase
+        .from("user_roles")
+        .select("user_id, role")
+        .eq("role", "admin");
+
+      if (rolesError) throw rolesError;
+
+      const adminIds = new Set(roles?.map(r => r.user_id) || []);
+      const admins = profiles?.filter(p => adminIds.has(p.id)) || [];
+      setAllAdmins(admins);
+    } catch (error: any) {
+      console.error("Error fetching admins:", error);
+      toast.error("Failed to load admins");
+    }
+    setAdminsLoading(false);
+  };
+
+  const handleAddAdmin = async () => {
+    if (!adminEmail.trim()) {
+      toast.error("Please enter an email address");
+      return;
+    }
+
+    try {
+      // Find user by email
+      const { data: profiles, error: profileError } = await supabase
+        .from("profiles")
+        .select("id, email, display_name")
+        .eq("email", adminEmail.trim())
+        .single();
+
+      if (profileError || !profiles) {
+        toast.error("User with this email not found");
+        return;
+      }
+
+      // Add admin role
+      const { error } = await supabase
+        .from("user_roles")
+        .insert({ user_id: profiles.id, role: "admin" });
+
+      if (error) {
+        if (error.message?.includes("duplicate")) {
+          toast.error("User is already an admin");
+        } else {
+          throw error;
+        }
+        return;
+      }
+
+      toast.success(`Admin role granted to ${profiles.display_name || profiles.email}`);
+      setAdminEmail("");
+      fetchAdmins();
+    } catch (error: any) {
+      console.error("Error adding admin:", error);
+      toast.error(error.message || "Failed to add admin");
+    }
+  };
+
+  const handleRemoveAdmin = async (userId: string, displayName: string) => {
+    if (userId === user?.id) {
+      toast.error("You cannot remove your own admin role");
+      return;
+    }
+
+    if (!confirm(`Remove admin role from ${displayName}?`)) return;
+
+    try {
+      const { error } = await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", userId)
+        .eq("role", "admin");
+
+      if (error) throw error;
+      toast.success("Admin role removed");
+      fetchAdmins();
+    } catch (error: any) {
+      console.error("Error removing admin:", error);
+      toast.error(error.message || "Failed to remove admin role");
+    }
+  };
 
   // Persist expand/collapse states
   useEffect(() => {
@@ -271,6 +368,78 @@ const Settings = () => {
 
         {/* Content Area */}
         <div className="space-y-8">
+          {/* Admin Management Section */}
+          <div>
+            <h2 className="text-xl font-semibold text-foreground mb-4">Admin Management</h2>
+            
+            {/* Add Admin Form */}
+            <div className="bg-muted/50 rounded-lg p-6 mb-6">
+              <h3 className="text-lg font-medium mb-4">Add Admin by Email</h3>
+              <div className="flex gap-2">
+                <Input
+                  type="email"
+                  placeholder="user@example.com"
+                  value={adminEmail}
+                  onChange={(e) => setAdminEmail(e.target.value)}
+                  className="flex-1"
+                />
+                <Button onClick={handleAddAdmin}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Admin
+                </Button>
+              </div>
+            </div>
+
+            {/* Current Admins List */}
+            <div className="space-y-3">
+              <h3 className="text-lg font-medium">Current Admins ({allAdmins.length})</h3>
+              {adminsLoading ? (
+                <div className="text-center py-8 text-muted-foreground">Loading...</div>
+              ) : allAdmins.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground bg-muted/30 rounded-lg">
+                  No admins found
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {allAdmins.map((admin) => (
+                    <div
+                      key={admin.id}
+                      className="flex items-center justify-between bg-muted/30 p-4 rounded-lg hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        {admin.avatar_url ? (
+                          <img
+                            src={admin.avatar_url}
+                            alt={admin.display_name}
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                            <span className="text-primary font-semibold">
+                              {admin.display_name?.[0]?.toUpperCase() || "?"}
+                            </span>
+                          </div>
+                        )}
+                        <div>
+                          <h4 className="font-medium text-foreground">{admin.display_name || admin.username}</h4>
+                          <p className="text-sm text-muted-foreground">{admin.email}</p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleRemoveAdmin(admin.id, admin.display_name || admin.email)}
+                        disabled={admin.id === user?.id}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Categories Section */}
           <div>
             <button

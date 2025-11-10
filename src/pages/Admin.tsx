@@ -828,7 +828,7 @@ const Admin = () => {
                 : "text-foreground hover:text-primary"
             }`}
           >
-            User Accounts
+            Admin Users
           </button>
           <button 
             onClick={() => setActiveTab("users")}
@@ -838,7 +838,7 @@ const Admin = () => {
                 : "text-foreground hover:text-primary"
             }`}
           >
-            Manage Admins
+            Users
           </button>
           <button 
             onClick={() => navigate("/settings")}
@@ -1420,11 +1420,10 @@ const Admin = () => {
             <div className="border border-border rounded-lg overflow-hidden">
               <div className="grid grid-cols-12 gap-4 bg-muted px-6 py-3 text-sm font-medium text-muted-foreground">
                 <div className="col-span-1">Avatar</div>
-                <div className="col-span-3">Display Name</div>
-                <div className="col-span-2">Username</div>
+                <div className="col-span-4">Display Name</div>
+                <div className="col-span-3">Username</div>
                 <div className="col-span-3">Email</div>
-                <div className="col-span-1">Role</div>
-                <div className="col-span-2">Actions</div>
+                <div className="col-span-1">Actions</div>
               </div>
 
               <div className="divide-y divide-border">
@@ -1447,39 +1446,19 @@ const Admin = () => {
                           </div>
                         )}
                       </div>
-                      <div className="col-span-3 text-foreground">{userItem.display_name || "—"}</div>
-                      <div className="col-span-2 text-muted-foreground">{userItem.username || "—"}</div>
+                      <div className="col-span-4 text-foreground">{userItem.display_name || "—"}</div>
+                      <div className="col-span-3 text-muted-foreground">{userItem.username || "—"}</div>
                       <div className="col-span-3 text-muted-foreground">{userItem.email || "—"}</div>
                       <div className="col-span-1">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          userItem.isAdmin 
-                            ? "bg-primary/10 text-primary" 
-                            : "bg-muted text-muted-foreground"
-                        }`}>
-                          {userItem.isAdmin ? "Admin" : "User"}
-                        </span>
-                      </div>
-                      <div className="col-span-2">
-                        <div className="flex flex-col gap-2">
-                          <Button
-                            variant={userItem.isAdmin ? "destructive" : "default"}
-                            size="sm"
-                            onClick={() => toggleAdminRole(userItem.id, userItem.isAdmin)}
-                            disabled={userItem.id === user?.id}
-                            className="w-full"
-                          >
-                            {userItem.isAdmin ? "Remove" : "Grant"}
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleDeleteFromManageAdmins(userItem.id, userItem.username || userItem.display_name || "user")}
-                            disabled={userItem.id === user?.id}
-                            className="w-full"
-                          >
-                            Delete
-                          </Button>
-                        </div>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDeleteFromManageAdmins(userItem.id, userItem.username || userItem.display_name || "user")}
+                          disabled={userItem.id === user?.id}
+                          className="w-full"
+                        >
+                          Delete
+                        </Button>
                       </div>
                     </div>
                   ))}
