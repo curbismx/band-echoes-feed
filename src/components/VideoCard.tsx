@@ -244,6 +244,15 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
             maxWidth: 'calc(65% - 50px)',
           }}
         >
+        {/* Artist Avatar */}
+        {artistAvatar && (
+          <img 
+            src={artistAvatar} 
+            alt={video.artistName}
+            className="w-12 h-12 rounded-full object-cover mb-2 border-2 border-white"
+          />
+        )}
+        
         <button
           onClick={(e) => {
             e.stopPropagation();
