@@ -14,6 +14,65 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_message_views: {
+        Row: {
+          id: string
+          message_id: string
+          viewed_at: string
+        }
+        Insert: {
+          id?: string
+          message_id: string
+          viewed_at?: string
+        }
+        Update: {
+          id?: string
+          message_id?: string
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_message_views_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "admin_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_messages: {
+        Row: {
+          acknowledged: boolean
+          acknowledged_at: string | null
+          created_at: string
+          created_by: string
+          id: string
+          max_displays: number
+          message: string
+          user_id: string
+        }
+        Insert: {
+          acknowledged?: boolean
+          acknowledged_at?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          max_displays?: number
+          message: string
+          user_id: string
+        }
+        Update: {
+          acknowledged?: boolean
+          acknowledged_at?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          max_displays?: number
+          message?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           created_at: string

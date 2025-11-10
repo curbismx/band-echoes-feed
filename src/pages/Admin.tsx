@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Plus, Upload, ChevronDown, ChevronRight, Trash2, Edit2 } from "lucide-react";
+import { Plus, Upload, ChevronDown, ChevronRight, Trash2, Edit2, Mail } from "lucide-react";
+import { AdminMessageDialog } from "@/components/AdminMessageDialog";
 
 
 interface VideoInput {
@@ -88,6 +89,8 @@ const Admin = () => {
   const [userVideos, setUserVideos] = useState<Record<string, any[]>>({});
   const [editingVideo, setEditingVideo] = useState<string | null>(null);
   const [videoEditForm, setVideoEditForm] = useState<{ title: string; description: string; itunes: string; spotify: string; tidal: string; youtube_music: string; searching: boolean; newVideoFile: File | null; uploading: boolean }>({ title: "", description: "", itunes: "", spotify: "", tidal: "", youtube_music: "", searching: false, newVideoFile: null, uploading: false });
+  const [messageDialogOpen, setMessageDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<{ id: string; name: string } | null>(null);
 
 
   useEffect(() => {
@@ -1429,10 +1432,10 @@ const Admin = () => {
             <div className="border border-border rounded-lg overflow-hidden">
               <div className="grid grid-cols-12 gap-4 bg-muted px-6 py-3 text-sm font-medium text-muted-foreground">
                 <div className="col-span-1">Avatar</div>
-                <div className="col-span-4">Display Name</div>
-                <div className="col-span-3">Username</div>
+                <div className="col-span-3">Display Name</div>
+                <div className="col-span-2">Username</div>
                 <div className="col-span-3">Email</div>
-                <div className="col-span-1">Actions</div>
+                <div className="col-span-3">Actions</div>
               </div>
 
               <div className="divide-y divide-border">
@@ -1455,19 +1458,36 @@ const Admin = () => {
                           </div>
                         )}
                       </div>
-                      <div className="col-span-4 text-foreground">{userItem.display_name || "—"}</div>
-                      <div className="col-span-3 text-muted-foreground">{userItem.username || "—"}</div>
+                      <div className="col-span-3 text-foreground">{userItem.display_name || "—"}</div>
+                      <div className="col-span-2 text-muted-foreground">{userItem.username || "—"}</div>
                       <div className="col-span-3 text-muted-foreground">{userItem.email || "—"}</div>
-                      <div className="col-span-1">
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleDeleteFromManageAdmins(userItem.id, userItem.username || userItem.display_name || "user")}
-                          disabled={userItem.id === user?.id}
-                          className="w-full"
-                        >
-                          Delete
-                        </Button>
+                      <div className="col-span-3">
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedUser({ 
+                                id: userItem.id, 
+                                name: userItem.display_name || userItem.username || userItem.email 
+                              });
+                              setMessageDialogOpen(true);
+                            }}
+                            className="flex-1"
+                          >
+                            <Mail className="w-4 h-4 mr-1" />
+                            Message
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteFromManageAdmins(userItem.id, userItem.username || userItem.display_name || "user")}
+                            disabled={userItem.id === user?.id}
+                            className="flex-1"
+                          >
+                            Delete
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -1482,6 +1502,16 @@ const Admin = () => {
           </div>
         )}
       </div>
+
+      {/* Admin Message Dialog */}
+      {selectedUser && (
+        <AdminMessageDialog
+          userId={selectedUser.id}
+          userName={selectedUser.name}
+          open={messageDialogOpen}
+          onOpenChange={setMessageDialogOpen}
+        />
+      )}
     </div>
   );
 };
