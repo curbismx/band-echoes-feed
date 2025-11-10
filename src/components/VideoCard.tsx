@@ -249,7 +249,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
           <img 
             src={artistAvatar} 
             alt={video.artistName}
-            className="w-12 h-12 rounded-full object-cover mb-2 border-2 border-white"
+            className="w-[32px] h-[32px] rounded-full object-cover mb-2 border-2 border-white"
           />
         )}
         

@@ -302,36 +302,6 @@ export const ActionButtons = ({
         </button>
       </div>
 
-      {/* Artist Profile */}
-      <div className="relative h-[30px] mt-[40px]">
-        <button 
-          onClick={(e) => {
-            e.stopPropagation();
-            triggerHaptic();
-            if (artistUserId) {
-              navigate(`/user/${artistUserId}`);
-            }
-          }}
-          className="action-button flex items-center justify-center relative"
-        >
-          {artistAvatar ? (
-            <img 
-              src={artistAvatar} 
-              alt={artistName || "Artist"} 
-              className="h-[32px] w-[32px] rounded-full object-cover border-2 border-white"
-              draggable={false}
-            />
-          ) : (
-            <img 
-              src={accountIcon} 
-              alt="Artist" 
-              className="h-[30px] w-[30px]"
-              draggable={false}
-            />
-          )}
-        </button>
-      </div>
-
       {/* Plus */}
       <div className="relative h-[30px] mt-[40px]">
         <button 
