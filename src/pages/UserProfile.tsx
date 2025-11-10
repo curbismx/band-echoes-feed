@@ -161,30 +161,29 @@ export default function UserProfile() {
 
       {/* Profile Info */}
       <div className="p-4">
-        {/* Profile Picture */}
-        <div className="flex items-start gap-4 mb-4">
-          <div className="flex flex-col items-center">
-            <img
-              src={profile.avatar_url || "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200&h=200&fit=crop"}
-              alt="Profile"
-              className="w-20 h-20 rounded-full object-cover mb-2"
-            />
-            <div className="font-semibold text-center">{profile.display_name || profile.username}</div>
+        {/* Profile Picture and Name - Left Aligned */}
+        <div className="mb-4">
+          <img
+            src={profile.avatar_url || "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200&h=200&fit=crop"}
+            alt="Profile"
+            className="w-20 h-20 rounded-full object-cover mb-2"
+          />
+          <div className="font-semibold">{profile.display_name || profile.username}</div>
+        </div>
+
+        {/* Stats */}
+        <div className="flex justify-around mb-4 py-3 border-y border-white/10">
+          <div className="text-center">
+            <div className="font-semibold text-lg">{profile.posts_count || 0}</div>
+            <div className="text-sm text-white/60">posts</div>
           </div>
-          
-          <div className="flex-1 flex justify-around">
-            <div className="text-center">
-              <div className="font-semibold text-lg">{profile.posts_count || 0}</div>
-              <div className="text-sm text-white/60">posts</div>
-            </div>
-            <div className="text-center">
-              <div className="font-semibold text-lg">{formatNumber(profile.followers_count || 0)}</div>
-              <div className="text-sm text-white/60">followers</div>
-            </div>
-            <div className="text-center">
-              <div className="font-semibold text-lg">{profile.following_count || 0}</div>
-              <div className="text-sm text-white/60">following</div>
-            </div>
+          <div className="text-center">
+            <div className="font-semibold text-lg">{formatNumber(profile.followers_count || 0)}</div>
+            <div className="text-sm text-white/60">followers</div>
+          </div>
+          <div className="text-center">
+            <div className="font-semibold text-lg">{profile.following_count || 0}</div>
+            <div className="text-sm text-white/60">following</div>
           </div>
         </div>
 
