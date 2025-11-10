@@ -91,6 +91,19 @@ const Settings = () => {
     }
   }, [isAdmin, checkingAdmin]);
 
+  // Persist expand/collapse states
+  useEffect(() => {
+    try {
+      localStorage.setItem('settings-categories-expanded', JSON.stringify(categoriesExpanded));
+    } catch {}
+  }, [categoriesExpanded]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('settings-algorithm-expanded', JSON.stringify(algorithmExpanded));
+    } catch {}
+  }, [algorithmExpanded]);
+
   const fetchCategories = async () => {
     setCategoriesLoading(true);
     const { data, error } = await supabase
@@ -190,20 +203,19 @@ const Settings = () => {
 
   const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
-    if (draggedItem === null || draggedItem === index) return;
+    if (draggedItem === null) return;
 
     setDropTarget(index);
-
-    const newFactors = [...algorithmFactors];
-    const draggedFactor = newFactors[draggedItem];
-    newFactors.splice(draggedItem, 1);
-    newFactors.splice(index, 0, draggedFactor);
-
-    setAlgorithmFactors(newFactors);
-    setDraggedItem(index);
   };
 
   const handleDragEnd = () => {
+    if (draggedItem !== null && dropTarget !== null && draggedItem !== dropTarget) {
+      const newFactors = [...algorithmFactors];
+      const [moved] = newFactors.splice(draggedItem, 1);
+      const insertIndex = draggedItem < dropTarget ? dropTarget - 1 : dropTarget;
+      newFactors.splice(insertIndex, 0, moved);
+      setAlgorithmFactors(newFactors);
+    }
     setDraggedItem(null);
     setDropTarget(null);
     // TODO: Save to database
@@ -370,7 +382,7 @@ const Settings = () => {
                     <div key={factor.id} className="relative">
                       {/* Drop indicator line */}
                       {dropTarget === index && draggedItem !== null && draggedItem !== index && (
-                        <div className="absolute -top-2 left-0 right-0 h-1 bg-red-500 z-50 animate-pulse rounded-full shadow-lg shadow-red-500/50" />
+                        <div className="absolute -top-2 left-0 right-0 h-1 bg-destructive z-50 animate-pulse rounded-full" />
                       )}
                       
                       <div
