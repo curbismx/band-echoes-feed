@@ -39,6 +39,10 @@ const Settings = () => {
   const [adminEmail, setAdminEmail] = useState("");
   const [allAdmins, setAllAdmins] = useState<any[]>([]);
   const [adminsLoading, setAdminsLoading] = useState(false);
+  const [adminManagementExpanded, setAdminManagementExpanded] = useState(() => {
+    const saved = localStorage.getItem('settings-admin-management-expanded');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
   const [categoriesExpanded, setCategoriesExpanded] = useState(() => {
     const saved = localStorage.getItem('settings-categories-expanded');
     return saved !== null ? JSON.parse(saved) : true;
@@ -189,6 +193,12 @@ const Settings = () => {
   };
 
   // Persist expand/collapse states
+  useEffect(() => {
+    try {
+      localStorage.setItem('settings-admin-management-expanded', JSON.stringify(adminManagementExpanded));
+    } catch {}
+  }, [adminManagementExpanded]);
+
   useEffect(() => {
     try {
       localStorage.setItem('settings-categories-expanded', JSON.stringify(categoriesExpanded));
@@ -370,74 +380,92 @@ const Settings = () => {
         <div className="space-y-8">
           {/* Admin Management Section */}
           <div>
-            <h2 className="text-xl font-semibold text-foreground mb-4">Admin Management</h2>
-            
-            {/* Add Admin Form */}
-            <div className="bg-muted/50 rounded-lg p-6 mb-6">
-              <h3 className="text-lg font-medium mb-4">Add Admin by Email</h3>
-              <div className="flex gap-2">
-                <Input
-                  type="email"
-                  placeholder="user@example.com"
-                  value={adminEmail}
-                  onChange={(e) => setAdminEmail(e.target.value)}
-                  className="flex-1"
-                />
-                <Button onClick={handleAddAdmin}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Admin
-                </Button>
-              </div>
-            </div>
-
-            {/* Current Admins List */}
-            <div className="space-y-3">
-              <h3 className="text-lg font-medium">Current Admins ({allAdmins.length})</h3>
-              {adminsLoading ? (
-                <div className="text-center py-8 text-muted-foreground">Loading...</div>
-              ) : allAdmins.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground bg-muted/30 rounded-lg">
-                  No admins found
-                </div>
+            <button
+              onClick={() => {
+                const newValue = !adminManagementExpanded;
+                setAdminManagementExpanded(newValue);
+                localStorage.setItem('settings-admin-management-expanded', JSON.stringify(newValue));
+              }}
+              className="flex items-center gap-2 text-xl font-semibold text-foreground mb-4 hover:text-primary transition-colors"
+            >
+              {adminManagementExpanded ? (
+                <ChevronDown className="w-5 h-5" />
               ) : (
-                <div className="space-y-2">
-                  {allAdmins.map((admin) => (
-                    <div
-                      key={admin.id}
-                      className="flex items-center justify-between bg-muted/30 p-4 rounded-lg hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        {admin.avatar_url ? (
-                          <img
-                            src={admin.avatar_url}
-                            alt={admin.display_name}
-                            className="w-10 h-10 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                            <span className="text-primary font-semibold">
-                              {admin.display_name?.[0]?.toUpperCase() || "?"}
-                            </span>
-                          </div>
-                        )}
-                        <div>
-                          <h4 className="font-medium text-foreground">{admin.display_name || admin.username}</h4>
-                          <p className="text-sm text-muted-foreground">{admin.email}</p>
-                        </div>
-                      </div>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleRemoveAdmin(admin.id, admin.display_name || admin.email)}
-                        disabled={admin.id === user?.id}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
+                <ChevronRight className="w-5 h-5" />
               )}
-            </div>
+              Admin Management
+            </button>
+            
+            {adminManagementExpanded && (
+              <>
+                {/* Add Admin Form */}
+                <div className="bg-muted/50 rounded-lg p-6 mb-6">
+                  <h3 className="text-lg font-medium mb-4">Add Admin by Email</h3>
+                  <div className="flex gap-2">
+                    <Input
+                      type="email"
+                      placeholder="user@example.com"
+                      value={adminEmail}
+                      onChange={(e) => setAdminEmail(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button onClick={handleAddAdmin}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Admin
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Current Admins List */}
+                <div className="space-y-3">
+                  <h3 className="text-lg font-medium">Current Admins ({allAdmins.length})</h3>
+                  {adminsLoading ? (
+                    <div className="text-center py-8 text-muted-foreground">Loading...</div>
+                  ) : allAdmins.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground bg-muted/30 rounded-lg">
+                      No admins found
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {allAdmins.map((admin) => (
+                        <div
+                          key={admin.id}
+                          className="flex items-center justify-between bg-muted/30 p-4 rounded-lg hover:bg-muted/50 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            {admin.avatar_url ? (
+                              <img
+                                src={admin.avatar_url}
+                                alt={admin.display_name}
+                                className="w-10 h-10 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                <span className="text-primary font-semibold">
+                                  {admin.display_name?.[0]?.toUpperCase() || "?"}
+                                </span>
+                              </div>
+                            )}
+                            <div>
+                              <h4 className="font-medium text-foreground">{admin.display_name || admin.username}</h4>
+                              <p className="text-sm text-muted-foreground">{admin.email}</p>
+                            </div>
+                          </div>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleRemoveAdmin(admin.id, admin.display_name || admin.email)}
+                            disabled={admin.id === user?.id}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </div>
 
           {/* Categories Section */}
