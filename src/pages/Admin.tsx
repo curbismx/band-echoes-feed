@@ -327,30 +327,33 @@ const Admin = () => {
     const userForm = users[index];
 
     // Validation
-    if (!userForm.username || !userForm.name) {
+    if (!userForm.username.trim() || !userForm.name.trim()) {
       toast.error("Please fill in required fields: username and name");
       return;
     }
 
     const providedEmail = (userForm.email || "").trim();
+    const usernameRaw = (userForm.username || "").trim();
+    const safeUsernameSlug = usernameRaw.toLowerCase().replace(/[^a-z0-9._-]/g, "");
+    const safeDisplayName = (userForm.name || "").trim();
 
     try {
       let createdUserId: string | undefined;
       let emailToSave: string | undefined = undefined;
 
       // ALWAYS create an auth user first (required for profile to link to)
-      const useEmail = providedEmail || `${userForm.username}-${Date.now()}@temp-noemail.local`;
+      const useEmail = providedEmail || `${safeUsernameSlug || 'user'}-${Date.now()}@temp-noemail.local`;
       const password = crypto.randomUUID();
 
-      console.log("Creating auth user:", useEmail);
-      const { data: fnData, error: fnError } = await supabase.functions.invoke("admin-create-user", {
-        body: {
-          email: useEmail,
-          password,
-          username: userForm.username,
-          display_name: userForm.name,
-        },
-      });
+    console.log("Creating auth user:", useEmail);
+    const { data: fnData, error: fnError } = await supabase.functions.invoke("admin-create-user", {
+      body: {
+        email: useEmail,
+        password,
+        username: safeUsernameSlug || usernameRaw,
+        display_name: safeDisplayName,
+      },
+    });
 
       if (fnError) {
         console.error("admin-create-user error:", fnError);
@@ -398,8 +401,8 @@ const Admin = () => {
       console.log("Updating profile for user:", createdUserId);
       const updatePayload: any = {
         user_id: createdUserId,
-        username: userForm.username,
-        display_name: userForm.name,
+        username: safeUsernameSlug || usernameRaw,
+        display_name: safeDisplayName,
         bio: userForm.description || null,
         avatar_base64,
         avatar_ext,
