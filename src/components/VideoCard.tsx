@@ -259,7 +259,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
           {video.artistName}
         </button>
         {video.title && (
-          <div className="font-medium text-white drop-shadow-lg mb-1 pointer-events-none">
+          <div className="font-medium text-white drop-shadow-lg mb-1 pointer-events-none line-clamp-2">
             {video.title}
           </div>
         )}
