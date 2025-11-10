@@ -10,6 +10,7 @@ import starSingleIcon from "@/assets/star-single.png";
 import heartIcon from "@/assets/heart.png";
 import heartRedIcon from "@/assets/heart-red.png";
 import accountIcon from "@/assets/account-new.png";
+import userAccountIcon from "@/assets/user-account.png";
 import circleIcon from "@/assets/circle-2.png";
 import shareIcon from "@/assets/new_share.png";
 import plusIcon from "@/assets/plus-3.png";
@@ -355,7 +356,7 @@ export const ActionButtons = ({
           }}
           className="action-button flex items-center justify-center"
         >
-          <img src={accountIcon} alt="My Account" className="h-[30px] w-[30px]" />
+          <img src={userAccountIcon} alt="My Account" className="h-[30px] w-[30px]" />
         </button>
       </div>
     </div>
