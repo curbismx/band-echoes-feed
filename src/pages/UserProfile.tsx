@@ -10,6 +10,7 @@ export default function UserProfile() {
   const { userId } = useParams();
   const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);
+  const [videos, setVideos] = useState<any[]>([]);
   const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -29,6 +30,17 @@ export default function UserProfile() {
 
       if (data) {
         setProfile(data);
+      }
+
+      // Fetch user's videos
+      const { data: videosData } = await supabase
+        .from("videos")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+
+      if (videosData) {
+        setVideos(videosData);
       }
 
       // Check if current user is following this profile
@@ -122,15 +134,6 @@ export default function UserProfile() {
     );
   }
   
-  // Mock videos - will be replaced with real user videos later
-  const videos = [
-    { id: 1, thumbnail: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&h=400&fit=crop", views: "29.9K" },
-    { id: 2, thumbnail: "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=400&h=400&fit=crop", views: "12.1K" },
-    { id: 3, thumbnail: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=400&h=400&fit=crop", views: "48.3K" },
-    { id: 4, thumbnail: "https://images.unsplash.com/photo-1483412033650-1015ddeb83d1?w=400&h=400&fit=crop", views: "8.2K" },
-    { id: 5, thumbnail: "https://images.unsplash.com/photo-1460723237483-7a6dc9d0b212?w=400&h=400&fit=crop", views: "22.5K" },
-    { id: 6, thumbnail: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&h=400&fit=crop", views: "35.7K" },
-  ];
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) {
@@ -238,27 +241,44 @@ export default function UserProfile() {
 
       {/* Video Grid */}
       <div className="border-t border-white/10">
-        <div className="grid grid-cols-3 gap-1">
-          {videos.map((video) => (
-            <div 
-              key={video.id} 
-              className="relative aspect-[9/16] bg-white/5 cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={() => navigate(`/`)}
-            >
-              <img
-                src={video.thumbnail}
-                alt="Video thumbnail"
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute bottom-2 left-2 flex items-center gap-1 text-white text-xs font-semibold drop-shadow-lg">
-                <svg className="w-4 h-4" fill="white" viewBox="0 0 24 24">
-                  <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
-                </svg>
-                {video.views}
+        {videos.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-white/60">
+            <svg className="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            <p className="text-lg font-medium">No videos yet</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 gap-1">
+            {videos.map((video) => (
+              <div 
+                key={video.id} 
+                className="relative aspect-[9/16] bg-white/5 cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={() => navigate(`/?video=${video.id}`)}
+              >
+                {video.thumbnail_url ? (
+                  <img
+                    src={video.thumbnail_url}
+                    alt={video.title || "Video thumbnail"}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <video
+                    src={video.video_url}
+                    className="w-full h-full object-cover"
+                    muted
+                  />
+                )}
+                <div className="absolute bottom-2 left-2 flex items-center gap-1 text-white text-xs font-semibold drop-shadow-lg">
+                  <svg className="w-4 h-4" fill="white" viewBox="0 0 24 24">
+                    <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                  </svg>
+                  {formatNumber(video.views_count || 0)}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
