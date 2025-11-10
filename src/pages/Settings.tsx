@@ -49,6 +49,7 @@ const Settings = () => {
     { id: "random", label: "Random", description: "Fallback when no user preference data available" },
   ]);
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
+  const [dropTarget, setDropTarget] = useState<number | null>(null);
 
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -185,6 +186,8 @@ const Settings = () => {
     e.preventDefault();
     if (draggedItem === null || draggedItem === index) return;
 
+    setDropTarget(index);
+
     const newFactors = [...algorithmFactors];
     const draggedFactor = newFactors[draggedItem];
     newFactors.splice(draggedItem, 1);
@@ -196,6 +199,7 @@ const Settings = () => {
 
   const handleDragEnd = () => {
     setDraggedItem(null);
+    setDropTarget(null);
     // TODO: Save to database
     toast.success("Algorithm priority updated");
   };
@@ -349,27 +353,33 @@ const Settings = () => {
 
                 <div className="space-y-2">
                   {algorithmFactors.map((factor, index) => (
-                    <div
-                      key={factor.id}
-                      draggable
-                      onDragStart={() => handleDragStart(index)}
-                      onDragOver={(e) => handleDragOver(e, index)}
-                      onDragEnd={handleDragEnd}
-                      className={`flex items-center gap-4 bg-muted/30 p-4 rounded-lg hover:bg-muted/50 transition-colors cursor-move ${
-                        draggedItem === index ? "opacity-50" : ""
-                      }`}
-                    >
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm">
-                        {index + 1}
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-medium text-foreground">{factor.label}</h4>
-                        <p className="text-sm text-muted-foreground">{factor.description}</p>
-                      </div>
-                      <div className="text-muted-foreground">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
-                        </svg>
+                    <div key={factor.id} className="relative">
+                      {/* Drop indicator line */}
+                      {dropTarget === index && draggedItem !== null && draggedItem !== index && (
+                        <div className="absolute -top-1 left-0 right-0 h-0.5 bg-red-500 z-10 animate-pulse" />
+                      )}
+                      
+                      <div
+                        draggable
+                        onDragStart={() => handleDragStart(index)}
+                        onDragOver={(e) => handleDragOver(e, index)}
+                        onDragEnd={handleDragEnd}
+                        className={`flex items-center gap-4 bg-muted/30 p-4 rounded-lg hover:bg-muted/50 transition-colors cursor-move ${
+                          draggedItem === index ? "opacity-50" : ""
+                        }`}
+                      >
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-medium text-foreground">{factor.label}</h4>
+                          <p className="text-sm text-muted-foreground">{factor.description}</p>
+                        </div>
+                        <div className="text-muted-foreground">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+                          </svg>
+                        </div>
                       </div>
                     </div>
                   ))}
