@@ -127,22 +127,48 @@ export const InfoDrawer = ({
         setDisplayLinks(linkObjects);
         setMatchedInfo({ track: data.track_name, artist: data.artist_name });
 
-        // Persist to database if possible
+        // Try to persist to database if user owns the video
         if (videoId) {
-          const { error: saveError } = await supabase
-            .from("videos")
-            .update({ links: linkObjects })
-            .eq("id", videoId);
-          if (saveError) {
-            console.error("Failed to save links:", saveError);
-            toast.error("Found links, but failed to save");
-          } else {
-            toast.success("Links saved to this video");
+          try {
+            const { data: { user } } = await supabase.auth.getUser();
+            
+            // First check if this video belongs to the current user
+            const { data: videoData } = await supabase
+              .from("videos")
+              .select("user_id")
+              .eq("id", videoId)
+              .single();
+
+            if (videoData && user && videoData.user_id === user.id) {
+              const { error: saveError } = await supabase
+                .from("videos")
+                .update({ links: linkObjects })
+                .eq("id", videoId);
+              
+              if (saveError) {
+                console.error("Failed to save links:", saveError);
+                toast.error("Found links, but couldn't save them");
+              } else {
+                toast.success("Links found and saved!");
+              }
+            } else {
+              // User doesn't own this video, just show the links without saving
+              toast.success("Links found! (View only - not your video)");
+            }
+          } catch (saveErr) {
+            console.error("Save error:", saveErr);
+            // Still show the links even if save fails
+            toast.success("Links found! (Unable to save)");
           }
+        } else {
+          toast.success("Links found!");
         }
+      } else {
+        toast.error("No links found. Try a different title format.");
       }
     } catch (e) {
       console.error('Find links (InfoDrawer) error:', e);
+      toast.error("Failed to search for links");
     } finally {
       setSearching(false);
     }
