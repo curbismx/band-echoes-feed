@@ -193,12 +193,15 @@ export const InfoDrawer = ({
           height: `${drawerHeight}vh`,
           transition: isDragging ? 'none' : 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
         }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Handle bar */}
-        <div className="flex justify-center pt-3 pb-2">
+        {/* Handle bar - Only this area is draggable */}
+        <div 
+          className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           <div className="w-12 h-1 bg-white/30 rounded-full" />
         </div>
 
@@ -211,7 +214,17 @@ export const InfoDrawer = ({
         </button>
 
         {/* Content */}
-        <div className="px-6 pb-6 overflow-y-auto" style={{ height: `calc(${drawerHeight}vh - 60px)` }}>
+        <div 
+          className="px-6 pb-6 overflow-y-auto" 
+          style={{ height: `calc(${drawerHeight}vh - 60px)` }}
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchMove={(e) => {
+            // Prevent scroll from propagating to video behind
+            e.stopPropagation();
+          }}
+          onTouchEnd={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
           {/* Video Info */}
           {(videoTitle || artistName || caption) && (
             <div className="mb-4">
