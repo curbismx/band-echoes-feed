@@ -20,11 +20,23 @@ serve(async (req) => {
       );
     }
 
-    console.log('Searching for:', title, artist || '');
+    // Parse title if it's in "Artist - Track" format
+    let artistName = artist || '';
+    let trackName = title;
+    
+    if (title.includes(' - ')) {
+      const parts = title.split(' - ');
+      if (parts.length >= 2) {
+        artistName = parts[0].trim();
+        trackName = parts.slice(1).join(' - ').trim(); // In case track name also has " - "
+      }
+    }
 
-    // Use iTunes Search API (free, no auth needed)
-    const searchQuery = artist ? `${title} ${artist}` : title;
-    const itunesUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(searchQuery)}&media=music&entity=song&limit=1`;
+    console.log('Searching for:', trackName, 'by', artistName);
+
+    // Use iTunes Search API with better search query
+    const searchQuery = artistName ? `${trackName} ${artistName}` : trackName;
+    const itunesUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(searchQuery)}&media=music&entity=song&limit=5`;
     
     const itunesResponse = await fetch(itunesUrl);
     const itunesData = await itunesResponse.json();
@@ -39,15 +51,33 @@ serve(async (req) => {
       );
     }
 
-    const track = itunesData.results[0];
-    const trackName = track.trackName || title;
-    const artistName = track.artistName || artist || '';
+    // Try to find the best match if we have artist name
+    let track = itunesData.results[0];
+    if (artistName) {
+      // Look for a result where artist name matches more closely
+      const artistLower = artistName.toLowerCase();
+      const trackLower = trackName.toLowerCase();
+      
+      const betterMatch = itunesData.results.find((result: any) => {
+        const resultArtist = (result.artistName || '').toLowerCase();
+        const resultTrack = (result.trackName || '').toLowerCase();
+        return resultArtist.includes(artistLower) || artistLower.includes(resultArtist) ||
+               (resultTrack.includes(trackLower) || trackLower.includes(resultTrack));
+      });
+      
+      if (betterMatch) {
+        track = betterMatch;
+      }
+    }
+    
+    const foundTrackName = track.trackName || trackName;
+    const foundArtistName = track.artistName || artistName;
     const appleMusicUrl = track.trackViewUrl || '';
 
-    console.log('Found track:', trackName, 'by', artistName);
+    console.log('Found track:', foundTrackName, 'by', foundArtistName);
 
-    // Construct search URLs for other platforms
-    const searchTerm = encodeURIComponent(`${trackName} ${artistName}`.trim());
+    // Construct search URLs for other platforms using found track info
+    const searchTerm = encodeURIComponent(`${foundTrackName} ${foundArtistName}`.trim());
     
     const links = {
       apple_music: appleMusicUrl,
@@ -61,8 +91,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true,
-        track_name: trackName,
-        artist_name: artistName,
+        track_name: foundTrackName,
+        artist_name: foundArtistName,
         links 
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
