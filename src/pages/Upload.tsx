@@ -28,6 +28,7 @@ const Upload = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [existingVideoUrl, setExistingVideoUrl] = useState<string>("");
   const [links, setLinks] = useState<string[]>(["", ""]);
+  const [searching, setSearching] = useState(false);
 
   // Fetch compression setting and video data if editing
   useEffect(() => {
@@ -228,6 +229,57 @@ const Upload = () => {
     }
   };
 
+  const handleFindLinks = async () => {
+    if (!title.trim()) {
+      toast({
+        title: "Title required",
+        description: "Please add a title first to search for music links",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSearching(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('find-music-links', {
+        body: { title: title.trim() }
+      });
+
+      if (error) throw error;
+
+      if (data.success && data.links) {
+        const foundLinks = [
+          data.links.spotify,
+          data.links.apple_music,
+          data.links.tidal,
+          data.links.youtube_music,
+        ].filter(link => link && link.trim() !== "");
+
+        setLinks(foundLinks.length > 0 ? foundLinks : ["", ""]);
+        
+        toast({
+          title: "Links found!",
+          description: `Found ${foundLinks.length} streaming platform${foundLinks.length !== 1 ? 's' : ''}`,
+        });
+      } else {
+        toast({
+          title: "No links found",
+          description: "Try adding artist name to the title",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Find links error:", error);
+      toast({
+        title: "Search failed",
+        description: "Unable to find music links. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSearching(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
       {/* Step 1: Select Video */}
@@ -304,7 +356,18 @@ const Upload = () => {
 
             {/* Links Section */}
             <div className="space-y-3">
-              <h3 className="text-white font-semibold text-sm">Add Links</h3>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-white font-semibold text-sm">Add Links</h3>
+                <Button
+                  onClick={handleFindLinks}
+                  disabled={searching || !title.trim()}
+                  variant="outline"
+                  size="sm"
+                  className="text-xs"
+                >
+                  {searching ? "Searching..." : "Find Links"}
+                </Button>
+              </div>
               {links.map((link, index) => {
                 const { platform } = link ? detectPlatform(link) : { platform: '' };
                 return (
