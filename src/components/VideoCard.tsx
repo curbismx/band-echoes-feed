@@ -246,11 +246,24 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         >
         {/* Artist Avatar */}
         {artistAvatar && (
-          <img 
-            src={artistAvatar} 
-            alt={video.artistName}
-            className="w-[32px] h-[32px] rounded-full object-cover mb-2 border-2 border-white"
-          />
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/user/${video.artistUserId}`);
+            }}
+            onTouchEnd={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              navigate(`/user/${video.artistUserId}`);
+            }}
+            className="cursor-pointer hover:opacity-80 transition-opacity touch-manipulation"
+          >
+            <img 
+              src={artistAvatar} 
+              alt={video.artistName}
+              className="w-[32px] h-[32px] rounded-full object-cover mb-2 border-2 border-white"
+            />
+          </button>
         )}
         
         <button
