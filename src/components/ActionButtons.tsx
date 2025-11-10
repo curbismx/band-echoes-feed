@@ -361,26 +361,6 @@ export const ActionButtons = ({
         </button>
       </div>
 
-      {/* Follow/Unfollow Artist */}
-      <div className="relative h-[30px] mt-[40px]">
-        <button 
-          onClick={(e) => {
-            e.stopPropagation();
-            triggerHaptic();
-            handleFollowToggle();
-          }}
-          disabled={followLoading}
-          className="action-button flex items-center justify-center"
-        >
-          <img 
-            src={isFollowing ? followOnIcon : followOffIcon} 
-            alt={isFollowing ? "Following" : "Follow"} 
-            className="h-[30px] w-[30px]"
-            draggable={false}
-          />
-        </button>
-      </div>
-
       {/* Plus */}
       <div className="relative h-[30px] mt-[40px]">
         <button 
