@@ -38,6 +38,30 @@ export type Database = {
         }
         Relationships: []
       }
+      categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       comments: {
         Row: {
           content: string
@@ -186,6 +210,42 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      video_categories: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          video_id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          video_id: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_categories_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       video_ratings: {
         Row: {
