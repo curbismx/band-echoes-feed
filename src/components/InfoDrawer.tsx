@@ -5,10 +5,12 @@ import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface InfoDrawerProps {
   isOpen: boolean;
   onClose: () => void;
+  videoId?: string;
   videoTitle?: string;
   artistName?: string;
   caption?: string;
@@ -18,6 +20,7 @@ interface InfoDrawerProps {
 export const InfoDrawer = ({
   isOpen,
   onClose,
+  videoId,
   videoTitle,
   artistName,
   caption,
@@ -120,8 +123,23 @@ export const InfoDrawer = ({
           data.links.youtube_music,
         ].filter((u: string | undefined) => !!u && u.trim() !== "");
 
-        setDisplayLinks(urls.map((u) => ({ url: u })));
+        const linkObjects = urls.map((u) => ({ url: u }));
+        setDisplayLinks(linkObjects);
         setMatchedInfo({ track: data.track_name, artist: data.artist_name });
+
+        // Persist to database if possible
+        if (videoId) {
+          const { error: saveError } = await supabase
+            .from("videos")
+            .update({ links: linkObjects })
+            .eq("id", videoId);
+          if (saveError) {
+            console.error("Failed to save links:", saveError);
+            toast.error("Found links, but failed to save");
+          } else {
+            toast.success("Links saved to this video");
+          }
+        }
       }
     } catch (e) {
       console.error('Find links (InfoDrawer) error:', e);

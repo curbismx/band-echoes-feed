@@ -335,6 +335,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
       <InfoDrawer 
         isOpen={infoOpen}
         onClose={() => setInfoOpen(false)}
+        videoId={video.id.toString()}
         videoTitle={video.title}
         artistName={video.artistName}
         caption={video.caption}
