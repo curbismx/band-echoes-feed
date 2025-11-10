@@ -715,8 +715,133 @@ const Admin = () => {
 
         {activeTab === "accounts" && (
           <>
-            {/* Created Users List */}
+            {/* Add New User Button */}
+            <button
+              onClick={handleAddNewUser}
+              className="flex items-center gap-2 mb-8 text-primary hover:text-primary/80 transition-colors"
+            >
+              <div className="w-10 h-10 rounded-lg border-2 border-primary flex items-center justify-center">
+                <Plus className="w-5 h-5" />
+              </div>
+              <span className="text-base">Add new user</span>
+            </button>
 
+            {/* User Forms */}
+            <div className="space-y-8 mb-8">
+              {users.map((userForm, userIndex) => (
+            <div key={userIndex} className="border-b border-border pb-8">
+              {/* Table Header */}
+              <div className="grid grid-cols-12 gap-4 mb-4 text-sm text-muted-foreground">
+                <div className="col-span-1">Icon</div>
+                <div className="col-span-2">Name</div>
+                <div className="col-span-2">Username</div>
+                <div className="col-span-3">email address</div>
+                <div className="col-span-4">Description</div>
+              </div>
+
+              {/* Form Fields */}
+              <div className="grid grid-cols-12 gap-4 mb-4">
+                {/* Icon Upload */}
+                <div className="col-span-1">
+                  <label className="w-10 h-10 rounded-full border-2 border-input flex items-center justify-center cursor-pointer hover:border-primary transition-colors">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleIconUpload(userIndex, e.target.files?.[0] || null)}
+                    />
+                    {userForm.icon ? (
+                      <img
+                        src={typeof userForm.icon === 'string' ? userForm.icon : URL.createObjectURL(userForm.icon)}
+                        alt="icon"
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <Plus className="w-5 h-5 text-muted-foreground" />
+                    )}
+                  </label>
+                </div>
+
+                <div className="col-span-2">
+                  <Input
+                    placeholder="text"
+                    value={userForm.name}
+                    onChange={(e) => handleUserChange(userIndex, "name", e.target.value)}
+                  />
+                </div>
+
+                <div className="col-span-2">
+                  <Input
+                    placeholder="text"
+                    value={userForm.username}
+                    onChange={(e) => handleUserChange(userIndex, "username", e.target.value)}
+                  />
+                </div>
+
+                <div className="col-span-3">
+                  <Input
+                    type="email"
+                    placeholder="text"
+                    value={userForm.email}
+                    onChange={(e) => handleUserChange(userIndex, "email", e.target.value)}
+                  />
+                </div>
+
+                <div className="col-span-4">
+                  <Input
+                    placeholder="text"
+                    value={userForm.description}
+                    onChange={(e) => handleUserChange(userIndex, "description", e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Videos Section */}
+              <div className="grid grid-cols-12 gap-4 mb-4">
+                <div className="col-span-1"></div>
+                <div className="col-span-11 flex flex-wrap gap-4">
+                  {userForm.videos.map((video, videoIndex) => (
+                    <div key={video.id} className="flex items-center gap-2">
+                      <button className="w-10 h-10 rounded-lg border-2 border-input flex items-center justify-center">
+                        <Plus className="w-4 h-4 text-muted-foreground" />
+                      </button>
+                      <Input
+                        placeholder="Text for video"
+                        className="w-40"
+                        value={video.title}
+                        onChange={(e) => handleVideoChange(userIndex, videoIndex, e.target.value)}
+                      />
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => handleAddVideo(userIndex)}
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    add more videos...
+                  </button>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-4 mt-4">
+                <button
+                  onClick={() => handlePublishUser(userIndex)}
+                  className="text-sm text-foreground hover:text-primary transition-colors"
+                >
+                  Publish to App
+                </button>
+                <button
+                  onClick={() => handleDeleteUser(userIndex)}
+                  className="text-sm text-destructive hover:text-destructive/80 transition-colors"
+                >
+                  Delete User
+                </button>
+              </div>
+            </div>
+              ))}
+            </div>
+
+            {/* Created Users List */}
             {createdUsers.length > 0 && (
               <div className="mb-8">
                 <h2 className="text-lg font-medium text-foreground mb-4">
@@ -1036,131 +1161,6 @@ const Admin = () => {
               </div>
             )}
 
-            {/* Add New User Button */}
-            <button
-              onClick={handleAddNewUser}
-              className="flex items-center gap-2 mb-8 text-primary hover:text-primary/80 transition-colors"
-            >
-              <div className="w-10 h-10 rounded-lg border-2 border-primary flex items-center justify-center">
-                <Plus className="w-5 h-5" />
-              </div>
-              <span className="text-base">Add new user</span>
-            </button>
-
-            {/* User Forms */}
-            <div className="space-y-8">
-              {users.map((userForm, userIndex) => (
-            <div key={userIndex} className="border-b border-border pb-8">
-              {/* Table Header */}
-              <div className="grid grid-cols-12 gap-4 mb-4 text-sm text-muted-foreground">
-                <div className="col-span-1">Icon</div>
-                <div className="col-span-2">Name</div>
-                <div className="col-span-2">Username</div>
-                <div className="col-span-3">email address</div>
-                <div className="col-span-4">Description</div>
-              </div>
-
-              {/* Form Fields */}
-              <div className="grid grid-cols-12 gap-4 mb-4">
-                {/* Icon Upload */}
-                <div className="col-span-1">
-                  <label className="w-10 h-10 rounded-full border-2 border-input flex items-center justify-center cursor-pointer hover:border-primary transition-colors">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => handleIconUpload(userIndex, e.target.files?.[0] || null)}
-                    />
-                    {userForm.icon ? (
-                      <img
-                        src={typeof userForm.icon === 'string' ? userForm.icon : URL.createObjectURL(userForm.icon)}
-                        alt="icon"
-                        className="w-full h-full rounded-full object-cover"
-                      />
-                    ) : (
-                      <Plus className="w-5 h-5 text-muted-foreground" />
-                    )}
-                  </label>
-                </div>
-
-                <div className="col-span-2">
-                  <Input
-                    placeholder="text"
-                    value={userForm.name}
-                    onChange={(e) => handleUserChange(userIndex, "name", e.target.value)}
-                  />
-                </div>
-
-                <div className="col-span-2">
-                  <Input
-                    placeholder="text"
-                    value={userForm.username}
-                    onChange={(e) => handleUserChange(userIndex, "username", e.target.value)}
-                  />
-                </div>
-
-                <div className="col-span-3">
-                  <Input
-                    type="email"
-                    placeholder="text"
-                    value={userForm.email}
-                    onChange={(e) => handleUserChange(userIndex, "email", e.target.value)}
-                  />
-                </div>
-
-                <div className="col-span-4">
-                  <Input
-                    placeholder="text"
-                    value={userForm.description}
-                    onChange={(e) => handleUserChange(userIndex, "description", e.target.value)}
-                  />
-                </div>
-              </div>
-
-              {/* Videos Section */}
-              <div className="grid grid-cols-12 gap-4 mb-4">
-                <div className="col-span-1"></div>
-                <div className="col-span-11 flex flex-wrap gap-4">
-                  {userForm.videos.map((video, videoIndex) => (
-                    <div key={video.id} className="flex items-center gap-2">
-                      <button className="w-10 h-10 rounded-lg border-2 border-input flex items-center justify-center">
-                        <Plus className="w-4 h-4 text-muted-foreground" />
-                      </button>
-                      <Input
-                        placeholder="Text for video"
-                        className="w-40"
-                        value={video.title}
-                        onChange={(e) => handleVideoChange(userIndex, videoIndex, e.target.value)}
-                      />
-                    </div>
-                  ))}
-                  <button
-                    onClick={() => handleAddVideo(userIndex)}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    add more videos...
-                  </button>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex justify-end gap-4 mt-4">
-                <button
-                  onClick={() => handlePublishUser(userIndex)}
-                  className="text-sm text-foreground hover:text-primary transition-colors"
-                >
-                  Publish to App
-                </button>
-                <button
-                  onClick={() => handleDeleteUser(userIndex)}
-                  className="text-sm text-destructive hover:text-destructive/80 transition-colors"
-                >
-                  Delete User
-                </button>
-              </div>
-            </div>
-              ))}
-            </div>
           </>
         )}
 
