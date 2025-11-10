@@ -256,7 +256,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
               e.preventDefault();
               navigate(`/user/${video.artistUserId}`);
             }}
-            className="cursor-pointer hover:opacity-80 transition-opacity touch-manipulation"
+            className="block cursor-pointer hover:opacity-80 transition-opacity touch-manipulation p-0 m-0 border-0 bg-transparent"
           >
             <img 
               src={artistAvatar} 
