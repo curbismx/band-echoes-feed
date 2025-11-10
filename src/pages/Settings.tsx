@@ -46,6 +46,7 @@ const Settings = () => {
     { id: "views", label: "View Count", description: "Total number of views" },
     { id: "following", label: "Following", description: "Videos from followed artists" },
     { id: "engagement", label: "Engagement Rate", description: "Comments and shares" },
+    { id: "random", label: "Random", description: "Fallback when no user preference data available" },
   ]);
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
 
@@ -379,6 +380,7 @@ const Settings = () => {
                   <ul className="text-sm text-muted-foreground space-y-1">
                     <li>• Higher ranked factors have more weight in video selection</li>
                     <li>• The algorithm combines all factors to create a personalized feed</li>
+                    <li>• <strong>Random</strong> factor kicks in when user has no preference data (new users)</li>
                     <li>• Changes take effect immediately for all users</li>
                   </ul>
                 </div>
