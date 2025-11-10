@@ -36,8 +36,14 @@ const Settings = () => {
   const [categoryForm, setCategoryForm] = useState({ name: "" });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
-  const [categoriesExpanded, setCategoriesExpanded] = useState(true);
-  const [algorithmExpanded, setAlgorithmExpanded] = useState(true);
+  const [categoriesExpanded, setCategoriesExpanded] = useState(() => {
+    const saved = localStorage.getItem('settings-categories-expanded');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+  const [algorithmExpanded, setAlgorithmExpanded] = useState(() => {
+    const saved = localStorage.getItem('settings-algorithm-expanded');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
   const [algorithmFactors, setAlgorithmFactors] = useState([
     { id: "category", label: "Video Category", description: "Match user's preferred categories" },
     { id: "favorites", label: "Amount of Favorites", description: "Number of likes/favorites" },
@@ -235,7 +241,11 @@ const Settings = () => {
           {/* Categories Section */}
           <div>
             <button
-              onClick={() => setCategoriesExpanded(!categoriesExpanded)}
+              onClick={() => {
+                const newValue = !categoriesExpanded;
+                setCategoriesExpanded(newValue);
+                localStorage.setItem('settings-categories-expanded', JSON.stringify(newValue));
+              }}
               className="flex items-center gap-2 text-xl font-semibold text-foreground mb-4 hover:text-primary transition-colors"
             >
               {categoriesExpanded ? (
@@ -333,7 +343,11 @@ const Settings = () => {
           {/* Feed Algorithm Section */}
           <div>
             <button
-              onClick={() => setAlgorithmExpanded(!algorithmExpanded)}
+              onClick={() => {
+                const newValue = !algorithmExpanded;
+                setAlgorithmExpanded(newValue);
+                localStorage.setItem('settings-algorithm-expanded', JSON.stringify(newValue));
+              }}
               className="flex items-center gap-2 text-xl font-semibold text-foreground mb-4 hover:text-primary transition-colors"
             >
               {algorithmExpanded ? (
@@ -356,7 +370,7 @@ const Settings = () => {
                     <div key={factor.id} className="relative">
                       {/* Drop indicator line */}
                       {dropTarget === index && draggedItem !== null && draggedItem !== index && (
-                        <div className="absolute -top-1 left-0 right-0 h-0.5 bg-red-500 z-10 animate-pulse" />
+                        <div className="absolute -top-2 left-0 right-0 h-1 bg-red-500 z-50 animate-pulse rounded-full shadow-lg shadow-red-500/50" />
                       )}
                       
                       <div
