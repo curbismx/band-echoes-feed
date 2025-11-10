@@ -146,9 +146,9 @@ export default function UserProfile() {
   };
 
   return (
-    <div className="min-h-screen text-white" style={{ backgroundColor: "#252525" }}>
+    <div className="h-screen flex flex-col text-white overflow-hidden" style={{ backgroundColor: "#252525" }}>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-white/10">
+      <div className="flex items-center justify-between p-4 border-b border-white/10 flex-shrink-0">
         <button 
           onClick={() => navigate("/")}
           className="p-2 -ml-2"
@@ -159,127 +159,139 @@ export default function UserProfile() {
         <div className="w-10" />
       </div>
 
-      {/* Profile Info */}
-      <div className="p-4">
-        {/* Profile Picture and Name - Left Aligned */}
-        <div className="mb-4">
-          <img
-            src={profile.avatar_url || "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200&h=200&fit=crop"}
-            alt="Profile"
-            className="w-20 h-20 rounded-full object-cover mb-2"
-          />
-          <div className="font-semibold">{profile.display_name || profile.username}</div>
-        </div>
-
-        {/* Stats */}
-        <div className="flex justify-around mb-4 py-3 border-y border-white/10">
-          <div className="text-center">
-            <div className="font-semibold text-lg">{profile.posts_count || 0}</div>
-            <div className="text-sm text-white/60">posts</div>
-          </div>
-          <div className="text-center">
-            <div className="font-semibold text-lg">{formatNumber(profile.followers_count || 0)}</div>
-            <div className="text-sm text-white/60">followers</div>
-          </div>
-          <div className="text-center">
-            <div className="font-semibold text-lg">{profile.following_count || 0}</div>
-            <div className="text-sm text-white/60">following</div>
-          </div>
-        </div>
-
-        {/* Bio */}
-        <div className="mb-4">
-          <div className="text-sm text-white/80 whitespace-pre-line">
-            {profile.bio || "No bio yet"}
-          </div>
-          
-          {/* Website and Email Links */}
-          <div className="mt-3 space-y-2">
-            {profile.website && (
-              <a
-                href={profile.website.startsWith('http') ? profile.website : `https://${profile.website}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors"
-              >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clipRule="evenodd" />
-                </svg>
-                {profile.website}
-              </a>
-            )}
-            {profile.email && (
-              <a
-                href={`mailto:${profile.email}`}
-                className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors"
-              >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                  <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                </svg>
-                {profile.email}
-              </a>
-            )}
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-2 mb-4">
-          <button 
-            onClick={handleFollow}
-            className={`flex-1 ${isFollowing ? 'bg-white/10' : 'bg-blue-500'} hover:opacity-80 transition-colors py-2 rounded-lg font-semibold text-sm`}
-          >
-            {isFollowing ? 'Unfollow' : 'Follow'}
-          </button>
-          <button 
-            onClick={handleShareProfile}
-            className="flex-1 bg-white/10 hover:bg-white/20 transition-colors py-2 rounded-lg font-semibold text-sm"
-          >
-            Share Profile
-          </button>
-        </div>
-      </div>
-
-      {/* Video Grid */}
-      <div className="border-t border-white/10">
-        {videos.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-white/60">
-            <svg className="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
-            <p className="text-lg font-medium">No videos yet</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-3 gap-1">
-            {videos.map((video) => (
-              <div 
-                key={video.id} 
-                className="relative aspect-[9/16] bg-white/5 cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={() => navigate(`/?video=${video.id}`)}
-              >
-                {video.thumbnail_url ? (
-                  <img
-                    src={video.thumbnail_url}
-                    alt={video.title || "Video thumbnail"}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <video
-                    src={video.video_url}
-                    className="w-full h-full object-cover"
-                    muted
-                  />
-                )}
-                <div className="absolute bottom-2 left-2 flex items-center gap-1 text-white text-xs font-semibold drop-shadow-lg">
-                  <svg className="w-4 h-4" fill="white" viewBox="0 0 24 24">
-                    <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
-                  </svg>
-                  {formatNumber(video.views_count || 0)}
-                </div>
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto">
+        {/* Profile Info */}
+        <div className="p-4">
+          {/* Profile Picture and Stats */}
+          <div className="flex items-center gap-6 mb-4">
+            <img
+              src={profile.avatar_url || "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200&h=200&fit=crop"}
+              alt="Profile"
+              className="w-20 h-20 rounded-full object-cover"
+            />
+            
+            <div className="flex-1 flex justify-around">
+              <div className="text-center">
+                <div className="font-semibold text-lg">{profile.posts_count || 0}</div>
+                <div className="text-sm text-white/60">posts</div>
               </div>
-            ))}
+              <div className="text-center">
+                <div className="font-semibold text-lg">{formatNumber(profile.followers_count || 0)}</div>
+                <div className="text-sm text-white/60">followers</div>
+              </div>
+              <div className="text-center">
+                <div className="font-semibold text-lg">{profile.following_count || 0}</div>
+                <div className="text-sm text-white/60">following</div>
+              </div>
+            </div>
           </div>
-        )}
+
+          {/* Name and Bio */}
+          <div className="mb-4">
+            <div className="font-semibold mb-1">{profile.display_name || profile.username}</div>
+            <div className="text-sm text-white/80 whitespace-pre-line">
+              {profile.bio || "No bio yet"}
+            </div>
+            
+            {/* Website and Email Links */}
+            <div className="mt-3 space-y-2">
+              {profile.website && (
+                <a
+                  href={profile.website.startsWith('http') ? profile.website : `https://${profile.website}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clipRule="evenodd" />
+                  </svg>
+                  {profile.website}
+                </a>
+              )}
+              {profile.email && (
+                <a
+                  href={`mailto:${profile.email}`}
+                  className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                  </svg>
+                  {profile.email}
+                </a>
+              )}
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            <button 
+              onClick={handleFollow}
+              className={`${isFollowing ? 'bg-white/10' : 'bg-blue-500'} hover:opacity-80 transition-colors py-2 rounded-lg font-semibold text-sm`}
+            >
+              {isFollowing ? 'Unfollow' : 'Follow'}
+            </button>
+            <button 
+              onClick={handleShareProfile}
+              className="bg-white/10 hover:bg-white/20 transition-colors py-2 rounded-lg font-semibold text-sm"
+            >
+              Share Profile
+            </button>
+          </div>
+        </div>
+
+        {/* Video Grid */}
+        <div className="border-t border-white/10">
+          {videos.length === 0 ? (
+            <div className="p-8 text-center text-white/60">
+              <p className="mb-2">No videos yet</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 gap-1">
+              {videos.map((video) => (
+                <div 
+                  key={video.id} 
+                  className="relative aspect-[9/16] bg-white/5 cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={() => navigate(`/?video=${video.id}`)}
+                >
+                  {video.thumbnail_url ? (
+                    <img
+                      src={video.thumbnail_url}
+                      alt={video.title || "Video thumbnail"}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <video
+                      src={video.video_url}
+                      className="w-full h-full object-cover"
+                      muted
+                    />
+                  )}
+                  
+                  {/* Stats Overlay */}
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2 space-y-1">
+                    {/* Views */}
+                    <div className="flex items-center gap-1 text-white text-xs font-semibold drop-shadow-lg">
+                      <svg className="w-3.5 h-3.5" fill="white" viewBox="0 0 24 24">
+                        <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                      </svg>
+                      <span>{formatNumber(video.views_count || 0)}</span>
+                    </div>
+                    
+                    {/* Likes */}
+                    <div className="flex items-center gap-1 text-white text-xs font-semibold drop-shadow-lg">
+                      <svg className="w-3.5 h-3.5" fill="white" viewBox="0 0 24 24">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                      </svg>
+                      <span>{formatNumber(video.likes_count || 0)}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
