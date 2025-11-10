@@ -307,19 +307,43 @@ export const ActionButtons = ({
           onClick={(e) => {
             e.stopPropagation();
             triggerHaptic();
-            handleFollowToggle();
+            if (artistUserId) {
+              navigate(`/user/${artistUserId}`);
+            }
           }}
-          disabled={followLoading}
-            className="action-button flex items-center justify-center"
-          >
+          className="action-button flex items-center justify-center relative"
+        >
+          {artistAvatar ? (
             <img 
-              key={isFollowing ? "follow-on" : "follow-off"}
-              src={isFollowing ? followOnIcon : followOffIcon} 
-              alt={isFollowing ? "Unfollow" : "Follow"} 
+              src={artistAvatar} 
+              alt={artistName || "Artist"} 
+              className="h-[32px] w-[32px] rounded-full object-cover border-2 border-white"
+              draggable={false}
+            />
+          ) : (
+            <img 
+              src={circleIcon} 
+              alt="Artist" 
               className="h-[30px] w-[30px]"
               draggable={false}
             />
-          </button>
+          )}
+          {/* Follow/Unfollow indicator */}
+          <div 
+            className="absolute -bottom-1 -right-1 cursor-pointer z-10"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleFollowToggle();
+            }}
+          >
+            <img 
+              src={isFollowing ? followOnIcon : followOffIcon} 
+              alt={isFollowing ? "Following" : "Follow"} 
+              className="h-[18px] w-[18px]"
+              draggable={false}
+            />
+          </div>
+        </button>
       </div>
 
       {/* Plus */}
