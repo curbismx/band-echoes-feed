@@ -113,6 +113,15 @@ const Admin = () => {
     document.title = "Admin | Starter Accounts";
   }, []);
 
+  // Handle URL parameters for tab switching
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    if (tab === 'users') {
+      setActiveTab('users');
+    }
+  }, []);
+
 
   useEffect(() => {
     if (isAdmin && activeTab === "users") {

@@ -356,12 +356,13 @@ const Settings = () => {
             onClick={() => navigate("/admin")}
             className="text-xl font-normal text-foreground hover:text-primary transition-colors"
           >
-            User Accounts
+            Admin Users
           </button>
           <button 
+            onClick={() => navigate("/admin?tab=users")}
             className="text-xl font-normal text-foreground hover:text-primary transition-colors"
           >
-            Manage Admins
+            Users
           </button>
           <button 
             className="text-xl font-normal text-primary border-b-2 border-primary pb-1 transition-colors"
