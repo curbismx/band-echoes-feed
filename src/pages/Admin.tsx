@@ -21,8 +21,10 @@ interface VideoForm {
   description: string;
   itunes: string;
   spotify: string;
-  otherLinks: string[];
+  tidal: string;
+  youtube_music: string;
   uploading: boolean;
+  searching: boolean;
   fileInputKey: number;
 }
 
@@ -42,8 +44,10 @@ const getDefaultVideoForm = (): VideoForm => ({
   description: "",
   itunes: "",
   spotify: "",
-  otherLinks: [],
+  tidal: "",
+  youtube_music: "",
   uploading: false,
+  searching: false,
   fileInputKey: Date.now(),
 });
 
@@ -83,7 +87,7 @@ const Admin = () => {
   });
   const [userVideos, setUserVideos] = useState<Record<string, any[]>>({});
   const [editingVideo, setEditingVideo] = useState<string | null>(null);
-  const [videoEditForm, setVideoEditForm] = useState<{ title: string; description: string; itunes: string; spotify: string }>({ title: "", description: "", itunes: "", spotify: "" });
+  const [videoEditForm, setVideoEditForm] = useState<{ title: string; description: string; itunes: string; spotify: string; tidal: string; youtube_music: string }>({ title: "", description: "", itunes: "", spotify: "", tidal: "", youtube_music: "" });
 
 
   useEffect(() => {
@@ -254,6 +258,57 @@ const Admin = () => {
     } catch (error: any) {
       console.error("Error toggling admin role:", error);
       toast.error(error.message || "Failed to update admin role");
+    }
+  };
+
+  const handleFindMusicLinks = async (userId: string) => {
+    const form = videoForms[userId] || getDefaultVideoForm();
+    
+    if (!form.title || form.title.trim() === '') {
+      toast.error('Please enter a video title first');
+      return;
+    }
+
+    // Set searching state
+    setVideoForms((prev) => ({
+      ...prev,
+      [userId]: { ...(prev[userId] || getDefaultVideoForm()), searching: true },
+    }));
+
+    try {
+      const { data, error } = await supabase.functions.invoke('find-music-links', {
+        body: { title: form.title },
+      });
+
+      if (error) throw error;
+
+      if (data && data.links) {
+        setVideoForms((prev) => ({
+          ...prev,
+          [userId]: {
+            ...(prev[userId] || getDefaultVideoForm()),
+            itunes: data.links.apple_music || prev[userId]?.itunes || '',
+            spotify: data.links.spotify || prev[userId]?.spotify || '',
+            tidal: data.links.tidal || prev[userId]?.tidal || '',
+            youtube_music: data.links.youtube_music || prev[userId]?.youtube_music || '',
+            searching: false,
+          },
+        }));
+        toast.success(`Found links for: ${data.track_name || form.title}`);
+      } else {
+        toast.error('No results found for this track');
+        setVideoForms((prev) => ({
+          ...prev,
+          [userId]: { ...(prev[userId] || getDefaultVideoForm()), searching: false },
+        }));
+      }
+    } catch (e: any) {
+      console.error('Find links error:', e);
+      toast.error(e.message || 'Failed to find music links');
+      setVideoForms((prev) => ({
+        ...prev,
+        [userId]: { ...(prev[userId] || getDefaultVideoForm()), searching: false },
+      }));
     }
   };
 
@@ -465,8 +520,8 @@ const Admin = () => {
         .from("videos")
         .getPublicUrl(path);
 
-      // Build links (iTunes, Spotify, other)
-      const links = [form.itunes, form.spotify, ...(form.otherLinks || [])]
+      // Build links (iTunes, Spotify, Tidal, YouTube Music)
+      const links = [form.itunes, form.spotify, form.tidal, form.youtube_music]
         .filter((u) => !!u && u.trim() !== "")
         .map((url) => ({ url }));
 
@@ -499,7 +554,7 @@ const Admin = () => {
       setVideoForms((prev) => {
         const current = prev[userId];
         if (!current) return prev;
-        if (current.file === null && current.title === "" && current.description === "" && (current.otherLinks?.length || 0) === 0 && current.uploading === false) {
+        if (current.file === null && current.title === "" && current.description === "" && current.uploading === false) {
           return prev;
         }
         return { ...prev, [userId]: { ...current, uploading: false } };
@@ -620,18 +675,22 @@ const Admin = () => {
     const links = video.links || [];
     const itunes = links.find((l: any) => l.url?.includes("apple.com") || l.url?.includes("itunes"))?.url || "";
     const spotify = links.find((l: any) => l.url?.includes("spotify.com"))?.url || "";
+    const tidal = links.find((l: any) => l.url?.includes("tidal.com"))?.url || "";
+    const youtube_music = links.find((l: any) => l.url?.includes("music.youtube.com"))?.url || "";
     
     setVideoEditForm({
       title: video.title || "",
       description: video.caption || "",
       itunes,
       spotify,
+      tidal,
+      youtube_music,
     });
   };
 
   const handleSaveVideoEdit = async (videoId: string) => {
     try {
-      const links = [videoEditForm.itunes, videoEditForm.spotify]
+      const links = [videoEditForm.itunes, videoEditForm.spotify, videoEditForm.tidal, videoEditForm.youtube_music]
         .filter(u => !!u && u.trim() !== "")
         .map(url => ({ url }));
 
@@ -959,6 +1018,18 @@ const Admin = () => {
                                                 onChange={(e) => setVideoEditForm({ ...videoEditForm, spotify: e.target.value })}
                                                 className="h-8"
                                               />
+                                              <Input
+                                                placeholder="Tidal Link"
+                                                value={videoEditForm.tidal}
+                                                onChange={(e) => setVideoEditForm({ ...videoEditForm, tidal: e.target.value })}
+                                                className="h-8"
+                                              />
+                                              <Input
+                                                placeholder="YouTube Music Link"
+                                                value={videoEditForm.youtube_music}
+                                                onChange={(e) => setVideoEditForm({ ...videoEditForm, youtube_music: e.target.value })}
+                                                className="h-8"
+                                              />
                                               <div className="flex gap-2">
                                                 <Button size="sm" onClick={() => handleSaveVideoEdit(video.id)}>Save</Button>
                                                 <Button variant="ghost" size="sm" onClick={() => setEditingVideo(null)}>Cancel</Button>
@@ -1105,35 +1176,52 @@ const Admin = () => {
                                     />
                                   </div>
 
-                                  {/* Other Links */}
-                                  <div className="col-span-12 md:col-span-4">
-                                    <label className="block text-xs text-muted-foreground mb-1">Other Links</label>
-                                    <div className="flex gap-2">
-                                      <Input
-                                        type="url"
-                                        placeholder="Add another link"
-                                        disabled={form.uploading}
-                                        onKeyDown={(e) => {
-                                          if (e.key === 'Enter' && e.currentTarget.value.trim()) {
-                                            e.preventDefault();
-                                            setVideoForms((prev) => ({
-                                              ...prev,
-                                              [usr.id]: {
-                                                ...(prev[usr.id] || getDefaultVideoForm()),
-                                                otherLinks: [...(prev[usr.id]?.otherLinks || []), e.currentTarget.value.trim()],
-                                              },
-                                            }));
-                                            e.currentTarget.value = '';
-                                          }
-                                        }}
-                                        className="h-9"
-                                      />
-                                      {form.otherLinks.length > 0 && (
-                                        <span className="text-xs text-muted-foreground self-center whitespace-nowrap">
-                                          +{form.otherLinks.length}
-                                        </span>
-                                      )}
-                                    </div>
+                                  {/* Tidal */}
+                                  <div className="col-span-12 md:col-span-3">
+                                    <label className="block text-xs text-muted-foreground mb-1">Tidal Link</label>
+                                    <Input
+                                      type="url"
+                                      placeholder="https://listen.tidal.com/..."
+                                      value={form.tidal}
+                                      disabled={form.uploading}
+                                      onChange={(e) => setVideoForms((prev) => ({
+                                        ...prev,
+                                        [usr.id]: { ...(prev[usr.id] || getDefaultVideoForm()), tidal: e.target.value },
+                                      }))}
+                                      className="h-9"
+                                    />
+                                  </div>
+
+                                  {/* YouTube Music */}
+                                  <div className="col-span-12 md:col-span-3">
+                                    <label className="block text-xs text-muted-foreground mb-1">YouTube Music Link</label>
+                                    <Input
+                                      type="url"
+                                      placeholder="https://music.youtube.com/..."
+                                      value={form.youtube_music}
+                                      disabled={form.uploading}
+                                      onChange={(e) => setVideoForms((prev) => ({
+                                        ...prev,
+                                        [usr.id]: { ...(prev[usr.id] || getDefaultVideoForm()), youtube_music: e.target.value },
+                                      }))}
+                                      className="h-9"
+                                    />
+                                  </div>
+
+                                  {/* Find Links Button */}
+                                  <div className="col-span-12">
+                                    <Button
+                                      onClick={() => handleFindMusicLinks(usr.id)}
+                                      size="sm"
+                                      variant="outline"
+                                      disabled={!form.title || form.title.trim() === '' || form.searching || form.uploading}
+                                      className="w-full md:w-auto"
+                                    >
+                                      {form.searching ? "Searching..." : "🔍 Find Links"}
+                                    </Button>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      Auto-search for Spotify, Apple Music, Tidal, and YouTube Music links
+                                    </p>
                                   </div>
 
                                   {/* Add Video Button & Uploading Indicator */}
