@@ -161,13 +161,16 @@ export default function UserProfile() {
 
       {/* Profile Info */}
       <div className="p-4">
-        {/* Profile Picture and Stats */}
-        <div className="flex items-center gap-6 mb-4">
-          <img
-            src={profile.avatar_url || "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200&h=200&fit=crop"}
-            alt="Profile"
-            className="w-20 h-20 rounded-full object-cover"
-          />
+        {/* Profile Picture */}
+        <div className="flex items-start gap-4 mb-4">
+          <div className="flex flex-col items-center">
+            <img
+              src={profile.avatar_url || "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200&h=200&fit=crop"}
+              alt="Profile"
+              className="w-20 h-20 rounded-full object-cover mb-2"
+            />
+            <div className="font-semibold text-center">{profile.display_name || profile.username}</div>
+          </div>
           
           <div className="flex-1 flex justify-around">
             <div className="text-center">
@@ -185,9 +188,8 @@ export default function UserProfile() {
           </div>
         </div>
 
-        {/* Name and Bio */}
+        {/* Bio */}
         <div className="mb-4">
-          <div className="font-semibold mb-1">{profile.display_name || profile.username}</div>
           <div className="text-sm text-white/80 whitespace-pre-line">
             {profile.bio || "No bio yet"}
           </div>
