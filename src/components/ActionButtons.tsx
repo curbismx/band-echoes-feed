@@ -364,20 +364,6 @@ export const ActionButtons = ({
           <img src={plusIcon} alt="Add" className="h-[30px] w-[30px]" />
         </button>
       </div>
-
-      {/* Account */}
-      <div className="relative h-[30px] mt-[40px]">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            triggerHaptic();
-            navigate("/profile");
-          }}
-          className="action-button flex items-center justify-center"
-        >
-          <img src={accountIcon} alt="Account" className="h-[30px] w-[30px]" />
-        </button>
-      </div>
     </div>
   );
 };
