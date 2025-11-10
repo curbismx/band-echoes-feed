@@ -87,7 +87,7 @@ const Admin = () => {
   });
   const [userVideos, setUserVideos] = useState<Record<string, any[]>>({});
   const [editingVideo, setEditingVideo] = useState<string | null>(null);
-  const [videoEditForm, setVideoEditForm] = useState<{ title: string; description: string; itunes: string; spotify: string; tidal: string; youtube_music: string }>({ title: "", description: "", itunes: "", spotify: "", tidal: "", youtube_music: "" });
+  const [videoEditForm, setVideoEditForm] = useState<{ title: string; description: string; itunes: string; spotify: string; tidal: string; youtube_music: string; searching: boolean }>({ title: "", description: "", itunes: "", spotify: "", tidal: "", youtube_music: "", searching: false });
 
 
   useEffect(() => {
@@ -685,7 +685,44 @@ const Admin = () => {
       spotify,
       tidal,
       youtube_music,
+      searching: false,
     });
+  };
+
+  const handleFindLinksForEdit = async () => {
+    if (!videoEditForm.title.trim()) {
+      toast.error("Please add a title first to search for music links");
+      return;
+    }
+
+    setVideoEditForm({ ...videoEditForm, searching: true });
+    try {
+      const { data, error } = await supabase.functions.invoke('find-music-links', {
+        body: { title: videoEditForm.title.trim() }
+      });
+
+      if (error) throw error;
+
+      if (data.success && data.links) {
+        setVideoEditForm({
+          ...videoEditForm,
+          itunes: data.links.apple_music || videoEditForm.itunes,
+          spotify: data.links.spotify || videoEditForm.spotify,
+          tidal: data.links.tidal || videoEditForm.tidal,
+          youtube_music: data.links.youtube_music || videoEditForm.youtube_music,
+          searching: false,
+        });
+        
+        toast.success(`Found links for: ${data.track_name || videoEditForm.title}`);
+      } else {
+        toast.error("No links found. Try adding artist name to the title");
+        setVideoEditForm({ ...videoEditForm, searching: false });
+      }
+    } catch (error) {
+      console.error("Find links error:", error);
+      toast.error("Unable to find music links. Please try again.");
+      setVideoEditForm({ ...videoEditForm, searching: false });
+    }
   };
 
   const handleSaveVideoEdit = async (videoId: string) => {
@@ -991,7 +1028,7 @@ const Admin = () => {
                                     <div className="space-y-2">
                                       {userVideos[usr.id].map((video) => (
                                         <div key={video.id} className="bg-card rounded-lg p-3 border border-border">
-                                          {editingVideo === video.id ? (
+                                           {editingVideo === video.id ? (
                                             <div className="space-y-2">
                                               <Input
                                                 placeholder="Video Title"
@@ -1006,6 +1043,18 @@ const Admin = () => {
                                                 onChange={(e) => setVideoEditForm({ ...videoEditForm, description: e.target.value })}
                                                 className="min-h-[60px] resize-none"
                                               />
+                                              <div className="flex items-center justify-between gap-2">
+                                                <span className="text-xs text-muted-foreground">Music Links</span>
+                                                <Button
+                                                  onClick={handleFindLinksForEdit}
+                                                  disabled={videoEditForm.searching || !videoEditForm.title.trim()}
+                                                  variant="outline"
+                                                  size="sm"
+                                                  className="text-xs h-7"
+                                                >
+                                                  {videoEditForm.searching ? "Searching..." : "Find Links"}
+                                                </Button>
+                                              </div>
                                               <Input
                                                 placeholder="iTunes Link"
                                                 value={videoEditForm.itunes}
