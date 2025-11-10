@@ -87,7 +87,7 @@ const Admin = () => {
   });
   const [userVideos, setUserVideos] = useState<Record<string, any[]>>({});
   const [editingVideo, setEditingVideo] = useState<string | null>(null);
-  const [videoEditForm, setVideoEditForm] = useState<{ title: string; description: string; itunes: string; spotify: string; tidal: string; youtube_music: string; searching: boolean }>({ title: "", description: "", itunes: "", spotify: "", tidal: "", youtube_music: "", searching: false });
+  const [videoEditForm, setVideoEditForm] = useState<{ title: string; description: string; itunes: string; spotify: string; tidal: string; youtube_music: string; searching: boolean; newVideoFile: File | null; uploading: boolean }>({ title: "", description: "", itunes: "", spotify: "", tidal: "", youtube_music: "", searching: false, newVideoFile: null, uploading: false });
 
 
   useEffect(() => {
@@ -686,6 +686,8 @@ const Admin = () => {
       tidal,
       youtube_music,
       searching: false,
+      newVideoFile: null,
+      uploading: false,
     });
   };
 
@@ -725,28 +727,62 @@ const Admin = () => {
     }
   };
 
-  const handleSaveVideoEdit = async (videoId: string) => {
+  const handleSaveVideoEdit = async (videoId: string, userId: string) => {
+    if (videoEditForm.uploading) return;
+    
     try {
+      setVideoEditForm({ ...videoEditForm, uploading: true });
+      
+      let videoUrl: string | undefined;
+      
+      // If a new video file is provided, upload it
+      if (videoEditForm.newVideoFile) {
+        const fileExt = videoEditForm.newVideoFile.name.split(".").pop();
+        const fileName = `${Date.now()}.${fileExt}`;
+        const filePath = `${userId}/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("videos")
+          .upload(filePath, videoEditForm.newVideoFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from("videos")
+          .getPublicUrl(filePath);
+
+        videoUrl = publicUrl;
+      }
+
       const links = [videoEditForm.itunes, videoEditForm.spotify, videoEditForm.tidal, videoEditForm.youtube_music]
         .filter(u => !!u && u.trim() !== "")
         .map(url => ({ url }));
 
+      const updateData: any = {
+        title: videoEditForm.title || null,
+        caption: videoEditForm.description || null,
+        links,
+      };
+
+      // Only update video_url if a new video was uploaded
+      if (videoUrl) {
+        updateData.video_url = videoUrl;
+      }
+
       const { error } = await supabase
         .from("videos")
-        .update({
-          title: videoEditForm.title || null,
-          caption: videoEditForm.description || null,
-          links,
-        })
+        .update(updateData)
         .eq("id", videoId);
 
       if (error) throw error;
       toast.success("Video updated");
       setEditingVideo(null);
+      setVideoEditForm({ ...videoEditForm, uploading: false, newVideoFile: null });
       fetchCreatedUsers();
     } catch (e: any) {
       console.error("Update video error:", e);
       toast.error(e.message || "Failed to update video");
+      setVideoEditForm({ ...videoEditForm, uploading: false });
     }
   };
 
@@ -1030,6 +1066,37 @@ const Admin = () => {
                                         <div key={video.id} className="bg-card rounded-lg p-3 border border-border">
                                            {editingVideo === video.id ? (
                                             <div className="space-y-2">
+                                              <div className="flex items-center gap-2">
+                                                <video src={video.video_url} className="w-32 h-20 object-cover rounded" controls />
+                                                <div className="flex-1">
+                                                  <label className="cursor-pointer">
+                                                    <input
+                                                      type="file"
+                                                      accept="video/*"
+                                                      className="hidden"
+                                                      disabled={videoEditForm.uploading}
+                                                      onChange={(e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (file) {
+                                                          setVideoEditForm({ ...videoEditForm, newVideoFile: file });
+                                                        }
+                                                      }}
+                                                    />
+                                                    <Button
+                                                      type="button"
+                                                      variant="outline"
+                                                      size="sm"
+                                                      disabled={videoEditForm.uploading}
+                                                      asChild
+                                                    >
+                                                      <span>
+                                                        <Upload className="w-4 h-4 mr-2" />
+                                                        {videoEditForm.newVideoFile ? "New video selected" : "Replace Video"}
+                                                      </span>
+                                                    </Button>
+                                                  </label>
+                                                </div>
+                                              </div>
                                               <Input
                                                 placeholder="Video Title"
                                                 value={videoEditForm.title}
@@ -1080,8 +1147,34 @@ const Admin = () => {
                                                 className="h-8"
                                               />
                                               <div className="flex gap-2">
-                                                <Button size="sm" onClick={() => handleSaveVideoEdit(video.id)}>Save</Button>
-                                                <Button variant="ghost" size="sm" onClick={() => setEditingVideo(null)}>Cancel</Button>
+                                                <Button 
+                                                  size="sm" 
+                                                  onClick={() => handleSaveVideoEdit(video.id, usr.id)}
+                                                  disabled={videoEditForm.uploading}
+                                                >
+                                                  {videoEditForm.uploading ? "Saving..." : "Save"}
+                                                </Button>
+                                                <Button 
+                                                  variant="ghost" 
+                                                  size="sm" 
+                                                  onClick={() => setEditingVideo(null)}
+                                                  disabled={videoEditForm.uploading}
+                                                >
+                                                  Cancel
+                                                </Button>
+                                                <Button
+                                                  variant="destructive"
+                                                  size="sm"
+                                                  onClick={() => {
+                                                    setEditingVideo(null);
+                                                    handleDeleteVideo(video.id, usr.id);
+                                                  }}
+                                                  disabled={videoEditForm.uploading}
+                                                  className="ml-auto"
+                                                >
+                                                  <Trash2 className="w-4 h-4 mr-2" />
+                                                  Delete
+                                                </Button>
                                               </div>
                                             </div>
                                           ) : (
