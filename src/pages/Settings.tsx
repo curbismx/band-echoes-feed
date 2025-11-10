@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronLeft, Plus, Edit2, Trash2, ChevronDown, ChevronRight } from "lucide-react";
+import { Plus, Edit2, Trash2, ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -234,18 +234,39 @@ const Settings = () => {
     return null;
   }
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/");
+  };
+
   return (
     <div className="min-h-screen bg-background p-8">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto pb-20">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8 pb-4 border-b border-border">
-          <button
+        <div className="flex items-center gap-8 mb-8 pb-4 border-b border-border">
+          <h1 className="text-xl font-normal text-foreground">Admin</h1>
+          <button 
             onClick={() => navigate("/admin")}
-            className="p-2 hover:bg-muted rounded-lg transition-colors"
+            className="text-xl font-normal text-foreground hover:text-primary transition-colors"
           >
-            <ChevronLeft className="w-5 h-5" />
+            User Accounts
           </button>
-          <h1 className="text-2xl font-semibold text-foreground">Settings</h1>
+          <button 
+            className="text-xl font-normal text-foreground hover:text-primary transition-colors"
+          >
+            Manage Admins
+          </button>
+          <button 
+            className="text-xl font-normal text-primary border-b-2 border-primary pb-1 transition-colors"
+          >
+            Settings
+          </button>
+          <button 
+            onClick={handleLogout}
+            className="text-xl font-normal text-foreground hover:text-primary transition-colors ml-auto"
+          >
+            Logout
+          </button>
         </div>
 
         {/* Content Area */}

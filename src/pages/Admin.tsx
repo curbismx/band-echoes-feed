@@ -1423,8 +1423,8 @@ const Admin = () => {
                 <div className="col-span-3">Display Name</div>
                 <div className="col-span-2">Username</div>
                 <div className="col-span-3">Email</div>
-                <div className="col-span-2">Role</div>
-                <div className="col-span-1">Actions</div>
+                <div className="col-span-1">Role</div>
+                <div className="col-span-2">Actions</div>
               </div>
 
               <div className="divide-y divide-border">
@@ -1450,7 +1450,7 @@ const Admin = () => {
                       <div className="col-span-3 text-foreground">{userItem.display_name || "—"}</div>
                       <div className="col-span-2 text-muted-foreground">{userItem.username || "—"}</div>
                       <div className="col-span-3 text-muted-foreground">{userItem.email || "—"}</div>
-                      <div className="col-span-2">
+                      <div className="col-span-1">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                           userItem.isAdmin 
                             ? "bg-primary/10 text-primary" 
@@ -1459,13 +1459,14 @@ const Admin = () => {
                           {userItem.isAdmin ? "Admin" : "User"}
                         </span>
                       </div>
-                      <div className="col-span-1">
-                        <div className="flex gap-1">
+                      <div className="col-span-2">
+                        <div className="flex flex-col gap-2">
                           <Button
                             variant={userItem.isAdmin ? "destructive" : "default"}
                             size="sm"
                             onClick={() => toggleAdminRole(userItem.id, userItem.isAdmin)}
                             disabled={userItem.id === user?.id}
+                            className="w-full"
                           >
                             {userItem.isAdmin ? "Remove" : "Grant"}
                           </Button>
@@ -1474,8 +1475,9 @@ const Admin = () => {
                             size="sm"
                             onClick={() => handleDeleteFromManageAdmins(userItem.id, userItem.username || userItem.display_name || "user")}
                             disabled={userItem.id === user?.id}
+                            className="w-full"
                           >
-                            Del
+                            Delete
                           </Button>
                         </div>
                       </div>
