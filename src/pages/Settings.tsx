@@ -188,7 +188,7 @@ const Settings = () => {
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-2xl font-semibold text-foreground">Feed Algorithm Settings</h1>
+          <h1 className="text-2xl font-semibold text-foreground">Settings</h1>
         </div>
 
         {/* Content Area */}
