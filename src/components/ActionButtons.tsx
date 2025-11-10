@@ -322,7 +322,7 @@ export const ActionButtons = ({
             />
           ) : (
             <img 
-              src={circleIcon} 
+              src={accountIcon} 
               alt="Artist" 
               className="h-[30px] w-[30px]"
               draggable={false}
