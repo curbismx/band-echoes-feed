@@ -12,7 +12,7 @@ export const detectPlatform = (url: string): { platform: string; icon: string } 
   } else if (urlLower.includes('music.apple.com') || urlLower.includes('itunes.apple.com')) {
     return { platform: 'Apple Music', icon: '🍎' };
   } else if (urlLower.includes('youtube.com') || urlLower.includes('youtu.be')) {
-    return { platform: 'YouTube', icon: '▶️' };
+    return { platform: 'YouTube Music', icon: '▶️' };
   } else if (urlLower.includes('soundcloud.com')) {
     return { platform: 'SoundCloud', icon: '☁️' };
   } else if (urlLower.includes('tidal.com')) {
