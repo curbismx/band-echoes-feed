@@ -101,6 +101,8 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
   useEffect(() => {
     if (videoRef.current) {
       if (isActive && !isGloballyPaused) {
+        // Always reset to beginning when video becomes active
+        videoRef.current.currentTime = 0;
         videoRef.current.play().catch(() => {
           // Handle autoplay restrictions
         });
