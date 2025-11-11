@@ -21,14 +21,23 @@ export const VideoFeed = () => {
   const [allVideos, setAllVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Shuffle array using Fisher-Yates algorithm
+  const shuffleArray = <T,>(array: T[]): T[] => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
   // Fetch videos from database
   useEffect(() => {
     const fetchVideos = async () => {
       // First fetch videos
       const { data: videosData, error: videosError } = await supabase
         .from("videos")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .select("*");
 
       if (videosError || !videosData) {
         console.error("Error fetching videos:", videosError);
@@ -65,8 +74,11 @@ export const VideoFeed = () => {
         };
       });
       
-      setVideos(formattedVideos);
-      setAllVideos(formattedVideos);
+      // Randomize the video order
+      const shuffledVideos = shuffleArray(formattedVideos);
+      
+      setVideos(shuffledVideos);
+      setAllVideos(shuffledVideos);
       setLoading(false);
     };
 
