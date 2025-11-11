@@ -73,6 +73,33 @@ export type Database = {
         }
         Relationships: []
       }
+      algorithm_settings: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          factor_id: string
+          id: string
+          priority: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          factor_id: string
+          id?: string
+          priority: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          factor_id?: string
+          id?: string
+          priority?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           created_at: string

@@ -96,8 +96,44 @@ const Settings = () => {
     if (isAdmin && !checkingAdmin) {
       fetchCategories();
       fetchAdmins();
+      fetchAlgorithmSettings();
     }
   }, [isAdmin, checkingAdmin]);
+
+  const fetchAlgorithmSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("algorithm_settings")
+        .select("*")
+        .order("priority", { ascending: true });
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        // Map database settings to UI format
+        const factorsMap = new Map([
+          ["category", { label: "Video Category", description: "Match user's preferred categories" }],
+          ["favorites", { label: "Amount of Favorites", description: "Number of likes/favorites" }],
+          ["rating", { label: "Video Score", description: "Average rating from users" }],
+          ["recency", { label: "Upload Recency", description: "How recently the video was uploaded" }],
+          ["views", { label: "View Count", description: "Total number of views" }],
+          ["following", { label: "Following", description: "Videos from followed artists" }],
+          ["engagement", { label: "Engagement Rate", description: "Comments and shares" }],
+          ["random", { label: "Random", description: "Fallback when no user preference data available" }],
+        ]);
+
+        const loadedFactors = data.map(setting => ({
+          id: setting.factor_id,
+          label: factorsMap.get(setting.factor_id)?.label || setting.factor_id,
+          description: factorsMap.get(setting.factor_id)?.description || "",
+        }));
+
+        setAlgorithmFactors(loadedFactors);
+      }
+    } catch (error: any) {
+      console.error("Error fetching algorithm settings:", error);
+    }
+  };
 
   const fetchAdmins = async () => {
     setAdminsLoading(true);
@@ -315,18 +351,38 @@ const Settings = () => {
     setDropTarget(index);
   };
 
-  const handleDragEnd = () => {
+  const handleDragEnd = async () => {
     if (draggedItem !== null && dropTarget !== null && draggedItem !== dropTarget) {
       const newFactors = [...algorithmFactors];
       const [moved] = newFactors.splice(draggedItem, 1);
       const insertIndex = draggedItem < dropTarget ? dropTarget - 1 : dropTarget;
       newFactors.splice(insertIndex, 0, moved);
       setAlgorithmFactors(newFactors);
+      
+      // Save new priorities to database
+      try {
+        const updates = newFactors.map((factor, index) => ({
+          factor_id: factor.id,
+          priority: index + 1,
+        }));
+
+        for (const update of updates) {
+          const { error } = await supabase
+            .from("algorithm_settings")
+            .update({ priority: update.priority })
+            .eq("factor_id", update.factor_id);
+
+          if (error) throw error;
+        }
+
+        toast.success("Algorithm priority saved");
+      } catch (error: any) {
+        console.error("Error saving algorithm priorities:", error);
+        toast.error("Failed to save algorithm priorities");
+      }
     }
     setDraggedItem(null);
     setDropTarget(null);
-    // TODO: Save to database
-    toast.success("Algorithm priority updated");
   };
 
   if (loading || checkingAdmin) {

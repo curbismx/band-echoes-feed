@@ -21,14 +21,120 @@ export const VideoFeed = () => {
   const [allVideos, setAllVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Shuffle array using Fisher-Yates algorithm
-  const shuffleArray = <T,>(array: T[]): T[] => {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  // Score and sort videos based on algorithm settings
+  const scoreVideos = async (videosData: any[], profilesMap: Map<string, any>) => {
+    // Fetch algorithm settings
+    const { data: algorithmSettings } = await supabase
+      .from("algorithm_settings")
+      .select("*")
+      .eq("enabled", true)
+      .order("priority", { ascending: true });
+
+    // Fetch user's follows if logged in
+    let userFollows: Set<string> = new Set();
+    if (user) {
+      const { data: followsData } = await supabase
+        .from("follows")
+        .select("followed_id")
+        .eq("follower_id", user.id);
+      userFollows = new Set(followsData?.map(f => f.followed_id) || []);
     }
-    return shuffled;
+
+    // Fetch ratings for all videos
+    const { data: ratingsData } = await supabase
+      .from("video_ratings")
+      .select("video_id, rating");
+
+    const ratingsByVideo = new Map<string, number[]>();
+    ratingsData?.forEach(r => {
+      if (!ratingsByVideo.has(r.video_id)) {
+        ratingsByVideo.set(r.video_id, []);
+      }
+      ratingsByVideo.get(r.video_id)?.push(r.rating);
+    });
+
+    // Fetch comments count for engagement
+    const { data: commentsData } = await supabase
+      .from("comments")
+      .select("video_id");
+
+    const commentsByVideo = new Map<string, number>();
+    commentsData?.forEach(c => {
+      commentsByVideo.set(c.video_id, (commentsByVideo.get(c.video_id) || 0) + 1);
+    });
+
+    const now = Date.now();
+    const DAY_MS = 24 * 60 * 60 * 1000;
+
+    // Score each video
+    const scoredVideos = videosData.map((video: any) => {
+      const profile = profilesMap.get(video.user_id);
+      let totalScore = 0;
+
+      algorithmSettings?.forEach((setting, index) => {
+        const weight = algorithmSettings.length - index; // Higher priority = higher weight
+        let factorScore = 0;
+
+        switch (setting.factor_id) {
+          case "favorites":
+            factorScore = video.likes_count || 0;
+            break;
+          
+          case "rating":
+            const ratings = ratingsByVideo.get(video.id) || [];
+            factorScore = ratings.length > 0 
+              ? ratings.reduce((a, b) => a + b, 0) / ratings.length 
+              : 0;
+            break;
+          
+          case "recency":
+            const ageInDays = (now - new Date(video.created_at).getTime()) / DAY_MS;
+            factorScore = Math.max(0, 30 - ageInDays); // Newer = higher score
+            break;
+          
+          case "views":
+            factorScore = video.views_count || 0;
+            break;
+          
+          case "following":
+            factorScore = userFollows.has(video.user_id) ? 100 : 0;
+            break;
+          
+          case "engagement":
+            const comments = commentsByVideo.get(video.id) || 0;
+            factorScore = comments * 2; // Weight comments higher
+            break;
+          
+          case "random":
+            factorScore = Math.random() * 10;
+            break;
+          
+          case "category":
+            // TODO: Implement category matching when user preferences are added
+            factorScore = 0;
+            break;
+        }
+
+        totalScore += factorScore * weight;
+      });
+
+      return {
+        id: video.id,
+        artistName: profile?.display_name || profile?.username || "Unknown Artist",
+        artistUserId: video.user_id,
+        videoUrl: video.video_url,
+        likes: video.likes_count || 0,
+        rating: 0,
+        isFollowing: userFollows.has(video.user_id),
+        title: video.title,
+        caption: video.caption,
+        links: video.links || [],
+        score: totalScore,
+      };
+    });
+
+    // Sort by score (highest first)
+    return scoredVideos.sort((a, b) => b.score - a.score);
   };
 
   // Fetch videos from database
@@ -57,28 +163,11 @@ export const VideoFeed = () => {
         profilesData?.map(p => [p.id, p]) || []
       );
 
-      // Combine videos with profile data
-      const formattedVideos = videosData.map((video: any) => {
-        const profile = profilesMap.get(video.user_id);
-        return {
-          id: video.id,
-          artistName: profile?.display_name || profile?.username || "Unknown Artist",
-          artistUserId: video.user_id,
-          videoUrl: video.video_url,
-          likes: video.likes_count || 0,
-          rating: 0,
-          isFollowing: false,
-          title: video.title,
-          caption: video.caption,
-          links: video.links || [],
-        };
-      });
+      // Score and sort videos using algorithm
+      const sortedVideos = await scoreVideos(videosData, profilesMap);
       
-      // Randomize the video order
-      const shuffledVideos = shuffleArray(formattedVideos);
-      
-      setVideos(shuffledVideos);
-      setAllVideos(shuffledVideos);
+      setVideos(sortedVideos);
+      setAllVideos(sortedVideos);
       setLoading(false);
     };
 
