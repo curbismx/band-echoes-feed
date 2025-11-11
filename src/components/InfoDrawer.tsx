@@ -183,9 +183,18 @@ export const InfoDrawer = ({
         className="fixed inset-0 bg-black/50 animate-fade-in"
         style={{ zIndex: 9998 }}
         onClick={onClose}
-        onTouchStart={(e) => e.stopPropagation()}
-        onTouchMove={(e) => e.stopPropagation()}
-        onTouchEnd={(e) => e.stopPropagation()}
+        onTouchStart={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+        }}
+        onTouchMove={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+        }}
+        onTouchEnd={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+        }}
       />
 
       {/* Drawer */}
@@ -194,9 +203,13 @@ export const InfoDrawer = ({
         style={{ 
           zIndex: 9999,
           height: `${drawerHeight}vh`,
-          transition: isDragging ? 'none' : 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+          transition: isDragging ? 'none' : 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          touchAction: 'none'
         }}
         onClick={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+        onTouchEnd={(e) => e.stopPropagation()}
       >
         {/* Handle bar - Only this area is draggable */}
         <div 
@@ -220,12 +233,26 @@ export const InfoDrawer = ({
         <div 
           className="px-6 pb-6 overflow-y-auto" 
           style={{ height: `calc(${drawerHeight}vh - 60px)` }}
-          onTouchStart={(e) => e.stopPropagation()}
-          onTouchMove={(e) => {
-            // Prevent scroll from propagating to video behind
+          onTouchStart={(e) => {
             e.stopPropagation();
           }}
-          onTouchEnd={(e) => e.stopPropagation()}
+          onTouchMove={(e) => {
+            e.stopPropagation();
+            // Only prevent default if not scrolling within the content
+            const target = e.currentTarget;
+            const isScrollable = target.scrollHeight > target.clientHeight;
+            const isAtTop = target.scrollTop === 0;
+            const isAtBottom = target.scrollTop + target.clientHeight >= target.scrollHeight;
+            
+            // Prevent default to stop video swipe if we're scrolling or at scroll boundaries
+            if (!isScrollable || (e.touches[0].clientY < e.changedTouches?.[0]?.clientY && isAtTop) || 
+                (e.touches[0].clientY > e.changedTouches?.[0]?.clientY && isAtBottom)) {
+              e.preventDefault();
+            }
+          }}
+          onTouchEnd={(e) => {
+            e.stopPropagation();
+          }}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Video Info */}
