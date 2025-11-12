@@ -205,9 +205,9 @@ export default function Favorites() {
               </div>
               <button
                 onClick={(e) => handleRemoveFavorite(video.id, e)}
-                className="absolute top-2 right-2 p-1.5 bg-black/50 rounded-full hover:bg-black/70 transition-colors"
+                className="absolute top-2 right-2 p-2 bg-black/50 rounded-full hover:bg-black/70 transition-colors"
               >
-                <img src={threeDots} alt="Remove" className="w-4 h-4" />
+                <img src={threeDots} alt="Remove" className="w-5 h-5 object-contain" />
               </button>
             </div>
           ))}
