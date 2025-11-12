@@ -90,7 +90,7 @@ export default function Favorites() {
 
       {/* Video Grid */}
       <div className="mt-1">
-        <div className="grid grid-cols-3 gap-1">
+        <div className="grid grid-cols-4 gap-1">
           {favoriteVideos.map((video, index) => (
             <div 
               key={video.id} 
