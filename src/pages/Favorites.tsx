@@ -8,7 +8,8 @@ export default function Favorites() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [favoriteVideos, setFavoriteVideos] = useState<any[]>([]);
-
+  const [thumbs, setThumbs] = useState<Record<string, string>>({});
+ 
   useEffect(() => {
     if (!user) {
       navigate("/auth");
@@ -81,6 +82,58 @@ export default function Favorites() {
     fetchFavorites();
   }, [user]);
 
+  // Generate on-the-fly thumbnails for videos missing thumbnail_url
+  useEffect(() => {
+    const captureFirstFrame = (url: string): Promise<string | null> => {
+      return new Promise((resolve) => {
+        try {
+          const videoEl = document.createElement("video");
+          videoEl.crossOrigin = "anonymous";
+          videoEl.src = url;
+          videoEl.preload = "metadata";
+          videoEl.muted = true;
+          videoEl.playsInline = true;
+
+          const onLoaded = () => {
+            const width = videoEl.videoWidth || 540;
+            const height = videoEl.videoHeight || 960;
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) {
+              resolve(null);
+              return;
+            }
+            ctx.drawImage(videoEl, 0, 0, width, height);
+            try {
+              const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
+              resolve(dataUrl);
+            } catch (e) {
+              resolve(null);
+            }
+          };
+
+          videoEl.addEventListener("loadeddata", onLoaded, { once: true });
+          videoEl.addEventListener("error", () => resolve(null), { once: true });
+        } catch {
+          resolve(null);
+        }
+      });
+    };
+
+    const toProcess = favoriteVideos.filter(v => !v.thumbnail && v.videoUrl && !thumbs[v.id]);
+    if (toProcess.length === 0) return;
+
+    toProcess.forEach(async (v) => {
+      const dataUrl = await captureFirstFrame(v.videoUrl);
+      if (dataUrl) {
+        setThumbs((prev) => ({ ...prev, [v.id]: dataUrl }));
+      }
+    });
+  }, [favoriteVideos, thumbs]);
+
+
   return (
     <div className="min-h-screen text-white" style={{ backgroundColor: "#252525" }}>
       {/* Header */}
@@ -104,10 +157,10 @@ export default function Favorites() {
               className="relative aspect-[9/16] bg-white/5 cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => navigate("/", { state: { favoriteVideos, startIndex: index } })}
             >
-              {video.thumbnail ? (
+              {(video.thumbnail || thumbs[video.id]) ? (
                 <img
-                  src={video.thumbnail}
-                  alt="Video thumbnail"
+                  src={video.thumbnail || thumbs[video.id]}
+                  alt={video.title ? `${video.title} thumbnail` : "Video thumbnail"}
                   className="w-full h-full object-cover"
                 />
               ) : (
