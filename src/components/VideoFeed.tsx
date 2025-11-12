@@ -53,6 +53,16 @@ export const VideoFeed = () => {
       ratingsByVideo.get(r.video_id)?.push(r.rating);
     });
 
+    // Fetch actual favorites count from favorites table
+    const { data: favoritesData } = await supabase
+      .from("favorites")
+      .select("video_id");
+
+    const favoritesByVideo = new Map<string, number>();
+    favoritesData?.forEach(f => {
+      favoritesByVideo.set(f.video_id, (favoritesByVideo.get(f.video_id) || 0) + 1);
+    });
+
     // Fetch comments count for engagement
     const { data: commentsData } = await supabase
       .from("comments")
@@ -77,7 +87,7 @@ export const VideoFeed = () => {
 
         switch (setting.factor_id) {
           case "favorites":
-            factorScore = video.likes_count || 0;
+            factorScore = favoritesByVideo.get(video.id) || 0;
             break;
           
           case "rating":
@@ -123,7 +133,7 @@ export const VideoFeed = () => {
         artistName: profile?.display_name || profile?.username || "Unknown Artist",
         artistUserId: video.user_id,
         videoUrl: video.video_url,
-        likes: video.likes_count || 0,
+        likes: favoritesByVideo.get(video.id) || 0,
         rating: 0,
         isFollowing: userFollows.has(video.user_id),
         title: video.title,
