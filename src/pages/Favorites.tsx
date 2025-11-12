@@ -97,11 +97,17 @@ export default function Favorites() {
               className="relative aspect-[9/16] bg-white/5 cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => navigate("/", { state: { favoriteVideos, startIndex: index } })}
             >
-              <img
-                src={video.thumbnail}
-                alt="Video thumbnail"
-                className="w-full h-full object-cover"
-              />
+              {video.thumbnail ? (
+                <img
+                  src={video.thumbnail}
+                  alt="Video thumbnail"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                  <div className="text-white/40 text-4xl">♪</div>
+                </div>
+              )}
               <div className="absolute bottom-2 left-2 text-white text-xs font-semibold drop-shadow-lg">
                 {video.artistName}
               </div>
