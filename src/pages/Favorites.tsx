@@ -164,9 +164,13 @@ export default function Favorites() {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                  <div className="text-white/40 text-4xl">♪</div>
-                </div>
+                <video
+                  src={video.videoUrl}
+                  className="w-full h-full object-cover"
+                  muted
+                  playsInline
+                  preload="metadata"
+                />
               )}
               <div className="absolute bottom-2 left-2 text-white text-xs font-semibold drop-shadow-lg">
                 {video.artistName}
