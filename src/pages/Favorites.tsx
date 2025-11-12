@@ -197,7 +197,10 @@ export default function Favorites() {
                   className="w-full h-full object-cover"
                   muted
                   playsInline
-                  preload="metadata"
+                  autoPlay
+                  loop
+                  preload="auto"
+                  controls={false}
                 />
               )}
               <div className="absolute bottom-2 left-2 text-white text-xs font-semibold drop-shadow-lg">
