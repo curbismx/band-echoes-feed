@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { ChevronLeft } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import threeDots from "@/assets/3-dots.png";
+import { toast } from "@/hooks/use-toast";
 
 export default function Favorites() {
   const navigate = useNavigate();
@@ -81,6 +83,32 @@ export default function Favorites() {
 
     fetchFavorites();
   }, [user]);
+
+  const handleRemoveFavorite = async (videoId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!user) return;
+
+    const { error } = await supabase
+      .from("favorites")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("video_id", videoId);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to remove favorite",
+        variant: "destructive",
+      });
+    } else {
+      setFavoriteVideos(prev => prev.filter(v => v.id !== videoId));
+      toast({
+        title: "Removed",
+        description: "Video removed from favorites",
+      });
+    }
+  };
 
   // Generate on-the-fly thumbnails for videos missing thumbnail_url
   useEffect(() => {
@@ -175,6 +203,12 @@ export default function Favorites() {
               <div className="absolute bottom-2 left-2 text-white text-xs font-semibold drop-shadow-lg">
                 {video.artistName}
               </div>
+              <button
+                onClick={(e) => handleRemoveFavorite(video.id, e)}
+                className="absolute top-2 right-2 p-1.5 bg-black/50 rounded-full hover:bg-black/70 transition-colors"
+              >
+                <img src={threeDots} alt="Remove" className="w-4 h-4" />
+              </button>
             </div>
           ))}
         </div>
