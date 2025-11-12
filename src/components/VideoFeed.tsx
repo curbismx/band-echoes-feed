@@ -8,7 +8,7 @@ export const VideoFeed = () => {
   const { user } = useAuth();
   const location = useLocation();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
   const [isGloballyPaused, setIsGloballyPaused] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
