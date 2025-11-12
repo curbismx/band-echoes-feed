@@ -17,14 +17,21 @@ export default function Favorites() {
 
   // Fetch real favorite videos
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      console.log("No user in Favorites page");
+      return;
+    }
+
+    console.log("Fetching favorites for user:", user.id);
 
     const fetchFavorites = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("favorites")
         .select("video_id")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
+
+      console.log("Favorites fetch result:", { data, error, dataLength: data?.length });
 
       if (data) {
         // Fetch actual videos that are favorited
