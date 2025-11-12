@@ -201,6 +201,10 @@ export default function Favorites() {
                   loop
                   preload="auto"
                   controls={false}
+                  poster="/placeholder.svg"
+                  onLoadedMetadata={(e) => {
+                    try { e.currentTarget.currentTime = 0.1; } catch {}
+                  }}
                 />
               )}
               <div className="absolute bottom-2 left-2 text-white text-xs font-semibold drop-shadow-lg">
