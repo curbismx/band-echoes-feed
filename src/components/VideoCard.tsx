@@ -263,7 +263,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
           className="absolute z-20 pointer-events-auto"
           style={{
             left: '30px',
-            bottom: '55px',
+            bottom: '60px',
             maxWidth: 'calc(65% - 50px)',
           }}
         >
