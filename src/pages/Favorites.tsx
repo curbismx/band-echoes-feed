@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { ChevronLeft } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import threeDots from "@/assets/3-dots.png";
+import heartRedIcon from "@/assets/heart-red.png";
 import { toast } from "@/hooks/use-toast";
 
 export default function Favorites() {
@@ -212,7 +212,7 @@ export default function Favorites() {
                 onClick={(e) => handleRemoveFavorite(video.id, e)}
                 className="absolute top-2 right-2 p-2 bg-black/50 rounded-full hover:bg-black/70 transition-colors"
               >
-                <img src={threeDots} alt="Remove" className="w-5 h-5 object-contain" />
+                <img src={heartRedIcon} alt="Remove from favorites" className="w-5 h-5 object-contain" />
               </button>
             </div>
           ))}
