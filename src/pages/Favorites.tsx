@@ -197,9 +197,7 @@ export default function Favorites() {
                   className="w-full h-full object-cover"
                   muted
                   playsInline
-                  autoPlay
-                  loop
-                  preload="auto"
+                  preload="metadata"
                   controls={false}
                   poster="/placeholder.svg"
                   onLoadedMetadata={(e) => {
