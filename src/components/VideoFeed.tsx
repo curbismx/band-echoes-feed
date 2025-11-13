@@ -209,7 +209,7 @@ export const VideoFeed = () => {
     }
   }, [location.state]);
 
-  const minSwipeDistance = 50;
+  const minSwipeDistance = 80; // Increased for more deliberate swipes
 
   const onTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(0);
@@ -305,7 +305,7 @@ export const VideoFeed = () => {
         className="relative h-full"
         style={{
           transform: `translateY(calc(-${currentIndex * 100}vh + ${dragOffset}px))`,
-          transition: isDragging ? 'none' : 'transform 0.5s ease-out',
+          transition: isDragging ? 'none' : 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
       >
         {videos.map((video, index) => (
