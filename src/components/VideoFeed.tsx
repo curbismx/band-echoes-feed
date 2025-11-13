@@ -247,6 +247,8 @@ export const VideoFeed = () => {
         // At the end, loop back to the first video
         setCurrentIndex(0);
       }
+      // Ensure next video auto-plays
+      setIsGloballyPaused(false);
     } else if (isDownSwipe) {
       if (currentIndex > 0) {
         setCurrentIndex((prev) => prev - 1);
@@ -254,6 +256,8 @@ export const VideoFeed = () => {
         // At the beginning, loop to the last video
         setCurrentIndex(videos.length - 1);
       }
+      // Ensure previous video auto-plays
+      setIsGloballyPaused(false);
     }
     
     // Reset drag offset
@@ -270,6 +274,8 @@ export const VideoFeed = () => {
           // At the end, loop back to the first video
           setCurrentIndex(0);
         }
+        // Ensure next video auto-plays
+        setIsGloballyPaused(false);
       }
       if (e.key === "ArrowUp") {
         if (currentIndex > 0) {
@@ -278,6 +284,8 @@ export const VideoFeed = () => {
           // At the beginning, loop to the last video
           setCurrentIndex(videos.length - 1);
         }
+        // Ensure previous video auto-plays
+        setIsGloballyPaused(false);
       }
     };
 
