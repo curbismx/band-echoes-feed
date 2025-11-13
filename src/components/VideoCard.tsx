@@ -226,7 +226,14 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         loop
         playsInline
         muted={isMuted}
+        preload="auto"
         onClick={handleVideoClick}
+        onError={(e) => {
+          console.error("Video load error:", video.videoUrl, e);
+        }}
+        onLoadedData={() => {
+          console.log("Video loaded successfully:", video.videoUrl);
+        }}
       />
 
       {/* Click area for video pause/play */}
