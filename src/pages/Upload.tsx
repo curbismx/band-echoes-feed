@@ -286,7 +286,7 @@ const Upload = () => {
       {step === 1 && (
         <>
           <div className="flex items-center justify-between p-4">
-            <button onClick={() => navigate("/profile")} className="text-white">
+            <button onClick={() => navigate(-1)} className="text-white">
               <X size={28} />
             </button>
             <h1 className="text-white text-lg font-semibold">{editVideoId ? "Edit post" : "New post"}</h1>
@@ -317,7 +317,7 @@ const Upload = () => {
       {step === 2 && (
         <>
           <div className="flex items-center justify-between p-4">
-            <button onClick={() => editVideoId ? navigate("/profile") : setStep(1)} className="text-white">
+            <button onClick={() => editVideoId ? navigate(-1) : setStep(1)} className="text-white">
               <ArrowLeft size={28} />
             </button>
             <h1 className="text-white text-lg font-semibold">{editVideoId ? "Edit post" : "New post"}</h1>
