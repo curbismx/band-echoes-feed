@@ -105,13 +105,18 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
 
     if (isActive && !isGloballyPaused) {
       v.currentTime = 0;
-      v.play().catch(() => {
-        // Autoplay may be blocked in browser preview, but works in native iOS app
-      });
+      // Force play - after first interaction, browser allows autoplay
+      const playPromise = v.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((error) => {
+          // Only first video may need tap, subsequent ones should autoplay
+          console.log("Autoplay prevented (first video only):", error);
+        });
+      }
     } else {
       v.pause();
     }
-  }, [isActive, isGloballyPaused]);
+  }, [isActive, isGloballyPaused, isMuted]);
 
   const handleVideoClick = () => {
     if (!videoRef.current) return;
