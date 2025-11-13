@@ -284,7 +284,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
             <img 
               src={artistAvatar} 
               alt={video.artistName}
-              className="w-[32px] h-[32px] rounded-full object-cover mb-2 border-2 border-white"
+              className="w-[32px] h-[32px] rounded-full object-cover mb-[13px] border-2 border-white"
             />
           </button>
         )}
@@ -299,7 +299,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
             e.preventDefault();
             navigate(`/user/${video.artistUserId}`);
           }}
-          className="font-bold text-white drop-shadow-lg mb-1 cursor-pointer hover:underline text-left touch-manipulation"
+          className="font-bold text-white drop-shadow-lg mb-1 cursor-pointer hover:underline text-left touch-manipulation pt-[5px]"
         >
           {video.artistName}
         </button>
@@ -309,7 +309,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
           </div>
         )}
         {video.caption && (
-          <div className="font-normal text-white drop-shadow-lg text-sm leading-relaxed mb-3 pointer-events-none line-clamp-2">
+          <div className="font-normal text-white drop-shadow-lg text-sm leading-relaxed mb-[17px] pointer-events-none line-clamp-2">
             {video.caption}
           </div>
         )}
