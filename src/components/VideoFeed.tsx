@@ -8,7 +8,7 @@ export const VideoFeed = () => {
   const { user } = useAuth();
   const location = useLocation();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
   const [isGloballyPaused, setIsGloballyPaused] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
@@ -128,19 +128,20 @@ export const VideoFeed = () => {
         totalScore += factorScore * weight;
       });
 
-      return {
-        id: video.id,
-        artistName: profile?.display_name || profile?.username || "Unknown Artist",
-        artistUserId: video.user_id,
-        videoUrl: video.video_url,
-        likes: favoritesByVideo.get(video.id) || 0,
-        rating: 0,
-        isFollowing: userFollows.has(video.user_id),
-        title: video.title,
-        caption: video.caption,
-        links: video.links || [],
-        score: totalScore,
-      };
+       return {
+         id: video.id,
+         artistName: profile?.display_name || profile?.username || "Unknown Artist",
+         artistUserId: video.user_id,
+         videoUrl: video.video_url,
+         likes: favoritesByVideo.get(video.id) || 0,
+         rating: 0,
+         isFollowing: userFollows.has(video.user_id),
+         title: video.title,
+         caption: video.caption,
+         links: video.links || [],
+         posterUrl: video.thumbnail_url,
+         score: totalScore,
+       };
     });
 
     // Sort by score (highest first)

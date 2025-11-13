@@ -22,6 +22,7 @@ interface Video {
   title?: string;
   caption?: string;
   links?: Array<{ url: string }>;
+  posterUrl?: string;
 }
 
 interface VideoCardProps {
@@ -140,22 +141,23 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     }
     
     tapTimeoutRef.current = setTimeout(() => {
-      if (!videoRef.current) return;
+      const v = videoRef.current;
+      if (!v) return;
       
       // On first interaction: unmute and ensure playback without pausing
       if (isMuted) {
-        videoRef.current.muted = false;
+        v.muted = false;
         onUnmute();
-        videoRef.current.play().catch(() => {});
+        v.play().catch(() => {});
         onTogglePause(false);
         return;
       }
 
-      if (isGloballyPaused) {
-        videoRef.current.play();
+      if (v.paused) {
+        v.play().catch(() => {});
         onTogglePause(false);
       } else {
-        videoRef.current.pause();
+        v.pause();
         onTogglePause(true);
       }
     }, 300);
@@ -227,6 +229,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         playsInline
         muted={isMuted}
         preload="auto"
+        poster={video.posterUrl || "/placeholder.svg"}
         onClick={handleVideoClick}
         onError={(e) => {
           console.error("Video load error:", video.videoUrl, e);
