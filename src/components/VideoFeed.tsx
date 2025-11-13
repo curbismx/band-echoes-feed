@@ -3,12 +3,12 @@ import { VideoCard } from "./VideoCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-
+import { Capacitor } from "@capacitor/core";
 export const VideoFeed = () => {
   const { user } = useAuth();
   const location = useLocation();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(() => !Capacitor.isNativePlatform());
   const [isGloballyPaused, setIsGloballyPaused] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
