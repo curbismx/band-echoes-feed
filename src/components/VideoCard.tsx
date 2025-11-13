@@ -43,6 +43,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const [isUIHidden, setIsUIHidden] = useState(false);
+  const [showPlayOverlay, setShowPlayOverlay] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const lastTapRef = useRef<number>(0);
   const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -100,16 +101,22 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
   }, [video.artistUserId]);
 
   useEffect(() => {
-    if (videoRef.current) {
-      if (isActive && !isGloballyPaused) {
-        // Always reset to beginning when video becomes active
-        videoRef.current.currentTime = 0;
-        videoRef.current.play().catch(() => {
-          // Handle autoplay restrictions
+    const v = videoRef.current;
+    if (!v) return;
+
+    if (isActive && !isGloballyPaused) {
+      // Reset to beginning when video becomes active and try to play
+      v.currentTime = 0;
+      const p = v.play();
+      if (p && typeof p.then === "function") {
+        p.then(() => setShowPlayOverlay(false)).catch(() => {
+          // Autoplay likely blocked in browser: show overlay prompting tap
+          setShowPlayOverlay(true);
         });
-      } else {
-        videoRef.current.pause();
       }
+    } else {
+      v.pause();
+      setShowPlayOverlay(true);
     }
   }, [isActive, isGloballyPaused]);
 
@@ -226,6 +233,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         src={video.videoUrl}
         className="absolute inset-0 w-[100vw] h-[100vh] object-cover cursor-pointer"
         loop
+        autoPlay
         playsInline
         muted={isMuted}
         preload="auto"
@@ -233,11 +241,28 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         onClick={handleVideoClick}
         onError={(e) => {
           console.error("Video load error:", video.videoUrl, e);
+          setShowPlayOverlay(true);
         }}
         onLoadedData={() => {
           console.log("Video loaded successfully:", video.videoUrl);
         }}
+        onLoadedMetadata={(e) => {
+          try {
+            if (e.currentTarget.currentTime < 0.1) e.currentTarget.currentTime = 0.1;
+          } catch {}
+        }}
+        onPlay={() => setShowPlayOverlay(false)}
+        onPause={() => setShowPlayOverlay(true)}
       />
+
+      {/* Tap-to-Play visual overlay */}
+      {showPlayOverlay && !isUIHidden && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+          <div className="rounded-full bg-background/70 text-foreground px-4 py-2 border border-border/20 text-sm">
+            Tap to play
+          </div>
+        </div>
+      )}
 
       {/* Click area for video pause/play */}
       <div 
