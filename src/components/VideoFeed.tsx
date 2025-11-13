@@ -318,9 +318,9 @@ export const VideoFeed = () => {
             onClick={handleBackToFeed}
             className="flex items-center"
           >
-            <img src={backIcon} alt="Back" className="h-10 w-auto object-contain" />
+            <img src={backIcon} alt="Back" className="h-[30px] w-auto object-contain" />
           </button>
-          <img src={favsIcon} alt="Favourites" className="h-10 w-auto object-contain" />
+          <img src={favsIcon} alt="Favourites" className="h-[30px] w-auto object-contain" />
         </div>
       )}
 
