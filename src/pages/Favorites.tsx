@@ -1,9 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { ChevronLeft } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import heartRedIcon from "@/assets/heart-red.png";
+import backIcon from "@/assets/back.png";
+import favsIcon from "@/assets/favs.png";
 import { toast } from "@/hooks/use-toast";
 
 export default function Favorites() {
@@ -165,15 +166,14 @@ export default function Favorites() {
   return (
     <div className="min-h-screen text-white" style={{ backgroundColor: "#252525" }}>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-white/10">
+      <div className="absolute top-[100px] left-[30px] z-30 flex items-center gap-3">
         <button 
-          onClick={() => navigate("/profile")}
-          className="p-2 -ml-2"
+          onClick={() => navigate("/")}
+          className="flex items-center"
         >
-          <ChevronLeft className="w-6 h-6" />
+          <img src={backIcon} alt="Back" className="h-10 w-auto object-contain" />
         </button>
-        <span className="font-semibold text-lg">Your Favorites</span>
-        <div className="w-10"></div> {/* Spacer for centering */}
+        <img src={favsIcon} alt="Favourites" className="h-10 w-auto object-contain" />
       </div>
 
       {/* Video Grid */}
