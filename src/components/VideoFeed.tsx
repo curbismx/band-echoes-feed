@@ -1,12 +1,15 @@
 import { useState, useRef, useEffect } from "react";
 import { VideoCard } from "./VideoCard";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Capacitor } from "@capacitor/core";
+import backIcon from "@/assets/back.png";
+import favsIcon from "@/assets/favs.png";
 export const VideoFeed = () => {
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMuted, setIsMuted] = useState(() => !Capacitor.isNativePlatform());
   const [isGloballyPaused, setIsGloballyPaused] = useState(false);
@@ -293,6 +296,13 @@ export const VideoFeed = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [currentIndex, videos.length]);
 
+  const handleBackToFeed = () => {
+    setIsPlayingFavorites(false);
+    navigate("/", { replace: true });
+    // Reload all videos
+    window.location.reload();
+  };
+
   return (
     <div
       ref={containerRef}
@@ -301,6 +311,19 @@ export const VideoFeed = () => {
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
     >
+      {/* Back and Favourites icons - shown only when viewing favorites */}
+      {isPlayingFavorites && (
+        <div className="absolute top-[100px] left-[30px] z-30 flex items-center gap-3">
+          <button 
+            onClick={handleBackToFeed}
+            className="flex items-center"
+          >
+            <img src={backIcon} alt="Back" className="h-10 w-auto object-contain" />
+          </button>
+          <img src={favsIcon} alt="Favourites" className="h-10 w-auto object-contain" />
+        </div>
+      )}
+
       <div
         className="relative h-full"
         style={{
