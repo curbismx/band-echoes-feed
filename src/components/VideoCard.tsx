@@ -1,10 +1,12 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ActionButtons } from "./ActionButtons";
 import { useVideoRatings } from "@/hooks/useVideoRatings";
 import { supabase } from "@/integrations/supabase/client";
 import { CommentsDrawer } from "./CommentsDrawer";
 import { InfoDrawer } from "./InfoDrawer";
+import { useHLS } from "@/hooks/useHLS";
+import { PreloadedVideo } from "@/utils/videoPreloader";
 import followOffIcon from "@/assets/follow_OFF.png";
 import followOnIcon from "@/assets/follow_ON.png";
 import followedIcon from "@/assets/followed.png";
@@ -32,10 +34,10 @@ interface VideoCardProps {
   onUnmute: () => void;
   isGloballyPaused: boolean;
   onTogglePause: (paused: boolean) => void;
-  preloadStrategy?: "auto" | "metadata" | "none";
+  preloadedVideo?: PreloadedVideo | null;
 }
 
-export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused, onTogglePause, preloadStrategy = "metadata" }: VideoCardProps) => {
+export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused, onTogglePause, preloadedVideo }: VideoCardProps) => {
   const navigate = useNavigate();
   const [isFollowing, setIsFollowing] = useState(video.isFollowing);
   const [isLiked, setIsLiked] = useState(false);
@@ -44,12 +46,18 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const [isUIHidden, setIsUIHidden] = useState(false);
+  const [isInView, setIsInView] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const lastTapRef = useRef<number>(0);
   const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const resumeTimeRef = useRef<number | null>(null);
+  const hasStartedPlayingRef = useRef(false);
 
   const { averageRating, userRating, submitRating } = useVideoRatings(video.id);
+  
+  // HLS support for adaptive streaming
+  useHLS({ videoRef, src: video.videoUrl, isActive: isActive && isInView });
 
   // Sync state with video prop changes
   useEffect(() => {
@@ -57,12 +65,38 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     setLikes(video.likes);
   }, [video.id, video.isFollowing, video.likes]);
 
-  // Reset UI visibility when switching to a new video
+  // IntersectionObserver for viewport detection
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          setIsInView(entry.isIntersecting && entry.intersectionRatio > 0.5);
+        });
+      },
+      {
+        threshold: [0, 0.5, 1],
+        rootMargin: '100px 0px', // Preload when within 100px of viewport
+      }
+    );
+
+    observer.observe(container);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  // Reset UI visibility and playback state when switching videos
   useEffect(() => {
     if (isActive) {
       setIsUIHidden(false);
+      hasStartedPlayingRef.current = false;
     }
   }, [isActive]);
+
 
   // Check if video is favorited
   useEffect(() => {
@@ -243,14 +277,13 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
   };
 
   return (
-    <div className="relative h-screen w-screen">
+    <div ref={containerRef} className="relative h-screen w-screen">
       {/* Video Background */}
       <video
         ref={videoRef}
-        src={video.videoUrl}
+        src={!video.videoUrl.includes('.m3u8') ? video.videoUrl : undefined}
         className="absolute inset-0 w-[100vw] h-[100vh] object-cover cursor-pointer"
         loop
-        autoPlay
         playsInline
         muted={false}
         preload="auto"
@@ -260,13 +293,15 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         onError={(e) => {
           console.error("Video load error:", video.videoUrl, e);
         }}
-        onLoadedData={() => {
-          console.log("Video loaded successfully:", video.videoUrl);
-        }}
         onCanPlay={() => {
-          // Start playing as soon as enough data is available
-          if (isActive && videoRef.current && videoRef.current.paused) {
-            videoRef.current.play().catch(e => console.log("Autoplay prevented:", e));
+          // Start playing as soon as ~0.3-0.7s of buffer is available
+          const v = videoRef.current;
+          if (v && isActive && isInView && !hasStartedPlayingRef.current) {
+            v.play()
+              .then(() => {
+                hasStartedPlayingRef.current = true;
+              })
+              .catch(e => console.log("Autoplay prevented:", e));
           }
         }}
         onLoadedMetadata={(e) => {
@@ -276,8 +311,6 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
             const t = saved ? parseFloat(saved) : (resumeTimeRef.current ?? 0);
             if (!Number.isNaN(t) && t > 0 && t < (e.currentTarget.duration || Infinity)) {
               e.currentTarget.currentTime = t;
-            } else if (e.currentTarget.currentTime < 0.1) {
-              e.currentTarget.currentTime = 0.1; // avoid black frame on some devices
             }
           } catch {}
         }}

@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Capacitor } from "@capacitor/core";
+import { useVideoPreloader } from "@/hooks/useVideoPreloader";
 import backIcon from "@/assets/back.png";
 import favsIcon from "@/assets/favs.png";
 export const VideoFeed = () => {
@@ -30,6 +31,9 @@ export const VideoFeed = () => {
   const [isPlayingFavorites, setIsPlayingFavorites] = useState(false);
   const [allVideos, setAllVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Video preloader for instant playback
+  const { getPreloadedVideo } = useVideoPreloader(videos, currentIndex);
 
   // Get or create user session for tracking
   const getUserSession = () => {
@@ -507,9 +511,7 @@ export const VideoFeed = () => {
         }}
       >
         {videos.map((video, index) => {
-          const distance = Math.abs(index - currentIndex);
-          // Always use "auto" for immediate streaming playback
-          const preloadStrategy = distance <= 2 ? "auto" : "metadata";
+          const preloadedVideo = getPreloadedVideo(video.videoUrl);
           
           return (
             <VideoCard
@@ -520,7 +522,7 @@ export const VideoFeed = () => {
               onUnmute={() => setIsMuted(false)}
               isGloballyPaused={isGloballyPaused}
               onTogglePause={(paused) => setIsGloballyPaused(paused)}
-              preloadStrategy={preloadStrategy}
+              preloadedVideo={preloadedVideo}
             />
           );
         })}
