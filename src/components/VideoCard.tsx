@@ -173,7 +173,8 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
       let v: HTMLVideoElement;
       if (shouldUsePreloaded && preloadedVideo) {
         v = preloadedVideo.videoElement;
-        v.autoplay = false;
+        v.autoplay = true;
+        v.setAttribute('autoplay', '');
         v.muted = true;
         v.playsInline = true;
         v.setAttribute('playsinline', 'true');
@@ -182,7 +183,8 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         v.loop = true;
       } else {
         v = document.createElement('video');
-        v.autoplay = false;
+        v.autoplay = true;
+        v.setAttribute('autoplay', '');
         v.muted = true;
         v.playsInline = true;
         v.setAttribute('playsinline', 'true');
