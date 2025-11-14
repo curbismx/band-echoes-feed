@@ -143,12 +143,16 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     
     lastTapRef.current = now;
 
-    // Single tap: do nothing (no play/pause on tap)
+    // Single tap: unmute if muted
     if (tapTimeoutRef.current) {
       clearTimeout(tapTimeoutRef.current);
       tapTimeoutRef.current = null;
     }
-    // No action for single tap
+    
+    // Unmute on single tap if currently muted
+    if (isMuted) {
+      onUnmute();
+    }
   };
 
   const handleFollow = async () => {
