@@ -200,6 +200,15 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
               lowLatencyMode: true,
               startFragPrefetch: true,
             });
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+              console.debug('[HLS] Manifest parsed', video.videoUrl);
+              if (!isGloballyPaused && isActive && isInView) {
+                v.play().catch(() => {});
+              }
+            });
+            hls.on(Hls.Events.ERROR, (_e, data) => {
+              console.error('[HLS] Error', data);
+            });
             hls.loadSource(video.videoUrl);
             hls.attachMedia(v);
           } else if (v.canPlayType('application/vnd.apple.mpegurl')) {
