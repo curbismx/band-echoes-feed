@@ -10,7 +10,10 @@ export const VideoFeed = () => {
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(() => {
+    const saved = sessionStorage.getItem('videoFeedIndex');
+    return saved ? parseInt(saved, 10) : 0;
+  });
   const [isMuted, setIsMuted] = useState(() => !Capacitor.isNativePlatform());
   const [isGloballyPaused, setIsGloballyPaused] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
@@ -186,11 +189,27 @@ export const VideoFeed = () => {
       // Restore saved position after videos are loaded (only if not coming from favorites)
       const state = location.state as { favoriteVideos?: any[], startIndex?: number };
       if (!state?.favoriteVideos && location.pathname === '/') {
-        const savedIndex = sessionStorage.getItem('videoFeedIndex');
-        if (savedIndex) {
-          const index = parseInt(savedIndex, 10);
-          if (index >= 0 && index < sortedVideos.length) {
-            setCurrentIndex(index);
+        const savedVideoId = sessionStorage.getItem('videoFeedVideoId');
+        if (savedVideoId) {
+          const byIdIndex = sortedVideos.findIndex(v => v.id === savedVideoId);
+          if (byIdIndex !== -1) {
+            setCurrentIndex(byIdIndex);
+          } else {
+            const savedIndex = sessionStorage.getItem('videoFeedIndex');
+            if (savedIndex) {
+              const index = parseInt(savedIndex, 10);
+              if (index >= 0 && index < sortedVideos.length) {
+                setCurrentIndex(index);
+              }
+            }
+          }
+        } else {
+          const savedIndex = sessionStorage.getItem('videoFeedIndex');
+          if (savedIndex) {
+            const index = parseInt(savedIndex, 10);
+            if (index >= 0 && index < sortedVideos.length) {
+              setCurrentIndex(index);
+            }
           }
         }
       }
@@ -215,10 +234,14 @@ export const VideoFeed = () => {
     };
   }, [location.pathname, location.state]);
 
-  // Save currentIndex to sessionStorage whenever it changes
+  // Save currentIndex and current video id to sessionStorage whenever it changes
   useEffect(() => {
     sessionStorage.setItem('videoFeedIndex', currentIndex.toString());
-  }, [currentIndex]);
+    const currentVideoId = videos[currentIndex]?.id;
+    if (currentVideoId) {
+      sessionStorage.setItem('videoFeedVideoId', currentVideoId);
+    }
+  }, [currentIndex, videos]);
 
   // Check if we're playing favorites from navigation state
   useEffect(() => {
