@@ -514,12 +514,6 @@ export const VideoFeed = () => {
             <VideoCard
               key={video.id}
               video={video}
-              isActive={index === currentIndex}
-              isMuted={isMuted}
-              onUnmute={() => setIsMuted(false)}
-              isGloballyPaused={isGloballyPaused}
-              onTogglePause={(paused) => setIsGloballyPaused(paused)}
-              
             />
           );
         })}
