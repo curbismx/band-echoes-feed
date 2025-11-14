@@ -284,6 +284,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         src={!video.videoUrl.includes('.m3u8') ? video.videoUrl : undefined}
         className="absolute inset-0 w-[100vw] h-[100vh] object-cover cursor-pointer"
         loop
+        autoPlay
         playsInline
         muted={false}
         preload="auto"
