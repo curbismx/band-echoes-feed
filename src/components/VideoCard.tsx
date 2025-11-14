@@ -253,14 +253,21 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         autoPlay
         playsInline
         muted={false}
-        preload={preloadStrategy}
+        preload="auto"
         poster={video.posterUrl || "/placeholder.svg"}
         onClick={handleVideoClick}
+        crossOrigin="anonymous"
         onError={(e) => {
           console.error("Video load error:", video.videoUrl, e);
         }}
         onLoadedData={() => {
           console.log("Video loaded successfully:", video.videoUrl);
+        }}
+        onCanPlay={() => {
+          // Start playing as soon as enough data is available
+          if (isActive && videoRef.current && videoRef.current.paused) {
+            videoRef.current.play().catch(e => console.log("Autoplay prevented:", e));
+          }
         }}
         onLoadedMetadata={(e) => {
           try {

@@ -507,8 +507,8 @@ export const VideoFeed = () => {
         }}
       >
         {videos.map((video, index) => {
-          // Aggressive preloading for smoother experience
           const distance = Math.abs(index - currentIndex);
+          // Always use "auto" for immediate streaming playback
           const preloadStrategy = distance <= 2 ? "auto" : "metadata";
           
           return (
