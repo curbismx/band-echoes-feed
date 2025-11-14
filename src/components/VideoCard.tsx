@@ -103,8 +103,8 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     const v = videoRef.current;
     if (!v) return;
 
-    // Start muted for autoplay; can be unmuted via handleVideoClick + onUnmute
-    v.muted = isMuted;
+    // Always start muted for autoplay
+    v.muted = true;
 
     if (!isActive || isGloballyPaused) {
       v.pause();
@@ -112,27 +112,22 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     }
 
     const playPromise = v.play();
-    if (playPromise !== undefined) {
-      playPromise.catch((error) => {
-        console.log("Autoplay attempt:", error);
-      });
+    if (playPromise && typeof playPromise.then === "function") {
+      playPromise
+        .then(() => {
+          // Once playback has started, unmute if the user has chosen sound
+          if (!isMuted) {
+            v.muted = false;
+          }
+        })
+        .catch((error) => {
+          console.log("Autoplay attempt:", error);
+        });
     }
   }, [isActive, isGloballyPaused, isMuted]);
 
   const handleVideoClick = () => {
-    const v = videoRef.current;
-    if (!v) return;
-
-    // If currently muted, unmute and let parent know
-    if (isMuted) {
-      v.muted = false;
-      onUnmute();
-      const p = v.play();
-      if (p && typeof p.catch === "function") {
-        p.catch(() => {});
-      }
-    }
-    // If already unmuted, do nothing for now (we can add re-mute later if needed)
+    onUnmute();
   };
 
   const handleFollow = async () => {

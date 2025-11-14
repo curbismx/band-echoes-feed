@@ -508,9 +508,8 @@ export const VideoFeed = () => {
         }}
       >
         {videos.map((video, index) => {
-          // Optimize preloading: auto for current/next, metadata for nearby, none for far away
-          const distance = Math.abs(index - currentIndex);
-          const preloadStrategy = distance <= 1 ? "auto" : distance === 2 ? "metadata" : "none";
+          // Optimize preloading: metadata for current, none for others
+          const preloadStrategy = index === currentIndex ? "metadata" : "none";
 
           // Some video objects have `videoUrl`, some have `video_url` (e.g. favorites).
           // Pick whichever exists so we always get a real URL.
