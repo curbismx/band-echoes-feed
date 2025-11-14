@@ -10,7 +10,11 @@ export const VideoFeed = () => {
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(() => {
+    // Restore video position from sessionStorage on mount
+    const savedIndex = sessionStorage.getItem('videoFeedIndex');
+    return savedIndex ? parseInt(savedIndex, 10) : 0;
+  });
   const [isMuted, setIsMuted] = useState(() => !Capacitor.isNativePlatform());
   const [isGloballyPaused, setIsGloballyPaused] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
@@ -202,6 +206,11 @@ export const VideoFeed = () => {
     };
   }, [location.pathname]);
 
+  // Save currentIndex to sessionStorage whenever it changes
+  useEffect(() => {
+    sessionStorage.setItem('videoFeedIndex', currentIndex.toString());
+  }, [currentIndex]);
+
   // Check if we're playing favorites from navigation state
   useEffect(() => {
     const state = location.state as { favoriteVideos?: any[], startIndex?: number };
@@ -209,8 +218,11 @@ export const VideoFeed = () => {
       setVideos(state.favoriteVideos);
       setCurrentIndex(state.startIndex || 0);
       setIsPlayingFavorites(true);
+    } else if (location.pathname === '/') {
+      // Clear favorites state when returning to main feed
+      setIsPlayingFavorites(false);
     }
-  }, [location.state]);
+  }, [location.state, location.pathname]);
 
   const minSwipeDistance = 80; // Increased for more deliberate swipes
 
