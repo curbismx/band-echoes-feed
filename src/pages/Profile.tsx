@@ -225,7 +225,7 @@ export default function Profile() {
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-white/10 flex-shrink-0">
         <button 
-          onClick={() => navigate("/")}
+          onClick={() => navigate(-1)}
           className="p-2 -ml-2"
         >
           <ChevronLeft className="w-6 h-6" />
