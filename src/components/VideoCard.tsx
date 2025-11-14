@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { ActionButtons } from "./ActionButtons";
 import { useVideoRatings } from "@/hooks/useVideoRatings";
 import { supabase } from "@/integrations/supabase/client";
-import { Capacitor } from "@capacitor/core";
 import { CommentsDrawer } from "./CommentsDrawer";
 import { InfoDrawer } from "./InfoDrawer";
 import followOffIcon from "@/assets/follow_OFF.png";
@@ -106,7 +105,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     if (!v) return;
 
     // Always unmute for native app experience and preview
-    v.muted = !Capacitor.isNativePlatform();
+    v.muted = false;
 
     if (isActive && !isGloballyPaused) {
       // Only reset time if video has already started playing
@@ -146,24 +145,12 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     
     lastTapRef.current = now;
 
-    // Delay single tap action to allow for double tap detection
+    // Single tap: do nothing (no play/pause on tap)
     if (tapTimeoutRef.current) {
       clearTimeout(tapTimeoutRef.current);
+      tapTimeoutRef.current = null;
     }
-    
-    tapTimeoutRef.current = setTimeout(() => {
-      const v = videoRef.current;
-      if (!v) return;
-      
-
-      if (v.paused) {
-        v.play().catch(() => {});
-        onTogglePause(false);
-      } else {
-        v.pause();
-        onTogglePause(true);
-      }
-    }, 300);
+    // No action for single tap
   };
 
   const handleFollow = async () => {
@@ -231,7 +218,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         loop
         autoPlay
         playsInline
-        muted={!Capacitor.isNativePlatform()}
+        muted={false}
         preload={preloadStrategy}
         poster={video.posterUrl || "/placeholder.svg"}
         onClick={handleVideoClick}
