@@ -5,7 +5,7 @@ import { useVideoRatings } from "@/hooks/useVideoRatings";
 import { supabase } from "@/integrations/supabase/client";
 import { CommentsDrawer } from "./CommentsDrawer";
 import { InfoDrawer } from "./InfoDrawer";
-import { useHLS } from "@/hooks/useHLS";
+import Hls from "hls.js";
 import { PreloadedVideo } from "@/utils/videoPreloader";
 import followOffIcon from "@/assets/follow_OFF.png";
 import followOnIcon from "@/assets/follow_ON.png";
@@ -47,7 +47,6 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
   const [infoOpen, setInfoOpen] = useState(false);
   const [isUIHidden, setIsUIHidden] = useState(false);
   const [isInView, setIsInView] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const lastTapRef = useRef<number>(0);
   const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -56,12 +55,11 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
   const [firstFrameShown, setFirstFrameShown] = useState(false);
   const playerHostRef = useRef<HTMLDivElement>(null);
   const usingPreloadedRef = useRef(false);
+  const currentVideoElRef = useRef<HTMLVideoElement | null>(null);
 
   const { averageRating, userRating, submitRating } = useVideoRatings(video.id);
   const shouldUsePreloaded = !!preloadedVideo && preloadedVideo.url === video.videoUrl && preloadedVideo.isReady && !video.videoUrl.includes('.m3u8');
   
-  // HLS support for adaptive streaming (skip when using preloaded progressive video)
-  useHLS({ videoRef, src: video.videoUrl, isActive: isActive && isInView && !shouldUsePreloaded });
 
   // Sync state with video prop changes
   useEffect(() => {
@@ -140,53 +138,148 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
   }, [video.artistUserId]);
 
   useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
+    const container = playerHostRef.current;
+    if (!container) return;
 
-    // CRITICAL: Pause immediately when inactive to prevent audio overlap
+    const pauseAndPersist = () => {
+      const v = currentVideoElRef.current;
+      if (v) {
+        v.pause();
+        try {
+          sessionStorage.setItem(`videoTime_${video.id}`, String(v.currentTime || 0));
+        } catch {}
+      }
+    };
+
     if (!isActive) {
-      v.pause();
-      // Save current time when deactivated
-      try {
-        sessionStorage.setItem(`videoTime_${video.id}`, String(v.currentTime || 0));
-      } catch {}
+      pauseAndPersist();
       return;
     }
 
-    // Ensure muted for reliable autoplay
-    v.muted = true;
+    const ensureMountedAndPlaying = async () => {
+      // Already mounted: just control playback
+      if (currentVideoElRef.current) {
+        const v = currentVideoElRef.current;
+        v.muted = true;
+        if (!isGloballyPaused && isInView) {
+          v.play().catch(() => {});
+        } else {
+          v.pause();
+        }
+        return;
+      }
 
-    if (!isGloballyPaused) {
-      // Try to resume from saved position
-      const key = `videoTime_${video.id}`;
-      const saved = sessionStorage.getItem(key);
-      if (saved) {
-        const t = parseFloat(saved);
-        if (!Number.isNaN(t) && t >= 0) {
-          try {
-            if (v.readyState >= 1) {
-              v.currentTime = t;
-            } else {
-              resumeTimeRef.current = t;
-            }
-          } catch {}
+      // Build off-DOM video (prefer preloaded for progressive)
+      let v: HTMLVideoElement;
+      if (shouldUsePreloaded && preloadedVideo) {
+        v = preloadedVideo.videoElement;
+        v.autoplay = false;
+        v.muted = true;
+        v.playsInline = true;
+        v.setAttribute('playsinline', 'true');
+        v.setAttribute('webkit-playsinline', 'true');
+        v.preload = 'auto';
+        v.loop = true;
+      } else {
+        v = document.createElement('video');
+        v.autoplay = false;
+        v.muted = true;
+        v.playsInline = true;
+        v.setAttribute('playsinline', 'true');
+        v.setAttribute('webkit-playsinline', 'true');
+        v.preload = 'auto';
+        v.crossOrigin = 'anonymous';
+        v.loop = true;
+
+        if (video.videoUrl.includes('.m3u8')) {
+          if (Hls.isSupported()) {
+            const hls = new Hls({
+              enableWorker: true,
+              lowLatencyMode: true,
+              startFragPrefetch: true,
+            });
+            hls.loadSource(video.videoUrl);
+            hls.attachMedia(v);
+          } else if (v.canPlayType('application/vnd.apple.mpegurl')) {
+            v.src = video.videoUrl;
+            v.load();
+          } else {
+            v.src = video.videoUrl;
+            v.load();
+          }
+        } else {
+          v.src = video.videoUrl;
+          v.load();
         }
       }
-      const playPromise = v.play();
-      if (playPromise !== undefined) {
-        playPromise.catch((error) => {
-          console.log("Autoplay attempt:", error);
-        });
-      }
-    } else {
-      v.pause();
-    }
-  }, [isActive, isGloballyPaused, video.id]);
+
+      // Universal styles for instant frame and no black background
+      const styleAny = v.style as any;
+      Object.assign(styleAny, {
+        position: 'absolute',
+        inset: '0px',
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        background: 'transparent',
+        opacity: '0',
+        transition: 'opacity 150ms ease-in',
+      });
+      try { v.style.setProperty('background', 'transparent', 'important'); } catch {}
+
+
+      // Restore resume time when metadata ready
+      const onLoadedMetadata = () => {
+        try {
+          const key = `videoTime_${video.id}`;
+          const saved = sessionStorage.getItem(key);
+          const t = saved ? parseFloat(saved) : (resumeTimeRef.current ?? 0);
+          if (!Number.isNaN(t) && t >= 0) {
+            v.currentTime = t;
+          }
+        } catch {}
+      };
+      v.addEventListener('loadedmetadata', onLoadedMetadata, { once: true });
+
+      const onLoadedData = () => {
+        v.style.opacity = '1';
+        currentVideoElRef.current = v;
+        // Mount ONLY after first frame is decoded
+        if (!container.contains(v)) {
+          container.appendChild(v);
+        }
+        if (!isGloballyPaused && isActive && isInView) {
+          v.play().catch(() => {});
+        }
+        hasStartedPlayingRef.current = true;
+      };
+      v.addEventListener('loadeddata', onLoadedData, { once: true });
+
+      const onCanPlay = () => {
+        // Safety: if canplay fires before loadeddata
+        if (!currentVideoElRef.current) onLoadedData();
+      };
+      v.addEventListener('canplay', onCanPlay, { once: true });
+
+      const onTimeUpdate = () => {
+        try {
+          sessionStorage.setItem(`videoTime_${video.id}`, String(v.currentTime || 0));
+        } catch {}
+      };
+      v.addEventListener('timeupdate', onTimeUpdate);
+    };
+
+    ensureMountedAndPlaying();
+
+    return () => {
+      // Intentionally do not remove video immediately to avoid flashes.
+    };
+  }, [isActive, isInView, isGloballyPaused, shouldUsePreloaded, preloadedVideo, video.videoUrl, video.id]);
 
   // On unmount, persist last position
   useEffect(() => {
     return () => {
-      const v = videoRef.current;
+      const v = currentVideoElRef.current;
       if (v) {
         try {
           sessionStorage.setItem(`videoTime_${video.id}`, String(v.currentTime || 0));
@@ -196,7 +289,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
   }, [video.id]);
 
   const handleVideoClick = () => {
-    if (!videoRef.current) return;
+    if (!currentVideoElRef.current) return;
 
     const now = Date.now();
     const timeSinceLastTap = now - lastTapRef.current;
@@ -282,48 +375,11 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
 
   return (
     <div ref={containerRef} className="relative h-screen w-screen">
-      {/* Video Background */}
-      <video
-        ref={videoRef}
-        src={!video.videoUrl.includes('.m3u8') ? video.videoUrl : undefined}
-        className="absolute inset-0 w-[100vw] h-[100vh] object-cover cursor-pointer"
-        loop
-        autoPlay
-        playsInline
-        muted
-        preload="auto"
-        onClick={handleVideoClick}
-        crossOrigin="anonymous"
-        webkit-playsinline="true"
-        onError={(e) => {
-          console.error("Video load error:", video.videoUrl, e);
-        }}
-        onCanPlay={() => {
-          // Start playing as soon as ~0.3-0.7s of buffer is available
-          const v = videoRef.current;
-          if (v && isActive && isInView && !hasStartedPlayingRef.current) {
-            v.play()
-              .then(() => {
-                hasStartedPlayingRef.current = true;
-              })
-              .catch(e => console.log("Autoplay prevented:", e));
-          }
-        }}
-        onLoadedMetadata={(e) => {
-          try {
-            const key = `videoTime_${video.id}`;
-            const saved = sessionStorage.getItem(key);
-            const t = saved ? parseFloat(saved) : (resumeTimeRef.current ?? 0);
-            if (!Number.isNaN(t) && t > 0 && t < (e.currentTarget.duration || Infinity)) {
-              e.currentTarget.currentTime = t;
-            }
-          } catch {}
-        }}
-        onTimeUpdate={(e) => {
-          try {
-            sessionStorage.setItem(`videoTime_${video.id}`, String(e.currentTarget.currentTime || 0));
-          } catch {}
-        }}
+      {/* Video Host Container - we mount prepared <video> here only after loadeddata */}
+      <div
+        ref={playerHostRef}
+        className="absolute inset-0 w-[100vw] h-[100vh]"
+        style={{ background: 'transparent' }}
       />
 
       {/* Click area for video pause/play */}
