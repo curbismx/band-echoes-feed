@@ -15,7 +15,7 @@ export const VideoFeed = () => {
     const saved = sessionStorage.getItem('videoFeedIndex');
     return saved ? parseInt(saved, 10) : 0;
   });
-  const [isMuted, setIsMuted] = useState(() => !Capacitor.isNativePlatform());
+  const [isMuted, setIsMuted] = useState(true);
   const [isGloballyPaused, setIsGloballyPaused] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
