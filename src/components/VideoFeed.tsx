@@ -508,26 +508,21 @@ export const VideoFeed = () => {
         }}
       >
         {videos.map((video, index) => {
-          // Optimize preloading: auto for current/next, metadata for nearby, none for far away
-          const distance = Math.abs(index - currentIndex);
-          const preloadStrategy = distance <= 1 ? "auto" : distance === 2 ? "metadata" : "none";
-          
-          // Convert storage URL to streaming edge function URL for iOS compatibility
-          const streamingVideo = {
-            ...video,
-            videoUrl: getStreamingVideoUrl(video.video_url)
-          };
-          
+          const isActiveVideo = index === currentIndex;
+
           return (
             <VideoCard
               key={video.id}
-              video={streamingVideo}
-              isActive={index === currentIndex}
+              video={{
+                ...video,
+                videoUrl: video.video_url, // use the direct Supabase URL again
+              }}
+              isActive={isActiveVideo}
               isMuted={isMuted}
               onUnmute={() => setIsMuted(false)}
               isGloballyPaused={isGloballyPaused}
               onTogglePause={(paused) => setIsGloballyPaused(paused)}
-              preloadStrategy={preloadStrategy}
+              preloadStrategy={isActiveVideo ? "metadata" : "none"}
             />
           );
         })}
