@@ -10,11 +10,7 @@ export const VideoFeed = () => {
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const [currentIndex, setCurrentIndex] = useState(() => {
-    // Restore video position from sessionStorage on mount
-    const savedIndex = sessionStorage.getItem('videoFeedIndex');
-    return savedIndex ? parseInt(savedIndex, 10) : 0;
-  });
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [isMuted, setIsMuted] = useState(() => !Capacitor.isNativePlatform());
   const [isGloballyPaused, setIsGloballyPaused] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
@@ -186,6 +182,19 @@ export const VideoFeed = () => {
       
       setVideos(sortedVideos);
       setAllVideos(sortedVideos);
+      
+      // Restore saved position after videos are loaded (only if not coming from favorites)
+      const state = location.state as { favoriteVideos?: any[], startIndex?: number };
+      if (!state?.favoriteVideos && location.pathname === '/') {
+        const savedIndex = sessionStorage.getItem('videoFeedIndex');
+        if (savedIndex) {
+          const index = parseInt(savedIndex, 10);
+          if (index >= 0 && index < sortedVideos.length) {
+            setCurrentIndex(index);
+          }
+        }
+      }
+      
       setLoading(false);
     };
 
@@ -204,7 +213,7 @@ export const VideoFeed = () => {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [location.pathname]);
+  }, [location.pathname, location.state]);
 
   // Save currentIndex to sessionStorage whenever it changes
   useEffect(() => {
