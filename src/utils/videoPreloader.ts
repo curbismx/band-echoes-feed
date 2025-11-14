@@ -20,13 +20,21 @@ class VideoPreloaderManager {
     const video = document.createElement('video');
     video.preload = 'auto';
     video.playsInline = true;
+    video.setAttribute('playsinline', 'true');
+    video.setAttribute('webkit-playsinline', 'true');
     video.muted = true; // Preload muted for autoplay policy compliance
     video.crossOrigin = 'anonymous';
-    video.style.display = 'none';
+    // Place off-screen but keep in layout so browsers continue buffering
+    video.style.position = 'fixed';
+    video.style.left = '-99999px';
+    video.style.top = '0';
+    video.style.width = '1px';
+    video.style.height = '1px';
+    video.style.opacity = '0';
+    video.style.pointerEvents = 'none';
     
-    if (posterUrl) {
-      video.poster = posterUrl;
-    }
+    // Never set poster to avoid placeholder flashes
+    // if (posterUrl) { /* intentionally ignored */ }
 
     const preloadedVideo: PreloadedVideo = {
       url,
