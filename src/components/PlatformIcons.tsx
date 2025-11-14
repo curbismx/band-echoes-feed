@@ -59,6 +59,7 @@ export const getPlatformIcon = (platform: string) => {
     case 'Apple Music':
       return <AppleMusicIcon />;
     case 'YouTube':
+    case 'YouTube Music':
       return <YouTubeIcon />;
     case 'SoundCloud':
       return <SoundCloudIcon />;
