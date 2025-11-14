@@ -26,7 +26,7 @@ export const InfoDrawer = ({
   caption,
   links = [],
 }: InfoDrawerProps) => {
-  const [drawerHeight, setDrawerHeight] = useState(50); // percentage of viewport
+  const [drawerHeight, setDrawerHeight] = useState(65); // percentage of viewport
   const [isDragging, setIsDragging] = useState(false);
   const [startY, setStartY] = useState(0);
   const [startHeight, setStartHeight] = useState(50);
@@ -34,7 +34,7 @@ export const InfoDrawer = ({
   // Reset drawer height when opening
   useEffect(() => {
     if (isOpen) {
-      setDrawerHeight(50);
+      setDrawerHeight(65);
       setIsDragging(false);
     }
   }, [isOpen]);
@@ -117,9 +117,9 @@ export const InfoDrawer = ({
     if (drawerHeight < 40) {
       // Close if dragged below 40%
       onClose();
-    } else if (drawerHeight < 65) {
-      // Snap to 50% (default)
-      setDrawerHeight(50);
+    } else if (drawerHeight < 72) {
+      // Snap to 65% (default)
+      setDrawerHeight(65);
     } else {
       // Snap to 80% (expanded)
       setDrawerHeight(80);
