@@ -43,12 +43,32 @@ export const InfoDrawer = ({
   const [displayLinks, setDisplayLinks] = useState<Array<{ url: string }>>(links);
   const [searching, setSearching] = useState(false);
   const [matchedInfo, setMatchedInfo] = useState<{ track?: string; artist?: string } | null>(null);
+  const [copyrightNotice, setCopyrightNotice] = useState("");
 
   useEffect(() => {
     setDisplayLinks(links || []);
     setMatchedInfo(null);
     setSearching(false);
   }, [links, isOpen]);
+
+  // Fetch copyright notice
+  useEffect(() => {
+    const fetchCopyrightNotice = async () => {
+      const { data } = await supabase
+        .from("app_settings")
+        .select("setting_value")
+        .eq("setting_key", "copyright_notice")
+        .maybeSingle();
+      
+      if (data?.setting_value) {
+        setCopyrightNotice(data.setting_value as string);
+      }
+    };
+
+    if (isOpen) {
+      fetchCopyrightNotice();
+    }
+  }, [isOpen]);
   
   const triggerHaptic = async () => {
     try {
@@ -314,6 +334,15 @@ export const InfoDrawer = ({
               </p>
             )}
           </div>
+
+          {/* Copyright Notice */}
+          {copyrightNotice && (
+            <div className="mt-6 pt-4 border-t border-white/10">
+              <p className="text-white/50 text-xs leading-relaxed">
+                {copyrightNotice}
+              </p>
+            </div>
+          )}
 
         </div>
       </div>

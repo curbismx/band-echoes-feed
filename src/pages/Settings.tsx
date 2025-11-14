@@ -63,6 +63,11 @@ const Settings = () => {
   ]);
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
   const [dropTarget, setDropTarget] = useState<number | null>(null);
+  const [copyrightNotice, setCopyrightNotice] = useState("");
+  const [copyrightExpanded, setCopyrightExpanded] = useState(() => {
+    const saved = localStorage.getItem('settings-copyright-expanded');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
 
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -97,8 +102,51 @@ const Settings = () => {
       fetchCategories();
       fetchAdmins();
       fetchAlgorithmSettings();
+      fetchCopyrightNotice();
     }
   }, [isAdmin, checkingAdmin]);
+
+  const fetchCopyrightNotice = async () => {
+    try {
+      const { data } = await supabase
+        .from("app_settings")
+        .select("setting_value")
+        .eq("setting_key", "copyright_notice")
+        .maybeSingle();
+      
+      if (data?.setting_value) {
+        setCopyrightNotice(data.setting_value as string);
+      } else {
+        // Set default value
+        const defaultText = "For any copyright issues please contact our DMCA agant and we will remove the content straight away : mail@curbism.com";
+        setCopyrightNotice(defaultText);
+        // Save default to database
+        await supabase
+          .from("app_settings")
+          .insert({ setting_key: "copyright_notice", setting_value: defaultText });
+      }
+    } catch (error) {
+      console.error("Error fetching copyright notice:", error);
+    }
+  };
+
+  const handleSaveCopyrightNotice = async () => {
+    try {
+      const { error } = await supabase
+        .from("app_settings")
+        .upsert({
+          setting_key: "copyright_notice",
+          setting_value: copyrightNotice,
+        });
+
+      if (error) throw error;
+
+      toast.success("Copyright notice updated successfully");
+    } catch (error) {
+      console.error("Error saving copyright notice:", error);
+      toast.error("Failed to save copyright notice");
+    }
+  };
 
   const fetchAlgorithmSettings = async () => {
     try {
@@ -694,6 +742,45 @@ const Settings = () => {
                     <li>• <strong>Random</strong> factor kicks in when user has no preference data (new users)</li>
                     <li>• Changes take effect immediately for all users</li>
                   </ul>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Copyright Notice Section */}
+          <div>
+            <button
+              onClick={() => {
+                const newValue = !copyrightExpanded;
+                setCopyrightExpanded(newValue);
+                localStorage.setItem('settings-copyright-expanded', JSON.stringify(newValue));
+              }}
+              className="flex items-center gap-2 text-xl font-semibold text-foreground mb-4 hover:text-primary transition-colors"
+            >
+              {copyrightExpanded ? (
+                <ChevronDown className="w-5 h-5" />
+              ) : (
+                <ChevronRight className="w-5 h-5" />
+              )}
+              Copyright Notice
+            </button>
+
+            {copyrightExpanded && (
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground mb-4">
+                  This text will appear at the bottom of the Info drawer below the "Listen on" links.
+                </p>
+                <div className="bg-muted/50 rounded-lg p-6">
+                  <label className="block text-sm font-medium mb-2">Copyright Notice Text</label>
+                  <textarea
+                    value={copyrightNotice}
+                    onChange={(e) => setCopyrightNotice(e.target.value)}
+                    className="w-full min-h-[100px] p-3 bg-background border border-border rounded-lg text-foreground resize-y"
+                    placeholder="Enter copyright notice text..."
+                  />
+                  <Button onClick={handleSaveCopyrightNotice} className="mt-4">
+                    Save Copyright Notice
+                  </Button>
                 </div>
               </div>
             )}
