@@ -103,20 +103,21 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     const v = videoRef.current;
     if (!v) return;
 
+    // Always unmute for native app experience and preview
+    v.muted = false;
+
     if (isActive && !isGloballyPaused) {
       v.currentTime = 0;
-      // Force play - after first interaction, browser allows autoplay
       const playPromise = v.play();
       if (playPromise !== undefined) {
         playPromise.catch((error) => {
-          // Only first video may need tap, subsequent ones should autoplay
-          console.log("Autoplay prevented (first video only):", error);
+          console.log("Autoplay attempt:", error);
         });
       }
     } else {
       v.pause();
     }
-  }, [isActive, isGloballyPaused, isMuted]);
+  }, [isActive, isGloballyPaused]);
 
   const handleVideoClick = () => {
     if (!videoRef.current) return;
@@ -149,14 +150,6 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
       const v = videoRef.current;
       if (!v) return;
       
-      // On first interaction: unmute and ensure playback without pausing
-      if (isMuted) {
-        v.muted = false;
-        onUnmute();
-        v.play().catch(() => {});
-        onTogglePause(false);
-        return;
-      }
 
       if (v.paused) {
         v.play().catch(() => {});
@@ -233,7 +226,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         loop
         autoPlay
         playsInline
-        muted={isMuted}
+        muted={false}
         preload="auto"
         poster={video.posterUrl || "/placeholder.svg"}
         onClick={handleVideoClick}
