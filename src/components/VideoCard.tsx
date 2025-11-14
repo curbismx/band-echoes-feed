@@ -149,8 +149,8 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
       return;
     }
 
-    // Always unmute for native app experience and preview
-    v.muted = false;
+    // Ensure muted for reliable autoplay
+    v.muted = true;
 
     if (!isGloballyPaused) {
       // Try to resume from saved position
@@ -286,11 +286,11 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         loop
         autoPlay
         playsInline
-        muted={false}
+        muted
         preload="auto"
-        poster={video.posterUrl || "/placeholder.svg"}
         onClick={handleVideoClick}
         crossOrigin="anonymous"
+        webkit-playsinline="true"
         onError={(e) => {
           console.error("Video load error:", video.videoUrl, e);
         }}
