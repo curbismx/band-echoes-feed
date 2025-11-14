@@ -485,7 +485,7 @@ export const VideoFeed = () => {
   return (
     <div
       ref={containerRef}
-      className="relative h-screen w-screen overflow-hidden bg-black"
+      className="relative h-screen w-screen overflow-hidden bg-transparent"
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
