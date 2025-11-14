@@ -110,7 +110,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
       return;
     }
 
-    v.muted = false;
+    v.muted = true;
 
     if (!isGloballyPaused) {
       const playPromise = v.play();
@@ -219,8 +219,10 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         loop
         autoPlay
         playsInline
-        muted={false}
-        preload={isActive ? "none" : "metadata"}
+        {...({ 'webkit-playsinline': 'true' } as any)}
+        muted
+        preload="metadata"
+        style={{ width: '100%', height: '100%', objectFit: 'cover', background: 'transparent' }}
         poster={video.posterUrl || "/placeholder.svg"}
         onClick={handleVideoClick}
         onError={(e) => {
