@@ -105,10 +105,20 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     const v = videoRef.current;
     if (!v) return;
 
+    // CRITICAL: Pause immediately when inactive to prevent audio overlap
+    if (!isActive) {
+      v.pause();
+      // Save current time when deactivated
+      try {
+        sessionStorage.setItem(`videoTime_${video.id}`, String(v.currentTime || 0));
+      } catch {}
+      return;
+    }
+
     // Always unmute for native app experience and preview
     v.muted = false;
 
-    if (isActive && !isGloballyPaused) {
+    if (!isGloballyPaused) {
       // Try to resume from saved position
       const key = `videoTime_${video.id}`;
       const saved = sessionStorage.getItem(key);
@@ -132,10 +142,6 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
       }
     } else {
       v.pause();
-      // Save current time when deactivated
-      try {
-        sessionStorage.setItem(`videoTime_${video.id}`, String(v.currentTime || 0));
-      } catch {}
     }
   }, [isActive, isGloballyPaused, video.id]);
 

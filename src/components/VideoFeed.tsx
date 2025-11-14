@@ -340,26 +340,24 @@ export const VideoFeed = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [currentIndex, videos.length]);
 
-  // Hard-stop all non-active videos to prevent overlapping audio
+  // Emergency pause all videos except current (backup to VideoCard logic)
   useEffect(() => {
     if (!videos.length) return;
-    const videoEls = Array.from(document.querySelectorAll('video')) as HTMLVideoElement[];
-    videoEls.forEach((el, idx) => {
-      if (idx === currentIndex) {
-        try {
-          el.muted = false;
-          const p = el.play();
-          if (p && typeof (p as any).catch === 'function') {
-            (p as Promise<void>).catch(() => {});
-          }
-        } catch {}
-      } else {
-        try {
-          el.pause();
-        } catch {}
+    
+    // Small delay to let React render complete
+    const timer = setTimeout(() => {
+      const videoEls = Array.from(document.querySelectorAll('video')) as HTMLVideoElement[];
+      videoEls.forEach((el, idx) => {
+        if (idx !== currentIndex) {
+          try {
+            el.pause();
+            el.currentTime = el.currentTime; // Force refresh
+          } catch {}
+        }
+      });
+    }, 50);
 
-      }
-    });
+    return () => clearTimeout(timer);
   }, [currentIndex, videos.length]);
 
   // Aggressive autoplay attempt for the first active video after videos mount
