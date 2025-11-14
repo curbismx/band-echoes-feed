@@ -22,7 +22,11 @@ export const VideoFeed = () => {
   const [dragOffset, setDragOffset] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const [videos, setVideos] = useState<any[]>([]);
+  const [videos, setVideos] = useState<any[]>(() => {
+    // Try to restore cached videos immediately
+    const cached = sessionStorage.getItem('cachedVideos');
+    return cached ? JSON.parse(cached) : [];
+  });
   const [isPlayingFavorites, setIsPlayingFavorites] = useState(false);
   const [allVideos, setAllVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -182,6 +186,9 @@ export const VideoFeed = () => {
 
       // Score and sort videos using algorithm
       const sortedVideos = await scoreVideos(videosData, profilesMap);
+      
+      // Cache the sorted videos for instant restoration
+      sessionStorage.setItem('cachedVideos', JSON.stringify(sortedVideos));
       
       setVideos(sortedVideos);
       setAllVideos(sortedVideos);
