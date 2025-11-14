@@ -105,24 +105,21 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     const v = videoRef.current;
     if (!v) return;
 
-    if (!isActive) {
+    // Respect isMuted prop (start muted, allow unmute after user interaction)
+    v.muted = isMuted;
+
+    if (!isActive || isGloballyPaused) {
       v.pause();
       return;
     }
 
-    v.muted = true;
-
-    if (!isGloballyPaused) {
-      const playPromise = v.play();
-      if (playPromise !== undefined) {
-        playPromise.catch((error) => {
-          console.log("Autoplay attempt:", error);
-        });
-      }
-    } else {
-      v.pause();
+    const playPromise = v.play();
+    if (playPromise !== undefined) {
+      playPromise.catch((error) => {
+        console.log("Autoplay attempt:", error);
+      });
     }
-  }, [isActive, isGloballyPaused]);
+  }, [isActive, isGloballyPaused, isMuted]);
 
   const handleVideoClick = () => {
     if (!videoRef.current) return;
@@ -220,10 +217,10 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         autoPlay
         playsInline
         {...({ 'webkit-playsinline': 'true' } as any)}
-        muted
-        preload="metadata"
+        muted={isMuted}
+        preload={preloadStrategy}
         style={{ width: '100%', height: '100%', objectFit: 'cover', background: 'transparent' }}
-        poster={video.posterUrl || "/placeholder.svg"}
+        poster={video.posterUrl}
         onClick={handleVideoClick}
         onError={(e) => {
           console.error("Video load error:", video.videoUrl, e);
