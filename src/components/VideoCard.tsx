@@ -45,8 +45,6 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
   const [infoOpen, setInfoOpen] = useState(false);
   const [isUIHidden, setIsUIHidden] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const lastTapRef = useRef<number>(0);
-  const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { averageRating, userRating, submitRating } = useVideoRatings(video.id);
 
@@ -105,7 +103,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     const v = videoRef.current;
     if (!v) return;
 
-    // Start muted (autoplay), but allow unmute after user interaction
+    // Start muted for autoplay; can be unmuted via handleVideoClick + onUnmute
     v.muted = isMuted;
 
     if (!isActive || isGloballyPaused) {
@@ -122,37 +120,19 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
   }, [isActive, isGloballyPaused, isMuted]);
 
   const handleVideoClick = () => {
-    if (!videoRef.current) return;
+    const v = videoRef.current;
+    if (!v) return;
 
-    const now = Date.now();
-    const timeSinceLastTap = now - lastTapRef.current;
-    
-    // Double tap detection (within 300ms)
-    if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
-      // Clear any pending single tap action
-      if (tapTimeoutRef.current) {
-        clearTimeout(tapTimeoutRef.current);
-        tapTimeoutRef.current = null;
-      }
-      
-      // Double tap: toggle UI visibility only
-      setIsUIHidden(!isUIHidden);
-      lastTapRef.current = 0; // Reset
-      return;
-    }
-    
-    lastTapRef.current = now;
-
-    // Single tap: unmute if muted
-    if (tapTimeoutRef.current) {
-      clearTimeout(tapTimeoutRef.current);
-      tapTimeoutRef.current = null;
-    }
-    
-    // Unmute on single tap if currently muted
+    // If currently muted, unmute and let parent know
     if (isMuted) {
+      v.muted = false;
       onUnmute();
+      const p = v.play();
+      if (p && typeof p.catch === "function") {
+        p.catch(() => {});
+      }
     }
+    // If already unmuted, do nothing for now (we can add re-mute later if needed)
   };
 
   const handleFollow = async () => {

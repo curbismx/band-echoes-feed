@@ -512,12 +512,13 @@ export const VideoFeed = () => {
           const distance = Math.abs(index - currentIndex);
           const preloadStrategy = distance <= 1 ? "auto" : distance === 2 ? "metadata" : "none";
 
-          // IMPORTANT:
-          // - `video` here already has `video.videoUrl` (set in scoreVideos)
-          // - Use that, and pass it through getStreamingVideoUrl
+          // Some video objects have `videoUrl`, some have `video_url` (e.g. favorites).
+          // Pick whichever exists so we always get a real URL.
+          const sourceUrl = video.videoUrl ?? video.video_url ?? "";
+
           const streamingVideo = {
             ...video,
-            videoUrl: getStreamingVideoUrl(video.videoUrl),
+            videoUrl: sourceUrl ? getStreamingVideoUrl(sourceUrl) : "",
           };
 
           const isActiveVideo = index === currentIndex;
