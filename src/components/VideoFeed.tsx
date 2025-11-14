@@ -4,7 +4,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Capacitor } from "@capacitor/core";
-
 import backIcon from "@/assets/back.png";
 import favsIcon from "@/assets/favs.png";
 export const VideoFeed = () => {
@@ -482,7 +481,7 @@ export const VideoFeed = () => {
   return (
     <div
       ref={containerRef}
-      className="relative h-screen w-screen overflow-hidden bg-transparent"
+      className="relative h-screen w-screen overflow-hidden bg-black"
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
@@ -508,12 +507,20 @@ export const VideoFeed = () => {
         }}
       >
         {videos.map((video, index) => {
-          
+          // Optimize preloading: auto for current/next, metadata for nearby, none for far away
+          const distance = Math.abs(index - currentIndex);
+          const preloadStrategy = distance <= 1 ? "auto" : distance === 2 ? "metadata" : "none";
           
           return (
             <VideoCard
               key={video.id}
               video={video}
+              isActive={index === currentIndex}
+              isMuted={isMuted}
+              onUnmute={() => setIsMuted(false)}
+              isGloballyPaused={isGloballyPaused}
+              onTogglePause={(paused) => setIsGloballyPaused(paused)}
+              preloadStrategy={preloadStrategy}
             />
           );
         })}
