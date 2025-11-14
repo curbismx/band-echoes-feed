@@ -356,9 +356,8 @@ export const VideoFeed = () => {
       } else {
         try {
           el.pause();
-          // Reset time so we don't keep audio buffers around
-          el.currentTime = 0;
         } catch {}
+
       }
     });
   }, [currentIndex, videos.length]);

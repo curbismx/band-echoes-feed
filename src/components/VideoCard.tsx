@@ -47,6 +47,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
   const videoRef = useRef<HTMLVideoElement>(null);
   const lastTapRef = useRef<number>(0);
   const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const resumeTimeRef = useRef<number | null>(null);
 
   const { averageRating, userRating, submitRating } = useVideoRatings(video.id);
 
@@ -108,9 +109,20 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     v.muted = false;
 
     if (isActive && !isGloballyPaused) {
-      // Only reset time if video has already started playing
-      if (v.currentTime > 0.1) {
-        v.currentTime = 0;
+      // Try to resume from saved position
+      const key = `videoTime_${video.id}`;
+      const saved = sessionStorage.getItem(key);
+      if (saved) {
+        const t = parseFloat(saved);
+        if (!Number.isNaN(t) && t >= 0) {
+          try {
+            if (v.readyState >= 1) {
+              v.currentTime = t;
+            } else {
+              resumeTimeRef.current = t;
+            }
+          } catch {}
+        }
       }
       const playPromise = v.play();
       if (playPromise !== undefined) {
@@ -120,8 +132,24 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
       }
     } else {
       v.pause();
+      // Save current time when deactivated
+      try {
+        sessionStorage.setItem(`videoTime_${video.id}`, String(v.currentTime || 0));
+      } catch {}
     }
-  }, [isActive, isGloballyPaused]);
+  }, [isActive, isGloballyPaused, video.id]);
+
+  // On unmount, persist last position
+  useEffect(() => {
+    return () => {
+      const v = videoRef.current;
+      if (v) {
+        try {
+          sessionStorage.setItem(`videoTime_${video.id}`, String(v.currentTime || 0));
+        } catch {}
+      }
+    };
+  }, [video.id]);
 
   const handleVideoClick = () => {
     if (!videoRef.current) return;
@@ -230,7 +258,19 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         }}
         onLoadedMetadata={(e) => {
           try {
-            if (e.currentTarget.currentTime < 0.1) e.currentTarget.currentTime = 0.1;
+            const key = `videoTime_${video.id}`;
+            const saved = sessionStorage.getItem(key);
+            const t = saved ? parseFloat(saved) : (resumeTimeRef.current ?? 0);
+            if (!Number.isNaN(t) && t > 0 && t < (e.currentTarget.duration || Infinity)) {
+              e.currentTarget.currentTime = t;
+            } else if (e.currentTarget.currentTime < 0.1) {
+              e.currentTarget.currentTime = 0.1; // avoid black frame on some devices
+            }
+          } catch {}
+        }}
+        onTimeUpdate={(e) => {
+          try {
+            sessionStorage.setItem(`videoTime_${video.id}`, String(e.currentTarget.currentTime || 0));
           } catch {}
         }}
       />
