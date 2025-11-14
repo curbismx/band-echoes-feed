@@ -378,7 +378,7 @@ export const VideoFeed = () => {
         {videos.map((video, index) => {
           // Optimize preloading: auto for current/next, metadata for nearby, none for far away
           const distance = Math.abs(index - currentIndex);
-          const preloadStrategy = distance === 0 || distance === 1 ? "auto" : distance <= 3 ? "metadata" : "none";
+          const preloadStrategy = distance === 0 ? "auto" : distance === 1 ? "metadata" : "none";
           
           return (
             <VideoCard

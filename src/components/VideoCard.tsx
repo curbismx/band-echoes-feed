@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ActionButtons } from "./ActionButtons";
 import { useVideoRatings } from "@/hooks/useVideoRatings";
 import { supabase } from "@/integrations/supabase/client";
+import { Capacitor } from "@capacitor/core";
 import { CommentsDrawer } from "./CommentsDrawer";
 import { InfoDrawer } from "./InfoDrawer";
 import followOffIcon from "@/assets/follow_OFF.png";
@@ -105,7 +106,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     if (!v) return;
 
     // Always unmute for native app experience and preview
-    v.muted = false;
+    v.muted = !Capacitor.isNativePlatform();
 
     if (isActive && !isGloballyPaused) {
       // Only reset time if video has already started playing
@@ -230,7 +231,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         loop
         autoPlay
         playsInline
-        muted={false}
+        muted={!Capacitor.isNativePlatform()}
         preload={preloadStrategy}
         poster={video.posterUrl || "/placeholder.svg"}
         onClick={handleVideoClick}
