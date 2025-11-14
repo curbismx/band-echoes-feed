@@ -48,7 +48,6 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
   const [progress, setProgress] = useState(0);        // 0–1
   const [duration, setDuration] = useState(0);        // seconds
   const [isScrubbing, setIsScrubbing] = useState(false);
-  const wasDraggingRef = useRef(false);
 
   const { averageRating, userRating, submitRating } = useVideoRatings(video.id);
 
@@ -381,25 +380,20 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
             className="relative w-[90%] h-[3px] rounded-full bg-white/30 overflow-hidden"
             onMouseDown={(e) => {
               e.stopPropagation();
-              wasDraggingRef.current = true;
               setIsScrubbing(true);
               seekFromClientX(e.clientX, e.currentTarget);
             }}
             onMouseUp={(e) => {
               e.stopPropagation();
               setIsScrubbing(false);
-              // End of drag; do not toggle play/pause here
-              wasDraggingRef.current = false;
             }}
             onMouseLeave={() => {
               setIsScrubbing(false);
-              wasDraggingRef.current = false;
             }}
             onTouchStart={(e) => {
               e.stopPropagation();
               const touch = e.touches[0];
               if (!touch) return;
-              wasDraggingRef.current = true;
               setIsScrubbing(true);
               seekFromClientX(touch.clientX, e.currentTarget);
             }}
@@ -412,28 +406,11 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
             onTouchEnd={(e) => {
               e.stopPropagation();
               setIsScrubbing(false);
-              wasDraggingRef.current = false;
             }}
             onClick={(e) => {
-              // Single tap toggles pause/play
               e.stopPropagation();
-              if (wasDraggingRef.current) {
-                // Drag already handled; ignore click
-                wasDraggingRef.current = false;
-                return;
-              }
-              const v = videoRef.current;
-              if (!v) return;
-              const nextPaused = !isGloballyPaused;
-              onTogglePause(nextPaused);
-              if (nextPaused) {
-                v.pause();
-              } else {
-                const p = v.play();
-                if (p && typeof p.catch === "function") {
-                  p.catch(() => {});
-                }
-              }
+              const el = e.currentTarget as HTMLDivElement;
+              seekFromClientX(e.clientX, el);
             }}
           >
             <div
