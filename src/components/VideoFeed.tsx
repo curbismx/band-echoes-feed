@@ -31,6 +31,16 @@ export const VideoFeed = () => {
   const [allVideos, setAllVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Get or create user session for tracking
+  const getUserSession = () => {
+    let session = sessionStorage.getItem('userSessionId');
+    if (!session) {
+      session = crypto.randomUUID();
+      sessionStorage.setItem('userSessionId', session);
+    }
+    return session;
+  };
+
   // Score and sort videos based on algorithm settings
   const scoreVideos = async (videosData: any[], profilesMap: Map<string, any>) => {
     // Fetch algorithm settings
@@ -49,6 +59,15 @@ export const VideoFeed = () => {
         .eq("follower_id", user.id);
       userFollows = new Set(followsData?.map(f => f.followed_id) || []);
     }
+
+    // Fetch watched videos for current user/session
+    const userSession = getUserSession();
+    const { data: viewsData } = await supabase
+      .from("video_views")
+      .select("video_id")
+      .or(user ? `user_id.eq.${user.id}` : `user_session.eq.${userSession}`);
+    
+    const watchedVideos = new Set(viewsData?.map(v => v.video_id) || []);
 
     // Fetch ratings for all videos
     const { data: ratingsData } = await supabase
@@ -129,6 +148,11 @@ export const VideoFeed = () => {
             factorScore = Math.random() * 10;
             break;
           
+          case "watched":
+            // Heavily penalize watched videos (push to bottom)
+            factorScore = watchedVideos.has(video.id) ? -10000 : 0;
+            break;
+          
           case "category":
             // TODO: Implement category matching when user preferences are added
             factorScore = 0;
@@ -161,6 +185,23 @@ export const VideoFeed = () => {
   // Fetch videos from database
   useEffect(() => {
     const fetchVideos = async () => {
+      // Check if we should re-sort (once per day)
+      const lastSorted = sessionStorage.getItem('lastSortedDate');
+      const today = new Date().toDateString();
+      const shouldResort = lastSorted !== today;
+
+      if (!shouldResort) {
+        // Use cached videos if still same day
+        const cached = sessionStorage.getItem('cachedVideos');
+        if (cached) {
+          const cachedVideos = JSON.parse(cached);
+          setVideos(cachedVideos);
+          setAllVideos(cachedVideos);
+          setLoading(false);
+          return;
+        }
+      }
+
       // First fetch videos
       const { data: videosData, error: videosError } = await supabase
         .from("videos")
@@ -187,8 +228,9 @@ export const VideoFeed = () => {
       // Score and sort videos using algorithm
       const sortedVideos = await scoreVideos(videosData, profilesMap);
       
-      // Cache the sorted videos for instant restoration
+      // Cache the sorted videos and timestamp
       sessionStorage.setItem('cachedVideos', JSON.stringify(sortedVideos));
+      sessionStorage.setItem('lastSortedDate', today);
       
       setVideos(sortedVideos);
       setAllVideos(sortedVideos);
@@ -241,7 +283,7 @@ export const VideoFeed = () => {
     };
   }, [location.pathname, location.state]);
 
-  // Save currentIndex and current video id to sessionStorage whenever it changes
+  // Save currentIndex, track video views, and current video id to sessionStorage
   useEffect(() => {
     sessionStorage.setItem('videoFeedIndex', currentIndex.toString());
     const currentVideoId = videos[currentIndex]?.id;
@@ -249,6 +291,25 @@ export const VideoFeed = () => {
       sessionStorage.setItem('videoFeedVideoId', currentVideoId);
     }
   }, [currentIndex, videos]);
+
+  // Track video view when user scrolls to next video
+  useEffect(() => {
+    if (videos.length === 0 || currentIndex === 0) return;
+    
+    const previousVideoId = videos[currentIndex - 1]?.id;
+    if (!previousVideoId) return;
+
+    const trackView = async () => {
+      const userSession = getUserSession();
+      await supabase.from("video_views").insert({
+        video_id: previousVideoId,
+        user_id: user?.id || null,
+        user_session: userSession
+      });
+    };
+
+    trackView();
+  }, [currentIndex, videos, user]);
 
   // Check if we're playing favorites from navigation state
   useEffect(() => {

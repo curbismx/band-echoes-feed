@@ -360,6 +360,38 @@ export type Database = {
         }
         Relationships: []
       }
+      video_views: {
+        Row: {
+          id: string
+          user_id: string | null
+          user_session: string | null
+          video_id: string
+          viewed_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          user_session?: string | null
+          video_id: string
+          viewed_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          user_session?: string | null
+          video_id?: string
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_views_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       videos: {
         Row: {
           caption: string | null
