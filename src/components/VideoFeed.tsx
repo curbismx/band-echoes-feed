@@ -376,10 +376,22 @@ export const VideoFeed = () => {
       const el = videoEls[currentIndex];
       if (!el) return;
       try {
-        el.muted = false;
-        const p = el.play();
-        if (p && typeof (p as any).catch === 'function') {
-          (p as Promise<void>).catch(() => {});
+        // Keep muted to satisfy browser autoplay policies (Safari/Chrome)
+        el.muted = true;
+        if (el.readyState >= 2) {
+          const p = el.play();
+          if (p && typeof (p as any).catch === 'function') {
+            (p as Promise<void>).catch(() => {});
+          }
+        } else {
+          const onCanPlay = () => {
+            el.removeEventListener('canplay', onCanPlay);
+            const p = el.play();
+            if (p && typeof (p as any).catch === 'function') {
+              (p as Promise<void>).catch(() => {});
+            }
+          };
+          el.addEventListener('canplay', onCanPlay, { once: true });
         }
       } catch {}
     };
@@ -436,7 +448,7 @@ export const VideoFeed = () => {
         {videos.map((video, index) => {
           // Optimize preloading: auto for current/next, metadata for nearby, none for far away
           const distance = Math.abs(index - currentIndex);
-          const preloadStrategy = distance === 0 ? "auto" : distance === 1 ? "metadata" : "none";
+          const preloadStrategy = distance <= 1 ? "auto" : distance === 2 ? "metadata" : "none";
           
           return (
             <VideoCard
