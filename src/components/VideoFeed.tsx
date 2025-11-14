@@ -32,11 +32,6 @@ export const VideoFeed = () => {
   const [allVideos, setAllVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Always start each new video muted so autoplay works reliably
-  useEffect(() => {
-    setIsMuted(true);
-  }, [currentIndex]);
-
   // Get or create user session for tracking
   const getUserSession = () => {
     let session = sessionStorage.getItem('userSessionId');
