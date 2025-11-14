@@ -67,23 +67,35 @@ export const CommentsDrawer = ({ videoId, isOpen, onClose }: CommentsDrawerProps
 
   const fetchComments = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    
+    // Fetch comments
+    const { data: commentsData, error: commentsError } = await supabase
       .from("comments")
-      .select(`
-        *,
-        profiles:user_id (
-          username,
-          avatar_url
-        )
-      `)
+      .select("*")
       .eq("video_id", videoId)
       .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("Error fetching comments:", error);
-    } else {
-      setComments(data as any || []);
+    if (commentsError) {
+      console.error("Error fetching comments:", commentsError);
+      setLoading(false);
+      return;
     }
+
+    // Fetch profiles for all comment authors
+    const userIds = [...new Set(commentsData?.map(c => c.user_id) || [])];
+    const { data: profilesData } = await supabase
+      .from("profiles")
+      .select("id, username, avatar_url")
+      .in("id", userIds);
+
+    // Map profiles to comments
+    const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
+    const enrichedComments = commentsData?.map(comment => ({
+      ...comment,
+      profiles: profilesMap.get(comment.user_id) || { username: "Unknown", avatar_url: null }
+    })) || [];
+
+    setComments(enrichedComments);
     setLoading(false);
   };
 
