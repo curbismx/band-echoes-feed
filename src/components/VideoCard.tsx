@@ -53,11 +53,15 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
   const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const resumeTimeRef = useRef<number | null>(null);
   const hasStartedPlayingRef = useRef(false);
+  const [firstFrameShown, setFirstFrameShown] = useState(false);
+  const playerHostRef = useRef<HTMLDivElement>(null);
+  const usingPreloadedRef = useRef(false);
 
   const { averageRating, userRating, submitRating } = useVideoRatings(video.id);
+  const shouldUsePreloaded = !!preloadedVideo && preloadedVideo.url === video.videoUrl && preloadedVideo.isReady && !video.videoUrl.includes('.m3u8');
   
-  // HLS support for adaptive streaming
-  useHLS({ videoRef, src: video.videoUrl, isActive: isActive && isInView });
+  // HLS support for adaptive streaming (skip when using preloaded progressive video)
+  useHLS({ videoRef, src: video.videoUrl, isActive: isActive && isInView && !shouldUsePreloaded });
 
   // Sync state with video prop changes
   useEffect(() => {
