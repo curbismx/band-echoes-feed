@@ -339,7 +339,22 @@ export const InfoDrawer = ({
           {copyrightNotice && (
             <div className="mt-6 pt-4 border-t border-white/10">
               <p className="text-white/50 text-xs leading-relaxed">
-                {copyrightNotice}
+                {copyrightNotice.split(/([\w\.-]+@[\w\.-]+\.\w+)/).map((part, index) => {
+                  // Check if part is an email
+                  if (/^[\w\.-]+@[\w\.-]+\.\w+$/.test(part)) {
+                    return (
+                      <a
+                        key={index}
+                        href={`mailto:${part}`}
+                        className="text-blue-400 hover:text-blue-300 underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {part}
+                      </a>
+                    );
+                  }
+                  return part;
+                })}
               </p>
             </div>
           )}
