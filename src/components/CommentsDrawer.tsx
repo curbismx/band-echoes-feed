@@ -107,6 +107,7 @@ export const CommentsDrawer = ({ videoId, isOpen, onClose }: CommentsDrawerProps
     });
 
     if (error) {
+      console.error("Comment insert error:", error);
       toast({
         title: "Error",
         description: "Failed to post comment",
@@ -114,7 +115,10 @@ export const CommentsDrawer = ({ videoId, isOpen, onClose }: CommentsDrawerProps
       });
     } else {
       setNewComment("");
-      fetchComments();
+      // Wait a bit for the database to update, then refetch
+      setTimeout(() => {
+        fetchComments();
+      }, 300);
     }
     setSubmitting(false);
   };
