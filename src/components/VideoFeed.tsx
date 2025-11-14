@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Capacitor } from "@capacitor/core";
 import backIcon from "@/assets/back.png";
 import favsIcon from "@/assets/favs.png";
+import { getStreamingVideoUrl } from "@/utils/videoUrl";
 export const VideoFeed = () => {
   const { user } = useAuth();
   const location = useLocation();
@@ -511,10 +512,16 @@ export const VideoFeed = () => {
           const distance = Math.abs(index - currentIndex);
           const preloadStrategy = distance <= 1 ? "auto" : distance === 2 ? "metadata" : "none";
           
+          // Convert storage URL to streaming edge function URL for iOS compatibility
+          const streamingVideo = {
+            ...video,
+            videoUrl: getStreamingVideoUrl(video.video_url)
+          };
+          
           return (
             <VideoCard
               key={video.id}
-              video={video}
+              video={streamingVideo}
               isActive={index === currentIndex}
               isMuted={isMuted}
               onUnmute={() => setIsMuted(false)}
