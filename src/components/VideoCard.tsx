@@ -45,6 +45,10 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
   const [infoOpen, setInfoOpen] = useState(false);
   const [isUIHidden, setIsUIHidden] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [progress, setProgress] = useState(0);        // 0–1
+  const [duration, setDuration] = useState(0);        // seconds
+  const [isScrubbing, setIsScrubbing] = useState(false);
+  const wasDraggingRef = useRef(false);
 
   const { averageRating, userRating, submitRating } = useVideoRatings(video.id);
 
@@ -185,6 +189,15 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     submitRating(newRating);
   };
 
+  const seekFromClientX = (clientX: number, element: HTMLDivElement | null) => {
+    const v = videoRef.current;
+    if (!v || !element || !duration) return;
+    const rect = element.getBoundingClientRect();
+    const ratio = Math.min(Math.max((clientX - rect.left) / rect.width, 0), 1);
+    v.currentTime = ratio * duration;
+    setProgress(ratio);
+  };
+
   return (
     <div className="relative h-screen w-screen">
       {/* Video Background */}
@@ -206,6 +219,19 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         }}
         onLoadedData={() => {
           console.log("Video loaded successfully:", video.videoUrl);
+        }}
+        onLoadedMetadata={(e) => {
+          const v = e.currentTarget;
+          if (v.duration && !Number.isNaN(v.duration)) {
+            setDuration(v.duration);
+          }
+        }}
+        onTimeUpdate={(e) => {
+          if (isScrubbing) return;
+          const v = e.currentTarget;
+          if (v.duration && v.currentTime >= 0) {
+            setProgress(v.currentTime / v.duration);
+          }
         }}
       />
 
@@ -345,6 +371,78 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         caption={video.caption}
         links={video.links}
       />
+
+      {/* Thin playback bar at bottom */}
+      {duration > 0 && (
+        <div
+          className="absolute left-0 right-0 bottom-[24px] z-30 flex justify-center pointer-events-auto"
+        >
+          <div
+            className="relative w-[90%] h-[3px] rounded-full bg-white/30 overflow-hidden"
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              wasDraggingRef.current = true;
+              setIsScrubbing(true);
+              seekFromClientX(e.clientX, e.currentTarget);
+            }}
+            onMouseUp={(e) => {
+              e.stopPropagation();
+              setIsScrubbing(false);
+              // End of drag; do not toggle play/pause here
+              wasDraggingRef.current = false;
+            }}
+            onMouseLeave={() => {
+              setIsScrubbing(false);
+              wasDraggingRef.current = false;
+            }}
+            onTouchStart={(e) => {
+              e.stopPropagation();
+              const touch = e.touches[0];
+              if (!touch) return;
+              wasDraggingRef.current = true;
+              setIsScrubbing(true);
+              seekFromClientX(touch.clientX, e.currentTarget);
+            }}
+            onTouchMove={(e) => {
+              e.stopPropagation();
+              const touch = e.touches[0];
+              if (!touch) return;
+              seekFromClientX(touch.clientX, e.currentTarget);
+            }}
+            onTouchEnd={(e) => {
+              e.stopPropagation();
+              setIsScrubbing(false);
+              wasDraggingRef.current = false;
+            }}
+            onClick={(e) => {
+              // Single tap toggles pause/play
+              e.stopPropagation();
+              if (wasDraggingRef.current) {
+                // Drag already handled; ignore click
+                wasDraggingRef.current = false;
+                return;
+              }
+              const v = videoRef.current;
+              if (!v) return;
+              const nextPaused = !isGloballyPaused;
+              onTogglePause(nextPaused);
+              if (nextPaused) {
+                v.pause();
+              } else {
+                const p = v.play();
+                if (p && typeof p.catch === "function") {
+                  p.catch(() => {});
+                }
+              }
+            }}
+          >
+            <div
+              className="absolute left-0 top-0 bottom-0 rounded-full bg-white"
+              style={{ width: `${progress * 100}%` }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
