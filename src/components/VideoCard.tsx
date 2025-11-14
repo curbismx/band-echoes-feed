@@ -279,6 +279,10 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
       };
       v.addEventListener('canplay', onCanPlay, { once: true });
 
+      v.addEventListener('error', () => {
+        console.error('[VIDEO] Element error', v.error, video.videoUrl);
+      });
+
       const onTimeUpdate = () => {
         try {
           sessionStorage.setItem(`videoTime_${video.id}`, String(v.currentTime || 0));
