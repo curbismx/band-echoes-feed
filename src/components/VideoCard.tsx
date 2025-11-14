@@ -229,6 +229,10 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
       });
       try { v.style.setProperty('background', 'transparent', 'important'); } catch {}
 
+      // Mount early so the browser can start fetching/decoding while hidden
+      if (!container.contains(v)) {
+        container.appendChild(v);
+      }
 
       // Restore resume time when metadata ready
       const onLoadedMetadata = () => {
@@ -244,18 +248,21 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
       v.addEventListener('loadedmetadata', onLoadedMetadata, { once: true });
 
       const onLoadedData = () => {
+        // Reveal instantly once first frame is decoded
         v.style.opacity = '1';
         currentVideoElRef.current = v;
-        // Mount ONLY after first frame is decoded
-        if (!container.contains(v)) {
-          container.appendChild(v);
-        }
         if (!isGloballyPaused && isActive && isInView) {
           v.play().catch(() => {});
         }
         hasStartedPlayingRef.current = true;
       };
-      v.addEventListener('loadeddata', onLoadedData, { once: true });
+
+      // If already buffered/decoded (e.g., preloaded), reveal immediately; otherwise wait for loadeddata
+      if (v.readyState >= 2) {
+        onLoadedData();
+      } else {
+        v.addEventListener('loadeddata', onLoadedData, { once: true });
+      }
 
       const onCanPlay = () => {
         // Safety: if canplay fires before loadeddata
