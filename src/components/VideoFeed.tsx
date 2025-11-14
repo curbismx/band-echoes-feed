@@ -340,6 +340,60 @@ export const VideoFeed = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [currentIndex, videos.length]);
 
+  // Hard-stop all non-active videos to prevent overlapping audio
+  useEffect(() => {
+    if (!videos.length) return;
+    const videoEls = Array.from(document.querySelectorAll('video')) as HTMLVideoElement[];
+    videoEls.forEach((el, idx) => {
+      if (idx === currentIndex) {
+        try {
+          el.muted = false;
+          const p = el.play();
+          if (p && typeof (p as any).catch === 'function') {
+            (p as Promise<void>).catch(() => {});
+          }
+        } catch {}
+      } else {
+        try {
+          el.pause();
+          // Reset time so we don't keep audio buffers around
+          el.currentTime = 0;
+        } catch {}
+      }
+    });
+  }, [currentIndex, videos.length]);
+
+  // Aggressive autoplay attempt for the first active video after videos mount
+  useEffect(() => {
+    if (!videos.length) return;
+
+    const attempt = () => {
+      const videoEls = Array.from(document.querySelectorAll('video')) as HTMLVideoElement[];
+      const el = videoEls[currentIndex];
+      if (!el) return;
+      try {
+        el.muted = false;
+        const p = el.play();
+        if (p && typeof (p as any).catch === 'function') {
+          (p as Promise<void>).catch(() => {});
+        }
+      } catch {}
+    };
+
+    // Give the DOM a tick to render before trying to play
+    const t = setTimeout(attempt, 50);
+    // Also re-attempt once when tab becomes visible again
+    const onVis = () => {
+      if (document.visibilityState === 'visible') attempt();
+    };
+    document.addEventListener('visibilitychange', onVis, { once: true } as any);
+
+    return () => {
+      clearTimeout(t);
+      document.removeEventListener('visibilitychange', onVis);
+    };
+  }, [videos.length]);
+
   const handleBackToFeed = () => {
     setIsPlayingFavorites(false);
     navigate("/", { replace: true });
