@@ -44,13 +44,10 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const [isUIHidden, setIsUIHidden] = useState(false);
-  const [videoLoading, setVideoLoading] = useState(true);
-  const [videoError, setVideoError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const lastTapRef = useRef<number>(0);
   const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const resumeTimeRef = useRef<number | null>(null);
-  const loadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { averageRating, userRating, submitRating } = useVideoRatings(video.id);
 
@@ -60,33 +57,12 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     setLikes(video.likes);
   }, [video.id, video.isFollowing, video.likes]);
 
-  // Reset UI visibility and loading state when switching to a new video
+  // Reset UI visibility when switching to a new video
   useEffect(() => {
     if (isActive) {
       setIsUIHidden(false);
-      setVideoLoading(true);
-      setVideoError(false);
-      
-      // Set a timeout to detect videos that never load (30 seconds)
-      if (loadTimeoutRef.current) {
-        clearTimeout(loadTimeoutRef.current);
-      }
-      
-      loadTimeoutRef.current = setTimeout(() => {
-        if (videoLoading && isActive) {
-          console.error("Video load timeout:", video.videoUrl);
-          setVideoError(true);
-          setVideoLoading(false);
-        }
-      }, 30000);
     }
-    
-    return () => {
-      if (loadTimeoutRef.current) {
-        clearTimeout(loadTimeoutRef.current);
-      }
-    };
-  }, [isActive, video.id]);
+  }, [isActive]);
 
   // Check if video is favorited
   useEffect(() => {
@@ -282,25 +258,9 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         onClick={handleVideoClick}
         onError={(e) => {
           console.error("Video load error:", video.videoUrl, e);
-          setVideoError(true);
-          setVideoLoading(false);
-          if (loadTimeoutRef.current) {
-            clearTimeout(loadTimeoutRef.current);
-          }
         }}
         onLoadedData={() => {
           console.log("Video loaded successfully:", video.videoUrl);
-          setVideoLoading(false);
-          setVideoError(false);
-          if (loadTimeoutRef.current) {
-            clearTimeout(loadTimeoutRef.current);
-          }
-        }}
-        onWaiting={() => {
-          console.log("Video buffering:", video.videoUrl);
-        }}
-        onStalled={() => {
-          console.warn("Video stalled:", video.videoUrl);
         }}
         onLoadedMetadata={(e) => {
           try {
@@ -320,32 +280,6 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
           } catch {}
         }}
       />
-
-      {/* Loading and Error States */}
-      {videoLoading && !videoError && (
-        <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/50 pointer-events-none">
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-12 h-12 border-4 border-white/20 border-t-white rounded-full animate-spin" />
-            <p className="text-white/80 text-sm">Loading video...</p>
-          </div>
-        </div>
-      )}
-      
-      {videoError && (
-        <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/70 pointer-events-none">
-          <div className="flex flex-col items-center gap-3 px-6 text-center">
-            <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center">
-              <svg className="w-8 h-8 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-white font-medium mb-1">Unable to load video</p>
-              <p className="text-white/60 text-xs">This video may be processing or temporarily unavailable</p>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Click area for video pause/play */}
       <div 
