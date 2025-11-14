@@ -21,6 +21,12 @@ interface VideoCardProps {
 export const VideoCard = ({ video }: VideoCardProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  const handleVideoClick = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = !v.muted;
+  };
+
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
@@ -40,7 +46,6 @@ export const VideoCard = ({ video }: VideoCardProps) => {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting && entry.intersectionRatio > 0.6) {
-            v.muted = true;
             const p = v.play();
             if (p && typeof (p as any).catch === 'function') {
               (p as Promise<void>).catch(() => {});
@@ -68,7 +73,8 @@ export const VideoCard = ({ video }: VideoCardProps) => {
       muted
       playsInline
       preload="metadata"
-      style={{ width: "100%", height: "100%", objectFit: "cover", background: "transparent" }}
+      onClick={handleVideoClick}
+      style={{ width: "100%", height: "100%", objectFit: "cover", background: "transparent", cursor: "pointer" }}
     />
   );
 };
