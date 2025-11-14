@@ -1,1 +1,4 @@
 project_id = "unzvvrogeykjyurtvpqj"
+
+[functions.stream-video]
+verify_jwt = false
