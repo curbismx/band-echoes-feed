@@ -2,7 +2,13 @@
  * Converts a Supabase Storage video URL to use the streaming edge function
  * This enables proper range-request headers for iOS video playback
  */
-export const getStreamingVideoUrl = (storageUrl: string): string => {
+export const getStreamingVideoUrl = (storageUrl: string | undefined): string => {
+  // Handle undefined/null URLs
+  if (!storageUrl) {
+    console.warn('Video URL is undefined');
+    return '';
+  }
+  
   // Extract filename from storage URL
   // Format: https://PROJECT.supabase.co/storage/v1/object/public/videos/filename.mp4
   const matches = storageUrl.match(/\/videos\/(.+)$/);
