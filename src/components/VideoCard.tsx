@@ -105,8 +105,8 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     const v = videoRef.current;
     if (!v) return;
 
-    // Always keep muted to satisfy autoplay policies
-    v.muted = true;
+    // Start muted (autoplay), but allow unmute after user interaction
+    v.muted = isMuted;
 
     if (!isActive || isGloballyPaused) {
       v.pause();
@@ -119,7 +119,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         console.log("Autoplay attempt:", error);
       });
     }
-  }, [isActive, isGloballyPaused]);
+  }, [isActive, isGloballyPaused, isMuted]);
 
   const handleVideoClick = () => {
     if (!videoRef.current) return;
@@ -217,7 +217,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         autoPlay
         playsInline
         {...({ 'webkit-playsinline': 'true' } as any)}
-        muted
+        muted={isMuted}
         preload={preloadStrategy || "metadata"}
         style={{ width: "100%", height: "100%", objectFit: "cover", background: "black" }}
         poster={video.posterUrl || "/placeholder.svg"}
