@@ -5,8 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { compressVideo, formatFileSize, CompressionProgress } from "@/utils/videoCompression";
-import { Progress } from "@/components/ui/progress";
 import { detectPlatform, isValidUrl } from "@/utils/platformDetection";
 import { getPlatformIcon } from "@/components/PlatformIcons";
 
@@ -21,31 +19,13 @@ const Upload = () => {
   const [caption, setCaption] = useState("");
   const [title, setTitle] = useState("");
   const [isUploading, setIsUploading] = useState(false);
-  const [compressionEnabled, setCompressionEnabled] = useState(true);
-  const [compressionProgress, setCompressionProgress] = useState<CompressionProgress | null>(null);
-  const [originalSize, setOriginalSize] = useState<number>(0);
-  const [compressedSize, setCompressedSize] = useState<number>(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [existingVideoUrl, setExistingVideoUrl] = useState<string>("");
   const [links, setLinks] = useState<string[]>(["", ""]);
   const [searching, setSearching] = useState(false);
 
-  // Fetch compression setting and video data if editing
+  // Fetch video data if editing
   useEffect(() => {
-    const fetchSettings = async () => {
-      const { data } = await supabase
-        .from("app_settings")
-        .select("setting_value")
-        .eq("setting_key", "video_compression_enabled")
-        .single();
-      
-      if (data?.setting_value && typeof data.setting_value === 'object') {
-        const settings = data.setting_value as { enabled: boolean };
-        setCompressionEnabled(settings.enabled);
-      }
-    };
-    fetchSettings();
-
     // Load existing video data if editing
     if (editVideoId) {
       const fetchVideo = async () => {
@@ -151,33 +131,6 @@ const Upload = () => {
       }
 
       let fileToUpload: File | Blob = selectedVideo;
-      setOriginalSize(selectedVideo.size);
-
-      // Compress video if enabled
-      if (compressionEnabled) {
-        toast({
-          title: "Compressing video...",
-          description: "This may take a moment",
-        });
-
-        try {
-          const compressedBlob = await compressVideo(selectedVideo, (progress) => {
-            setCompressionProgress(progress);
-          });
-          
-          fileToUpload = compressedBlob;
-          setCompressedSize(compressedBlob.size);
-          
-          const savings = ((1 - compressedBlob.size / selectedVideo.size) * 100).toFixed(0);
-          toast({
-            title: "Compression complete!",
-            description: `Saved ${savings}% (${formatFileSize(selectedVideo.size - compressedBlob.size)})`,
-          });
-        } catch (compressionError) {
-          console.error("Compression failed, uploading original:", compressionError);
-          // Silently fall back to original video without notifying user
-        }
-      }
 
       // Upload video to storage
       const fileExt = selectedVideo.name.split(".").pop();
@@ -457,22 +410,6 @@ const Upload = () => {
           </div>
 
           <div className="p-4">
-            {compressionProgress && isUploading && (
-              <div className="mb-4 space-y-2">
-                <div className="flex justify-between text-white text-sm">
-                  <span>{compressionProgress.status}</span>
-                  <span>{compressionProgress.progress}%</span>
-                </div>
-                <Progress value={compressionProgress.progress} className="h-2" />
-              </div>
-            )}
-            
-            {compressionEnabled && !isUploading && !editVideoId && (
-              <div className="mb-3 text-center text-xs text-white/60">
-                Video will be compressed before upload
-              </div>
-            )}
-            
             <Button
               onClick={handleUpload}
               disabled={isUploading}
