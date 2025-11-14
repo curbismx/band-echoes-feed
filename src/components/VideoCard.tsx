@@ -32,9 +32,10 @@ interface VideoCardProps {
   onUnmute: () => void;
   isGloballyPaused: boolean;
   onTogglePause: (paused: boolean) => void;
+  preloadStrategy?: "auto" | "metadata" | "none";
 }
 
-export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused, onTogglePause }: VideoCardProps) => {
+export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused, onTogglePause, preloadStrategy = "metadata" }: VideoCardProps) => {
   const navigate = useNavigate();
   const [isFollowing, setIsFollowing] = useState(video.isFollowing);
   const [isLiked, setIsLiked] = useState(false);
@@ -107,7 +108,10 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     v.muted = false;
 
     if (isActive && !isGloballyPaused) {
-      v.currentTime = 0;
+      // Only reset time if video has already started playing
+      if (v.currentTime > 0.1) {
+        v.currentTime = 0;
+      }
       const playPromise = v.play();
       if (playPromise !== undefined) {
         playPromise.catch((error) => {
@@ -227,7 +231,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         autoPlay
         playsInline
         muted={false}
-        preload="auto"
+        preload={preloadStrategy}
         poster={video.posterUrl || "/placeholder.svg"}
         onClick={handleVideoClick}
         onError={(e) => {

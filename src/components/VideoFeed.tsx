@@ -375,17 +375,24 @@ export const VideoFeed = () => {
           transition: isDragging ? 'none' : 'transform 0.4s ease-out',
         }}
       >
-        {videos.map((video, index) => (
-          <VideoCard
-            key={video.id}
-            video={video}
-            isActive={index === currentIndex}
-            isMuted={isMuted}
-            onUnmute={() => setIsMuted(false)}
-            isGloballyPaused={isGloballyPaused}
-            onTogglePause={(paused) => setIsGloballyPaused(paused)}
-          />
-        ))}
+        {videos.map((video, index) => {
+          // Optimize preloading: auto for current/next, metadata for nearby, none for far away
+          const distance = Math.abs(index - currentIndex);
+          const preloadStrategy = distance === 0 || distance === 1 ? "auto" : distance <= 3 ? "metadata" : "none";
+          
+          return (
+            <VideoCard
+              key={video.id}
+              video={video}
+              isActive={index === currentIndex}
+              isMuted={isMuted}
+              onUnmute={() => setIsMuted(false)}
+              isGloballyPaused={isGloballyPaused}
+              onTogglePause={(paused) => setIsGloballyPaused(paused)}
+              preloadStrategy={preloadStrategy}
+            />
+          );
+        })}
       </div>
     </div>
   );
