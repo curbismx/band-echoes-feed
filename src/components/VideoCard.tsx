@@ -220,7 +220,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         autoPlay
         playsInline
         muted={false}
-        preload="auto"
+        preload={isActive ? "none" : "metadata"}
         poster={video.posterUrl || "/placeholder.svg"}
         onClick={handleVideoClick}
         onError={(e) => {
