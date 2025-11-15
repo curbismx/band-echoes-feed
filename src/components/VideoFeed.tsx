@@ -34,11 +34,16 @@ export const VideoFeed = () => {
 
       if (!videosData) return;
 
-      // Basic sort: newest first
+      // Map database columns to Video interface
       const sorted = videosData.map(v => ({
         ...v,
         posterUrl: v.thumbnail_url,
-        videoUrl: v.video_url
+        videoUrl: v.video_url,
+        likes: v.likes_count || 0,
+        artistName: v.user_id || "Unknown",
+        artistUserId: v.user_id,
+        rating: 0,
+        isFollowing: false
       }));
 
       setVideos(sorted);
