@@ -34,17 +34,29 @@ export const VideoFeed = () => {
 
       if (!videosData) return;
 
+      // Fetch all unique user profiles
+      const userIds = [...new Set(videosData.map(v => v.user_id))];
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("id, display_name, username")
+        .in("id", userIds);
+
+      const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
+
       // Map database columns to Video interface
-      const sorted = videosData.map(v => ({
-        ...v,
-        posterUrl: v.thumbnail_url,
-        videoUrl: v.video_url,
-        likes: v.likes_count || 0,
-        artistName: v.user_id || "Unknown",
-        artistUserId: v.user_id,
-        rating: 0,
-        isFollowing: false
-      }));
+      const sorted = videosData.map(v => {
+        const profile = profilesMap.get(v.user_id);
+        return {
+          ...v,
+          posterUrl: v.thumbnail_url,
+          videoUrl: v.video_url,
+          likes: v.likes_count || 0,
+          artistName: profile?.display_name || profile?.username || "Unknown Artist",
+          artistUserId: v.user_id,
+          rating: 0,
+          isFollowing: false
+        };
+      });
 
       setVideos(sorted);
 
