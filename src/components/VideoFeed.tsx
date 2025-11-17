@@ -16,6 +16,8 @@ export const VideoFeed = () => {
   const [isMuted, setIsMuted] = useState(true);
   const [isGloballyPaused, setIsGloballyPaused] = useState(false);
   const [isPlayingFavorites, setIsPlayingFavorites] = useState(false);
+  const [originalVideos, setOriginalVideos] = useState<any[]>([]);
+  const [originalIndex, setOriginalIndex] = useState(0);
 
   const touchStart = useRef(0);
   const touchEnd = useRef(0);
@@ -60,18 +62,30 @@ export const VideoFeed = () => {
 
       setVideos(sorted);
 
-      // restore index session
-      const savedIndex = sessionStorage.getItem("feedIndex");
-      if (savedIndex) {
-        const idx = Number(savedIndex);
-        if (idx >= 0 && idx < sorted.length) {
-          setCurrentIndex(idx);
+      // Check if favorites were passed via location state
+      if (location.state?.favoriteVideos && location.state?.startIndex !== undefined) {
+        setOriginalVideos(sorted);
+        const savedIndex = sessionStorage.getItem("feedIndex");
+        setOriginalIndex(savedIndex ? Number(savedIndex) : 0);
+        setVideos(location.state.favoriteVideos);
+        setCurrentIndex(location.state.startIndex);
+        setIsPlayingFavorites(true);
+        // Clear the state so it doesn't persist
+        window.history.replaceState({}, document.title);
+      } else {
+        // restore index session
+        const savedIndex = sessionStorage.getItem("feedIndex");
+        if (savedIndex) {
+          const idx = Number(savedIndex);
+          if (idx >= 0 && idx < sorted.length) {
+            setCurrentIndex(idx);
+          }
         }
       }
     };
 
     fetchAndSort();
-  }, []);
+  }, [location.state]);
 
   /* --------------------------------------------------
       SAVE INDEX PERSISTENTLY
@@ -104,9 +118,16 @@ export const VideoFeed = () => {
 
     if (distance > MIN_SWIPE) {
       // swipe UP
-      setCurrentIndex(i =>
-        i < videos.length - 1 ? i + 1 : 0
-      );
+      if (isPlayingFavorites && currentIndex >= videos.length - 1) {
+        // End of favorites - return to normal feed
+        setVideos(originalVideos);
+        setCurrentIndex(originalIndex);
+        setIsPlayingFavorites(false);
+      } else {
+        setCurrentIndex(i =>
+          i < videos.length - 1 ? i + 1 : 0
+        );
+      }
     } else if (distance < -MIN_SWIPE) {
       // swipe DOWN
       setCurrentIndex(i =>
@@ -122,7 +143,8 @@ export const VideoFeed = () => {
   -------------------------------------------------- */
   const handleBack = () => {
     setIsPlayingFavorites(false);
-    navigate("/", { replace: true });
+    setVideos(originalVideos);
+    setCurrentIndex(originalIndex);
   };
 
   /* --------------------------------------------------
