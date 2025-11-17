@@ -13,9 +13,7 @@ export const VideoFeed = () => {
 
   const [videos, setVideos] = useState<any[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isMuted, setIsMuted] = useState(() => {
-    return sessionStorage.getItem('hasUnmuted') !== 'true';
-  });
+  const [isMuted, setIsMuted] = useState(true);
   const [isGloballyPaused, setIsGloballyPaused] = useState(false);
   const [isPlayingFavorites, setIsPlayingFavorites] = useState(false);
   const [originalVideos, setOriginalVideos] = useState<any[]>([]);
