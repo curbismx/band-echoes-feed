@@ -250,23 +250,23 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
       {/* Tap to unmute hint */}
       {showUnmuteHint && isMuted && isActive && isFirstVideo && (
         <div className="absolute inset-0 z-15 flex items-center justify-center pointer-events-none">
-          <div className="flex flex-col items-center gap-3 bg-black/20 p-10 rounded-full">
+          <div className="flex flex-col items-center justify-center gap-2 bg-black/10 w-32 h-32 rounded-full">
             <svg 
-              width="48" 
-              height="48" 
+              width="32" 
+              height="32" 
               viewBox="0 0 24 24" 
               fill="none" 
               stroke="white" 
               strokeWidth="2" 
               strokeLinecap="round" 
               strokeLinejoin="round"
-              className="opacity-50"
+              className="opacity-30"
             >
               <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
               <line x1="23" y1="9" x2="17" y2="15" />
               <line x1="17" y1="9" x2="23" y2="15" />
             </svg>
-            <p className="text-white text-lg font-medium opacity-50">Tap to unmute</p>
+            <p className="text-white text-xs font-medium opacity-30">tap to unmute</p>
           </div>
         </div>
       )}
