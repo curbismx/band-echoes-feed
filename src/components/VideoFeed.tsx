@@ -157,16 +157,6 @@ export const VideoFeed = () => {
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
     >
-      {/* Back button when viewing favorites */}
-      {isPlayingFavorites && (
-        <div className="absolute top-[100px] left-[30px] z-30 flex items-center gap-3">
-          <button onClick={handleBack}>
-            <img src={backIcon} className="h-[30px]" />
-          </button>
-          <img src={favsIcon} className="h-[30px]" />
-        </div>
-      )}
-
       <div
         className="relative h-full"
         style={{
