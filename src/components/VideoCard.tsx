@@ -374,7 +374,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
       {/* Thin playback bar at bottom */}
       {duration > 0 && (
         <div
-          className="absolute left-0 right-0 bottom-[24px] z-30 flex justify-center pointer-events-auto"
+          className="absolute left-0 right-0 bottom-[24px] z-30 flex justify-center pointer-events-auto px-[5px]"
         >
           <div
             className="relative w-[90%] h-[3px] rounded-full bg-white/30 overflow-hidden"
