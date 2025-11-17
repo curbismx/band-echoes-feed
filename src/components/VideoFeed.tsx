@@ -87,6 +87,7 @@ export const VideoFeed = () => {
 
   const onTouchStart = (e: React.TouchEvent) => {
     touchStart.current = e.targetTouches[0].clientY;
+    touchEnd.current = e.targetTouches[0].clientY;
     setIsDragging(true);
   };
 
