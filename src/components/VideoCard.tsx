@@ -33,10 +33,9 @@ interface VideoCardProps {
   isGloballyPaused: boolean;
   onTogglePause: (paused: boolean) => void;
   preloadStrategy?: "auto" | "metadata" | "none";
-  isFirstVideo?: boolean;
 }
 
-export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused, onTogglePause, preloadStrategy = "metadata", isFirstVideo = false }: VideoCardProps) => {
+export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused, onTogglePause, preloadStrategy = "metadata" }: VideoCardProps) => {
   const navigate = useNavigate();
   const [isFollowing, setIsFollowing] = useState(video.isFollowing);
   const [isLiked, setIsLiked] = useState(false);
@@ -45,9 +44,6 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const [isUIHidden, setIsUIHidden] = useState(false);
-  const [showUnmuteHint, setShowUnmuteHint] = useState(() => {
-    return sessionStorage.getItem('hasUnmuted') !== 'true';
-  });
   const videoRef = useRef<HTMLVideoElement>(null);
   const [progress, setProgress] = useState(0);        // 0–1
   const [duration, setDuration] = useState(0);        // seconds
@@ -135,8 +131,6 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
 
   const handleVideoClick = () => {
     onUnmute();
-    setShowUnmuteHint(false);
-    sessionStorage.setItem('hasUnmuted', 'true');
   };
 
   const handleFollow = async () => {
@@ -246,30 +240,6 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         style={{ pointerEvents: 'auto' }}
         onClick={handleVideoClick} 
       />
-      
-      {/* Tap to unmute hint */}
-      {showUnmuteHint && isMuted && isActive && isFirstVideo && (
-        <div className="absolute inset-0 z-15 flex items-center justify-center pointer-events-none">
-          <div className="flex flex-col items-center justify-center gap-2 bg-black/10 w-32 h-32 rounded-full">
-            <svg 
-              width="32" 
-              height="32" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="white" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-              className="opacity-30"
-            >
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-              <line x1="23" y1="9" x2="17" y2="15" />
-              <line x1="17" y1="9" x2="23" y2="15" />
-            </svg>
-            <p className="text-white text-xs font-medium opacity-30">tap to unmute</p>
-          </div>
-        </div>
-      )}
       
       {/* Video Info Text - Left Side */}
       {!isUIHidden && (

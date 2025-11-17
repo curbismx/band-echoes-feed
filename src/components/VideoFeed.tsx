@@ -177,7 +177,6 @@ export const VideoFeed = () => {
             onUnmute={() => setIsMuted(false)}
             isGloballyPaused={isGloballyPaused}
             onTogglePause={setIsGloballyPaused}
-            isFirstVideo={i === 0}
           />
         ))}
       </div>
