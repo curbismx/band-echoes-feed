@@ -4,10 +4,8 @@ const config: CapacitorConfig = {
   appId: 'app.lovable.a82cece6bdd14cf885774e2761f25596',
   appName: 'band-echoes-feed',
   webDir: 'dist',
-  server: {
-    url: 'https://a82cece6-bdd1-4cf8-8577-4e2761f25596.lovableproject.com?forceHideBadge=true',
-    cleartext: true
-  },
+  // Remove server.url for production builds (TestFlight/App Store)
+  // Only use server.url for local development with hot-reload
   plugins: {
     SplashScreen: {
       launchShowDuration: 0
