@@ -88,6 +88,30 @@ export const VideoFeed = () => {
   }, [location.state]);
 
   /* --------------------------------------------------
+      KEYBOARD NAVIGATION
+  -------------------------------------------------- */
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setCurrentIndex(i => (i > 0 ? i - 1 : videos.length - 1));
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        if (isPlayingFavorites && currentIndex >= videos.length - 1) {
+          setVideos(originalVideos);
+          setCurrentIndex(originalIndex);
+          setIsPlayingFavorites(false);
+        } else {
+          setCurrentIndex(i => (i < videos.length - 1 ? i + 1 : 0));
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [videos.length, currentIndex, isPlayingFavorites, originalVideos, originalIndex]);
+
+  /* --------------------------------------------------
       SAVE INDEX PERSISTENTLY
   -------------------------------------------------- */
   useEffect(() => {
