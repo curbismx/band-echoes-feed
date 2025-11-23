@@ -106,27 +106,29 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     const v = videoRef.current;
     if (!v) return;
 
-    // Always start muted for autoplay
-    v.muted = true;
-
     if (!isActive || isGloballyPaused) {
       v.pause();
       return;
     }
 
-    const playPromise = v.play();
-    if (playPromise && typeof playPromise.then === "function") {
-      playPromise
-        .then(() => {
-          // Once playback has started, unmute if the user has chosen sound
-          if (!isMuted) {
-            v.muted = false;
-          }
-        })
-        .catch((error) => {
-          console.log("Autoplay attempt:", error);
+    // Reset video to ensure fresh playback
+    v.currentTime = 0;
+    v.muted = isMuted;
+    
+    // Small delay to ensure video is ready
+    const timer = setTimeout(() => {
+      const playPromise = v.play();
+      if (playPromise && typeof playPromise.then === "function") {
+        playPromise.catch((error) => {
+          console.log("Autoplay blocked, retrying muted:", error);
+          // If autoplay fails, force mute and retry
+          v.muted = true;
+          v.play().catch(err => console.log("Retry failed:", err));
         });
-    }
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, [isActive, isGloballyPaused, isMuted]);
 
   const handleVideoClick = () => {
