@@ -10,6 +10,7 @@ import followOnIcon from "@/assets/follow_ON.png";
 import followedIcon from "@/assets/followed.png";
 import infoIcon from "@/assets/info.png";
 import infoFollowIcon from "@/assets/info-follow.png";
+import { Volume2, VolumeX } from "lucide-react";
 
 interface Video {
   id: string;
@@ -235,6 +236,19 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         style={{ pointerEvents: 'auto' }}
         onClick={handleVideoClick} 
       />
+      
+      {/* Unmute indicator */}
+      {isMuted && (
+        <div 
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none"
+          style={{ animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}
+        >
+          <div className="bg-black/50 backdrop-blur-sm rounded-full p-6 flex items-center gap-3">
+            <VolumeX className="w-12 h-12 text-white" />
+            <div className="text-white text-lg font-medium">Tap to unmute</div>
+          </div>
+        </div>
+      )}
       
       {/* Video Info Text - Left Side */}
       {!isUIHidden && (
