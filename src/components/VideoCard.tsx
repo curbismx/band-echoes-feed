@@ -102,26 +102,42 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     fetchArtistProfile();
   }, [video.artistUserId]);
 
-  // Simple video playback control
+  // Stable, consistent video playback control for TikTok-style feed
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
 
+    // Always force muted before any play attempt (required by Safari/iOS)
+    v.muted = true;
+
+    // If this card is not active, pause and exit
     if (!isActive || isGloballyPaused) {
       v.pause();
       return;
     }
 
-    // Ensure video can play
-    v.muted = isMuted;
-    const playPromise = v.play();
-    
-    if (playPromise !== undefined) {
-      playPromise.catch(() => {
-        // If play fails, try muted
-        v.muted = true;
-        v.play().catch(() => {});
-      });
+    // Avoid repeated play() calls
+    if (v.readyState >= 2 && v.paused) {
+      const attemptPlay = () => {
+        const p = v.play();
+        if (!p || !p.then) return;
+
+        p.then(() => {
+          // Only unmute after playback has definitely started
+          if (!isMuted) {
+            // Small delay stops Safari stalling when switching mute state mid-frame
+            setTimeout(() => {
+              v.muted = false;
+            }, 120);
+          }
+        }).catch(() => {
+          // If autoplay failed, retry muted only
+          v.muted = true;
+          v.play().catch(() => {});
+        });
+      };
+
+      attemptPlay();
     }
   }, [isActive, isGloballyPaused, isMuted]);
 
