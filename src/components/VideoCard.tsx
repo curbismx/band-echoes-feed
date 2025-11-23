@@ -240,13 +240,13 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
       {/* Unmute indicator */}
       {isMuted && (
         <div 
-          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none"
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none flex flex-col items-center gap-2"
           style={{ animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}
         >
-          <div className="bg-black/50 backdrop-blur-sm rounded-full p-6 flex items-center gap-3">
-            <VolumeX className="w-12 h-12 text-white" />
-            <div className="text-white text-lg font-medium">Tap to unmute</div>
+          <div className="bg-black/60 backdrop-blur-sm rounded-full p-4">
+            <VolumeX className="w-8 h-8 text-white" />
           </div>
+          <div className="text-white text-sm font-medium drop-shadow-lg">Tap to unmute</div>
         </div>
       )}
       
