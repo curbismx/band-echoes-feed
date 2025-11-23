@@ -111,24 +111,17 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
       return;
     }
 
-    // Reset video to ensure fresh playback
-    v.currentTime = 0;
+    // Ensure video can play
     v.muted = isMuted;
+    const playPromise = v.play();
     
-    // Small delay to ensure video is ready
-    const timer = setTimeout(() => {
-      const playPromise = v.play();
-      if (playPromise && typeof playPromise.then === "function") {
-        playPromise.catch((error) => {
-          console.log("Autoplay blocked, retrying muted:", error);
-          // If autoplay fails, force mute and retry
-          v.muted = true;
-          v.play().catch(err => console.log("Retry failed:", err));
-        });
-      }
-    }, 100);
-
-    return () => clearTimeout(timer);
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        // If play fails, try muted
+        v.muted = true;
+        v.play().catch(() => {});
+      });
+    }
   }, [isActive, isGloballyPaused, isMuted]);
 
   const handleVideoClick = () => {
