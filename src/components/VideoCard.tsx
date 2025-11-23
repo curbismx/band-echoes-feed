@@ -102,92 +102,53 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     fetchArtistProfile();
   }, [video.artistUserId]);
 
-  // 1) Main playback control: start/stop video based on isActive / isGloballyPaused
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
 
-    const shouldPlay = isActive && !isGloballyPaused;
+    // Always force muted on initial autoplay (Safari requirement)
+    v.muted = true;
 
-    if (!shouldPlay) {
-      // If this card is not active, pause and exit
+    // If this video is not the active one, pause it immediately
+    if (!isActive || isGloballyPaused) {
       v.pause();
       return;
     }
 
-    // Always start muted for autoplay compliance
-    v.muted = true;
-
+    // Safe play attempt
     const tryPlay = () => {
-      const playPromise = v.play();
-      if (playPromise && typeof playPromise.then === "function") {
-        playPromise.catch(() => {
-          // If autoplay fails, stay muted and ignore the error
-        });
-      }
-    };
+      const p = v.play();
+      if (!p || !p.then) return;
 
-    // If the video is already loaded enough, play immediately
-    if (v.readyState >= 2) {
-      if (v.paused) {
-        tryPlay();
-      }
-    } else {
-      // Wait until it can play, then start
-      const handleCanPlay = () => {
-        v.removeEventListener("canplay", handleCanPlay);
-        if (isActive && !isGloballyPaused && v.paused) {
-          tryPlay();
+      p.then(() => {
+        // Playback started successfully — now handle sound separately
+        if (!isMuted) {
+          // Delay unmute so Safari doesn't choke
+          setTimeout(() => {
+            v.muted = false;
+          }, 150);
         }
-      };
-
-      v.addEventListener("canplay", handleCanPlay);
-
-      return () => {
-        v.removeEventListener("canplay", handleCanPlay);
-      };
-    }
-  }, [isActive, isGloballyPaused]);
-
-  // 2) Auto-resume if the browser pauses during playback but the card is still active
-  useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-
-    const handlePause = () => {
-      // Only auto-resume if this card should be playing and it didn't end
-      if (!isActive || isGloballyPaused || v.ended) return;
-
-      const playPromise = v.play();
-      if (playPromise && typeof playPromise.then === "function") {
-        playPromise.catch(() => {
-          // Ignore errors; browser might still be buffering
-        });
-      }
+      }).catch(() => {
+        // If autoplay failed, fallback to muted only
+        v.muted = true;
+        v.play().catch(() => {});
+      });
     };
 
-    if (isActive && !isGloballyPaused) {
-      v.addEventListener("pause", handlePause);
-    }
-
-    return () => {
-      v.removeEventListener("pause", handlePause);
-    };
-  }, [isActive, isGloballyPaused]);
-
-  // 3) Separate mute / unmute control (no extra play() calls here)
-  useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-
-    // SAFARI RULE: video must have already been started muted by a user gesture
-    // This effect ONLY toggles mute, it never calls play()
-    if (isMuted) {
-      v.muted = true;
+    // If video is already buffered enough, play immediately
+    if (v.readyState >= 2) {
+      tryPlay();
     } else {
-      v.muted = false;
+      // Wait until browser says "ready", but DO NOT kill poster or source
+      const onReady = () => {
+        v.removeEventListener("canplay", onReady);
+        tryPlay();
+      };
+      v.addEventListener("canplay", onReady);
+
+      return () => v.removeEventListener("canplay", onReady);
     }
-  }, [isMuted]);
+  }, [isActive, isGloballyPaused, isMuted]);
 
   const handleVideoClick = () => {
     onUnmute();
@@ -267,10 +228,10 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         loop
         playsInline
         {...({ 'webkit-playsinline': 'true' } as any)}
+        preload="auto"
         muted
-        preload="metadata"
-        style={{ width: "100%", height: "100%", objectFit: "cover", background: "black" }}
         poster={video.posterUrl || "/placeholder.svg"}
+        style={{ width: "100%", height: "100%", objectFit: "cover", background: "black" }}
         onClick={handleVideoClick}
         onError={(e) => {
           console.error("Video load error:", video.videoUrl, e);
