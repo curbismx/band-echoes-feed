@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import logoImage from "@/assets/onboarding-logo.png";
 
 export default function SetupAccount() {
   const [email, setEmail] = useState("");
@@ -86,6 +87,13 @@ export default function SetupAccount() {
     <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: "#252525" }}>
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
+          <div className="w-32 h-32 mx-auto mb-6 flex items-center justify-center">
+            <img 
+              src={logoImage} 
+              alt="Eleven Logo" 
+              className="w-full h-full object-contain"
+            />
+          </div>
           <h1 className="text-4xl font-bold text-white mb-2">
             Set Up Your Account
           </h1>
