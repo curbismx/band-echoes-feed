@@ -178,29 +178,31 @@ export default function Favorites() {
           {favoriteVideos.map((video, index) => (
             <div 
               key={video.id} 
-              className="relative aspect-[9/16] bg-white/5 cursor-pointer hover:opacity-80 transition-opacity rounded-lg"
+              className="relative aspect-[9/16] bg-white/5 cursor-pointer hover:opacity-80 transition-opacity rounded-lg overflow-hidden"
               onClick={() => navigate("/", { state: { favoriteVideos, startIndex: index } })}
             >
-              {(video.thumbnail || thumbs[video.id]) ? (
-                <img
-                  src={video.thumbnail || thumbs[video.id]}
-                  alt={video.title ? `${video.title} thumbnail` : "Video thumbnail"}
-                  className="w-full h-full object-cover rounded-lg"
-                />
-              ) : (
-                <video
-                  src={video.videoUrl}
-                  className="w-full h-full object-cover rounded-lg"
-                  muted
-                  playsInline
-                  preload="metadata"
-                  controls={false}
-                  poster="/placeholder.svg"
-                  onLoadedMetadata={(e) => {
-                    try { e.currentTarget.currentTime = 0.1; } catch {}
-                  }}
-                />
-              )}
+              <div className="w-full h-full rounded-lg overflow-hidden">
+                {(video.thumbnail || thumbs[video.id]) ? (
+                  <img
+                    src={video.thumbnail || thumbs[video.id]}
+                    alt={video.title ? `${video.title} thumbnail` : "Video thumbnail"}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <video
+                    src={video.videoUrl}
+                    className="w-full h-full object-cover"
+                    muted
+                    playsInline
+                    preload="metadata"
+                    controls={false}
+                    poster="/placeholder.svg"
+                    onLoadedMetadata={(e) => {
+                      try { e.currentTarget.currentTime = 0.1; } catch {}
+                    }}
+                  />
+                )}
+              </div>
               <div className="absolute bottom-2 left-2 text-white text-xs font-semibold drop-shadow-lg">
                 {video.artistName}
               </div>
