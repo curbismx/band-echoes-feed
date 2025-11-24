@@ -52,11 +52,11 @@ const Onboarding = () => {
         </div>
 
         {/* Arrow at bottom */}
-        <div className="w-6 h-6 flex items-center justify-center">
+        <div className="flex items-center justify-center">
           <img 
             src={arrowImage} 
             alt="Next" 
-            className="w-full h-full object-contain"
+            className="w-6 h-6 object-contain"
           />
         </div>
       </div>
