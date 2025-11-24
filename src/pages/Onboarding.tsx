@@ -53,37 +53,21 @@ const Onboarding = () => {
     const boxes: GenreBox[] = [];
     
     categories.forEach((category) => {
-      const width = category.name.length * 10 + 30;
+      const width = Math.min(category.name.length * 10 + 30, containerWidth - padding * 2);
       const height = 40;
       
-      let x, y;
-      let attempts = 0;
-      const maxAttempts = 200;
-      let validPosition = false;
-
-      while (!validPosition && attempts < maxAttempts) {
-        x = Math.random() * (containerWidth - width - padding * 2) + padding;
-        y = Math.random() * (containerHeight - height - padding * 2) + padding;
-        
-        validPosition = !boxes.some(box => 
-          x < box.x + box.width + 20 &&
-          x + width + 20 > box.x &&
-          y < box.y + box.height + 20 &&
-          y + height + 20 > box.y
-        );
-        
-        attempts++;
-      }
-
-      // Much faster velocities
-      const speed = 3 + Math.random() * 2;
+      let x = Math.random() * (containerWidth - width - padding * 2) + padding;
+      let y = Math.random() * (containerHeight - height - padding * 2) + padding;
+      
+      // Much faster velocities - 8 to 12 pixels per frame
+      const speed = 8 + Math.random() * 4;
       const angle = Math.random() * Math.PI * 2;
 
       boxes.push({
         id: category.id,
         name: category.name,
-        x: x || padding,
-        y: y || padding,
+        x,
+        y,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
         width,
@@ -100,55 +84,56 @@ const Onboarding = () => {
 
     const containerWidth = 400;
     const containerHeight = 550;
-    const padding = 5;
+    const padding = 0;
 
     const animate = () => {
       setGenreBoxes(prevBoxes => {
         const newBoxes = prevBoxes.map(box => ({ ...box }));
 
-        newBoxes.forEach((box, i) => {
+        newBoxes.forEach((box) => {
           // Move box
           box.x += box.vx;
           box.y += box.vy;
 
-          // Wall collisions with bounce
+          // Strict wall collision with energy preservation
           if (box.x <= padding) {
             box.x = padding;
             box.vx = Math.abs(box.vx);
-          }
-          if (box.x + box.width >= containerWidth - padding) {
+          } else if (box.x + box.width >= containerWidth - padding) {
             box.x = containerWidth - padding - box.width;
             box.vx = -Math.abs(box.vx);
           }
+          
           if (box.y <= padding) {
             box.y = padding;
             box.vy = Math.abs(box.vy);
-          }
-          if (box.y + box.height >= containerHeight - padding) {
+          } else if (box.y + box.height >= containerHeight - padding) {
             box.y = containerHeight - padding - box.height;
             box.vy = -Math.abs(box.vy);
           }
+        });
 
-          // Check collisions with other boxes
-          for (let j = 0; j < newBoxes.length; j++) {
-            if (i === j) continue;
+        // Box-to-box collision detection
+        for (let i = 0; i < newBoxes.length; i++) {
+          for (let j = i + 1; j < newBoxes.length; j++) {
+            const box1 = newBoxes[i];
+            const box2 = newBoxes[j];
             
-            const otherBox = newBoxes[j];
-            
-            // Check if boxes overlap
-            if (box.x < otherBox.x + otherBox.width &&
-                box.x + box.width > otherBox.x &&
-                box.y < otherBox.y + otherBox.height &&
-                box.y + box.height > otherBox.y) {
+            // Check overlap
+            if (box1.x < box2.x + box2.width &&
+                box1.x + box1.width > box2.x &&
+                box1.y < box2.y + box2.height &&
+                box1.y + box1.height > box2.y) {
               
               // Calculate centers
-              const box1CenterX = box.x + box.width / 2;
-              const box1CenterY = box.y + box.height / 2;
-              const box2CenterX = otherBox.x + otherBox.width / 2;
-              const box2CenterY = otherBox.y + otherBox.height / 2;
+              const center1X = box1.x + box1.width / 2;
+              const center1Y = box1.y + box1.height / 2;
+              const center2X = box2.x + box2.width / 2;
+              const center2Y = box2.y + box2.height / 2;
               
-              const dx = box2CenterX - box1CenterX;
-              const dy = box2CenterY - box1CenterY;
+              // Separation vector
+              const dx = center2X - center1X;
+              const dy = center2Y - center1Y;
               const distance = Math.sqrt(dx * dx + dy * dy);
               
               if (distance > 0) {
@@ -156,28 +141,28 @@ const Onboarding = () => {
                 const nx = dx / distance;
                 const ny = dy / distance;
                 
-                // Separate boxes immediately
-                const overlap = (box.width + otherBox.width) / 2 - Math.abs(dx);
-                box.x -= nx * overlap / 2;
-                otherBox.x += nx * overlap / 2;
-                box.y -= ny * overlap / 2;
-                otherBox.y += ny * overlap / 2;
+                // Calculate overlap
+                const minDist = (box1.width + box2.width) / 2;
+                const overlap = minDist - distance;
                 
-                // Bounce velocities
-                const relativeVx = box.vx - otherBox.vx;
-                const relativeVy = box.vy - otherBox.vy;
-                const speed = relativeVx * nx + relativeVy * ny;
+                // Separate boxes
+                box1.x -= nx * overlap / 2;
+                box1.y -= ny * overlap / 2;
+                box2.x += nx * overlap / 2;
+                box2.y += ny * overlap / 2;
                 
-                if (speed < 0) {
-                  box.vx -= speed * nx * 2;
-                  box.vy -= speed * ny * 2;
-                  otherBox.vx += speed * nx * 2;
-                  otherBox.vy += speed * ny * 2;
-                }
+                // Elastic collision - swap velocities along collision normal
+                const v1n = box1.vx * nx + box1.vy * ny;
+                const v2n = box2.vx * nx + box2.vy * ny;
+                
+                box1.vx += (v2n - v1n) * nx;
+                box1.vy += (v2n - v1n) * ny;
+                box2.vx += (v1n - v2n) * nx;
+                box2.vy += (v1n - v2n) * ny;
               }
             }
           }
-        });
+        }
 
         return newBoxes;
       });
