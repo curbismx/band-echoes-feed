@@ -44,7 +44,7 @@ const Onboarding = () => {
         ) : (
           <>
             {/* Text Image - Page 2 (smaller) */}
-            <div className="absolute top-[225px] left-1/2 -translate-x-1/2 w-48 flex items-center justify-center">
+            <div className="absolute top-[225px] left-1/2 -translate-x-1/2 w-72 flex items-center justify-center">
               <img 
                 src={textImage} 
                 alt="Discover new music" 
