@@ -57,7 +57,7 @@ const Onboarding = () => {
         {/* Text in middle - Same position for both pages */}
         <div className="absolute top-[828px] left-1/2 -translate-x-1/2 flex items-center justify-center max-w-md">
           <h1 className="text-white text-2xl md:text-3xl font-semibold text-center leading-tight">
-            JUST GREAT MUSIC
+            {currentPage === 0 ? "JUST GREAT MUSIC" : "AND ANY OTHER GENRE YOU CAN THINK OF"}
           </h1>
         </div>
 
