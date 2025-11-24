@@ -178,7 +178,7 @@ export default function Favorites() {
           {favoriteVideos.map((video, index) => (
             <div 
               key={video.id} 
-              className="relative aspect-[9/16] bg-white/5 cursor-pointer hover:opacity-80 transition-opacity rounded-lg overflow-hidden"
+              className="relative aspect-[9/16] bg-white/5 cursor-pointer hover:opacity-80 transition-opacity rounded-lg"
               onClick={() => navigate("/", { state: { favoriteVideos, startIndex: index } })}
             >
               {(video.thumbnail || thumbs[video.id]) ? (
