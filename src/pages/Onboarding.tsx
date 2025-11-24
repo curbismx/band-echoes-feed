@@ -40,33 +40,26 @@ const Onboarding = () => {
                 className="w-full h-full object-contain"
               />
             </div>
-
-            {/* Text in middle - Page 1 */}
-            <div className="flex items-center justify-center max-w-md mt-[475px]">
-              <h1 className="text-white text-2xl md:text-3xl font-semibold text-center leading-tight">
-                JUST GREAT MUSIC
-              </h1>
-            </div>
           </>
         ) : (
           <>
-            {/* Text Image - Page 2 */}
-            <div className="flex items-center justify-center mt-[225px]">
+            {/* Text Image - Page 2 (smaller) */}
+            <div className="w-48 flex items-center justify-center mt-[225px]">
               <img 
                 src={textImage} 
                 alt="Discover new music" 
-                className="max-w-md w-full object-contain"
+                className="w-full object-contain"
               />
-            </div>
-
-            {/* Additional text - Page 2 */}
-            <div className="flex items-center justify-center max-w-md mt-[475px]">
-              <h1 className="text-white text-2xl md:text-3xl font-semibold text-center leading-tight">
-                JUST GREAT MUSIC
-              </h1>
             </div>
           </>
         )}
+
+        {/* Text in middle - Same for both pages */}
+        <div className="flex items-center justify-center max-w-md mt-[475px]">
+          <h1 className="text-white text-2xl md:text-3xl font-semibold text-center leading-tight">
+            JUST GREAT MUSIC
+          </h1>
+        </div>
 
         {/* Arrow at bottom */}
         <div className="absolute bottom-[125px] left-1/2 -translate-x-1/2">
