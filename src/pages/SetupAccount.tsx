@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 export default function SetupAccount() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [repeatPassword, setRepeatPassword] = useState("");
   const [username, setUsername] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
@@ -26,10 +27,19 @@ export default function SetupAccount() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password || !username || !fullName) {
+    if (!email || !password || !repeatPassword || !username || !fullName) {
       toast({
         title: "Error",
         description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (password !== repeatPassword) {
+      toast({
+        title: "Error",
+        description: "Passwords do not match",
         variant: "destructive",
       });
       return;
@@ -126,6 +136,17 @@ export default function SetupAccount() {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+              disabled={loading}
+            />
+          </div>
+
+          <div>
+            <Input
+              type="password"
+              placeholder="Repeat Password"
+              value={repeatPassword}
+              onChange={(e) => setRepeatPassword(e.target.value)}
               className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
               disabled={loading}
             />
