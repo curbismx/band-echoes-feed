@@ -178,11 +178,13 @@ export default function Favorites() {
           {favoriteVideos.map((video, index) => (
             <div 
               key={video.id} 
-              className="relative aspect-[9/16] cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={() => navigate("/", { state: { favoriteVideos, startIndex: index } })}
+              className="relative"
             >
-              {/* Rounded video wrapper */}
-              <div className="w-full h-full rounded-lg overflow-hidden bg-white/5">
+              {/* Rounded video container ONLY */}
+              <div 
+                className="relative z-0 aspect-[9/16] rounded-lg overflow-hidden bg-white/5 cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={() => navigate("/", { state: { favoriteVideos, startIndex: index } })}
+              >
                 {(video.thumbnail || thumbs[video.id]) ? (
                   <img
                     src={video.thumbnail || thumbs[video.id]}
@@ -205,13 +207,13 @@ export default function Favorites() {
                 )}
               </div>
               
-              {/* Overlay icon (must NOT be clipped) */}
-              <div className="absolute bottom-2 left-2 text-white text-xs font-semibold drop-shadow-lg z-10">
+              {/* Overlay elements must ALWAYS be above the video */}
+              <div className="absolute bottom-2 left-2 z-50 text-white text-xs font-semibold drop-shadow-lg pointer-events-none">
                 {video.artistName}
               </div>
               <button
                 onClick={(e) => handleRemoveFavorite(video.id, e)}
-                className="absolute top-2 right-2 z-10 p-2 bg-black/50 rounded-full hover:bg-black/70 transition-colors"
+                className="absolute top-2 right-2 z-50 pointer-events-auto p-2 bg-black/50 rounded-full hover:bg-black/70 transition-colors"
               >
                 <img src={heartRedIcon} alt="Remove from favorites" className="w-5 h-5 object-contain" />
               </button>
