@@ -84,8 +84,8 @@ export default function SetupAccount() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: "#252525" }}>
-      <div className="w-full max-w-md -mt-[50px]">
+    <div className="min-h-screen flex items-center justify-center p-4 pt-0" style={{ backgroundColor: "#252525" }}>
+      <div className="w-full max-w-md -translate-y-[50px]">
         <div className="text-center mb-8">
           <div className="w-32 h-32 mx-auto mb-6 flex items-center justify-center">
             <img 
