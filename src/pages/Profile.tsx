@@ -391,14 +391,15 @@ export default function Profile() {
             <p className="text-sm">Share your first video!</p>
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-1">
-            {videos.map((video) => (
-              <div 
-                key={video.id} 
-                className="relative aspect-[9/16] bg-white/5 group"
-              >
+          <div className="p-4">
+            <div className="grid grid-cols-4 gap-2">
+              {videos.map((video) => (
                 <div 
-                  className="w-full h-full cursor-pointer hover:opacity-80 transition-opacity"
+                  key={video.id} 
+                  className="relative"
+                >
+                <div 
+                  className="relative z-0 aspect-[9/16] rounded-lg overflow-hidden bg-white/5 cursor-pointer hover:opacity-80 transition-opacity"
                   onClick={() => navigate(`/`)}
                 >
                   {video.thumbnail_url ? (
@@ -415,7 +416,7 @@ export default function Profile() {
                   )}
                   
                   {/* Stats Overlay */}
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2 space-y-1">
+                  <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2 space-y-1">
                     {/* Views */}
                     <div className="flex items-center gap-1 text-white text-xs font-semibold drop-shadow-lg">
                       <svg className="w-3.5 h-3.5" fill="white" viewBox="0 0 24 24">
@@ -435,7 +436,7 @@ export default function Profile() {
                 </div>
 
                 {/* Three-dot menu */}
-                <div className="absolute top-2 right-2 z-10">
+                <div className="absolute top-2 right-2 z-50">
                   <DropdownMenu>
                     <DropdownMenuTrigger 
                       className="bg-black/60 hover:bg-black/80 p-1.5 rounded-full transition-colors backdrop-blur-sm"
