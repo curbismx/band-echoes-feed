@@ -30,7 +30,7 @@ const Onboarding = () => {
       {/* Content overlay */}
       <div className="relative h-full w-full flex flex-col items-center justify-between py-12 px-6">
         {/* Logo at top */}
-        <div className="w-32 h-32 flex items-center justify-center">
+        <div className="w-32 h-32 flex items-center justify-center mt-[150px]">
           <img 
             src={logoImage} 
             alt="Eleven Logo" 
