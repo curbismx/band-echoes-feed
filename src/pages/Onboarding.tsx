@@ -29,11 +29,11 @@ const Onboarding = () => {
       }}
     >
       {/* Content overlay */}
-      <div className="relative h-full w-full flex flex-col items-center px-6">
+      <div className="relative h-full w-full px-6">
         {currentPage === 0 ? (
           <>
             {/* Logo at top - Page 1 */}
-            <div className="w-32 h-32 flex items-center justify-center mt-[225px]">
+            <div className="absolute top-[225px] left-1/2 -translate-x-1/2 w-32 h-32 flex items-center justify-center">
               <img 
                 src={logoImage} 
                 alt="Eleven Logo" 
@@ -44,7 +44,7 @@ const Onboarding = () => {
         ) : (
           <>
             {/* Text Image - Page 2 (smaller) */}
-            <div className="w-48 flex items-center justify-center mt-[225px]">
+            <div className="absolute top-[225px] left-1/2 -translate-x-1/2 w-48 flex items-center justify-center">
               <img 
                 src={textImage} 
                 alt="Discover new music" 
@@ -54,8 +54,8 @@ const Onboarding = () => {
           </>
         )}
 
-        {/* Text in middle - Same for both pages */}
-        <div className="flex items-center justify-center max-w-md mt-[475px]">
+        {/* Text in middle - Same position for both pages */}
+        <div className="absolute top-[475px] left-1/2 -translate-x-1/2 flex items-center justify-center max-w-md">
           <h1 className="text-white text-2xl md:text-3xl font-semibold text-center leading-tight">
             JUST GREAT MUSIC
           </h1>
