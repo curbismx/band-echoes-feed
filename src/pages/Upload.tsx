@@ -235,6 +235,9 @@ const Upload = () => {
 
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
+      {/* Top Gutter for Mobile Status Bar */}
+      <div className="h-[75px] flex-shrink-0 bg-black" />
+      
       {/* Step 1: Select Video */}
       {step === 1 && (
         <>
