@@ -52,7 +52,7 @@ const Onboarding = () => {
         </div>
 
         {/* Arrow at bottom */}
-        <div className="absolute bottom-[50px] left-1/2 -translate-x-1/2">
+        <div className="absolute bottom-[125px] left-1/2 -translate-x-1/2">
           <img 
             src={arrowImage} 
             alt="Next" 
