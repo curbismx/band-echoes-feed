@@ -50,7 +50,9 @@ const Onboarding = () => {
     const containerHeight = 550;
     const padding = 10;
 
-    const boxes: GenreBox[] = categories.map((category, index) => {
+    const boxes: GenreBox[] = [];
+    
+    categories.forEach((category) => {
       const width = category.name.length * 10 + 30;
       const height = 40;
       
@@ -69,7 +71,7 @@ const Onboarding = () => {
         y + height + 10 > box.y
       ));
 
-      return {
+      boxes.push({
         id: category.id,
         name: category.name,
         x,
@@ -78,7 +80,7 @@ const Onboarding = () => {
         vy: (Math.random() - 0.5) * 2,
         width,
         height
-      };
+      });
     });
 
     setGenreBoxes(boxes);
