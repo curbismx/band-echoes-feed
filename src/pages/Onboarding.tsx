@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import bgImage from "@/assets/onboarding-bg.png";
 import logoImage from "@/assets/onboarding-logo.png";
+import textImage from "@/assets/onboarding-text.png";
 import arrowImage from "@/assets/onboarding-arrow.png";
 
 const Onboarding = () => {
@@ -29,27 +30,43 @@ const Onboarding = () => {
     >
       {/* Content overlay */}
       <div className="relative h-full w-full flex flex-col items-center px-6">
-        {/* Logo at top */}
-        <div className="w-32 h-32 flex items-center justify-center mt-[225px]">
-          <img 
-            src={logoImage} 
-            alt="Eleven Logo" 
-            className="w-full h-full object-contain"
-          />
-        </div>
+        {currentPage === 0 ? (
+          <>
+            {/* Logo at top - Page 1 */}
+            <div className="w-32 h-32 flex items-center justify-center mt-[225px]">
+              <img 
+                src={logoImage} 
+                alt="Eleven Logo" 
+                className="w-full h-full object-contain"
+              />
+            </div>
 
-        {/* Text in middle */}
-        <div className="flex items-center justify-center max-w-md mt-[475px]">
-          {currentPage === 0 ? (
-            <h1 className="text-white text-2xl md:text-3xl font-semibold text-center leading-tight">
-              JUST GREAT MUSIC
-            </h1>
-          ) : (
-            <h1 className="text-white text-2xl md:text-3xl font-semibold text-center leading-tight">
-              JUST GREAT MUSIC
-            </h1>
-          )}
-        </div>
+            {/* Text in middle - Page 1 */}
+            <div className="flex items-center justify-center max-w-md mt-[475px]">
+              <h1 className="text-white text-2xl md:text-3xl font-semibold text-center leading-tight">
+                JUST GREAT MUSIC
+              </h1>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Text Image - Page 2 */}
+            <div className="flex items-center justify-center mt-[225px]">
+              <img 
+                src={textImage} 
+                alt="Discover new music" 
+                className="max-w-md w-full object-contain"
+              />
+            </div>
+
+            {/* Additional text - Page 2 */}
+            <div className="flex items-center justify-center max-w-md mt-[475px]">
+              <h1 className="text-white text-2xl md:text-3xl font-semibold text-center leading-tight">
+                JUST GREAT MUSIC
+              </h1>
+            </div>
+          </>
+        )}
 
         {/* Arrow at bottom */}
         <div className="absolute bottom-[125px] left-1/2 -translate-x-1/2">
