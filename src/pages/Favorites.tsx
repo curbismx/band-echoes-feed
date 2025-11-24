@@ -199,7 +199,7 @@ export default function Favorites() {
                     playsInline
                     preload="metadata"
                     controls={false}
-                    poster="/placeholder.svg"
+                    poster={video.thumbnail || thumbs[video.id] || undefined}
                     onLoadedMetadata={(e) => {
                       try { e.currentTarget.currentTime = 0.1; } catch {}
                     }}
