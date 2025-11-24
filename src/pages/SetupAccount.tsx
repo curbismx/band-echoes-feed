@@ -59,9 +59,9 @@ export default function SetupAccount() {
       } else {
         toast({
           title: "Success!",
-          description: "Account created! Please check your email to verify.",
+          description: "Account created successfully!",
         });
-        navigate("/auth");
+        navigate("/");
       }
     } catch (error: any) {
       toast({
