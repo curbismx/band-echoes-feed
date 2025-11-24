@@ -41,11 +41,11 @@ const Onboarding = () => {
         {/* Text in middle */}
         <div className="flex items-center justify-center max-w-md mt-[475px]">
           {currentPage === 0 ? (
-            <h1 className="text-white text-2xl md:text-3xl font-bold text-center leading-tight">
+            <h1 className="text-white text-2xl md:text-3xl font-semibold text-center leading-tight">
               FINALLY A PLATFORM JUST FOR MUSICIANS
             </h1>
           ) : (
-            <h1 className="text-white text-2xl md:text-3xl font-bold text-center leading-tight">
+            <h1 className="text-white text-2xl md:text-3xl font-semibold text-center leading-tight">
               DISCOVER NEW MUSIC
             </h1>
           )}
