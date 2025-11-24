@@ -12,6 +12,7 @@ import EditProfile from "./pages/EditProfile";
 import Favorites from "./pages/Favorites";
 import Auth from "./pages/Auth";
 import SetupAccount from "./pages/SetupAccount";
+import Onboarding from "./pages/Onboarding";
 import Upload from "./pages/Upload";
 import Admin from "./pages/Admin";
 import Settings from "./pages/Settings";
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/upload" element={<Upload />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/setup-account" element={<SetupAccount />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/settings" element={<Settings />} />
