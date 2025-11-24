@@ -10,7 +10,6 @@ export default function SetupAccount() {
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
   const [username, setUsername] = useState("");
-  const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -27,7 +26,7 @@ export default function SetupAccount() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password || !repeatPassword || !username || !fullName) {
+    if (!email || !password || !repeatPassword || !username) {
       toast({
         title: "Error",
         description: "Please fill in all fields",
@@ -55,7 +54,6 @@ export default function SetupAccount() {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
             username,
-            display_name: fullName,
           },
         },
       });
@@ -97,17 +95,6 @@ export default function SetupAccount() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Input
-              type="text"
-              placeholder="Full Name"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
-              disabled={loading}
-            />
-          </div>
-
           <div>
             <Input
               type="text"
