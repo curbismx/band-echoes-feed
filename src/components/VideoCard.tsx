@@ -218,13 +218,15 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     setProgress(ratio);
   };
 
+  const isDrawerOpen = commentsOpen || infoOpen;
+
   return (
     <div className="relative h-screen w-screen">
       {/* Video Background */}
       <video
         ref={videoRef}
         src={video.videoUrl}
-        className="absolute inset-0 w-[100vw] h-[100vh] object-cover cursor-pointer"
+        className={`absolute inset-0 w-[100vw] h-[100vh] object-cover cursor-pointer ${isDrawerOpen ? 'pointer-events-none' : ''}`}
         loop
         playsInline
         {...({ 'webkit-playsinline': 'true' } as any)}
@@ -256,8 +258,8 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
 
       {/* Click area for video pause/play */}
       <div 
-        className="absolute inset-0 z-10" 
-        style={{ pointerEvents: 'auto' }}
+        className={`absolute inset-0 z-10 ${isDrawerOpen ? 'pointer-events-none' : ''}`}
+        style={{ pointerEvents: isDrawerOpen ? 'none' : 'auto' }}
         onClick={handleVideoClick} 
       />
       
@@ -277,7 +279,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
       {/* Video Info Text - Left Side */}
       {!isUIHidden && (
         <div
-          className="absolute z-20 pointer-events-auto"
+          className={`absolute z-20 ${isDrawerOpen ? 'pointer-events-none' : 'pointer-events-auto'}`}
           style={{
             left: '30px',
             bottom: '60px',
@@ -367,7 +369,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
       {!isUIHidden && (
         <div className="absolute inset-0 flex flex-col justify-between p-4 pb-8 pr-[30px] pointer-events-none">
         {/* Bottom Content */}
-        <div className="mt-auto flex items-end justify-end pointer-events-auto mb-[10px]">
+        <div className={`mt-auto flex items-end justify-end mb-[10px] ${isDrawerOpen ? 'pointer-events-none' : 'pointer-events-auto'}`}>
           {/* Action Buttons */}
       <ActionButtons
         likes={likes}
@@ -407,7 +409,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
       {/* Thin playback bar at bottom */}
       {duration > 0 && (
         <div
-          className="absolute left-0 right-0 bottom-[24px] z-30 flex justify-center pointer-events-auto px-[5px]"
+          className={`absolute left-0 right-0 bottom-[24px] z-30 flex justify-center px-[5px] ${isDrawerOpen ? 'pointer-events-none' : 'pointer-events-auto'}`}
         >
           <div
             className="relative w-[90%] h-[3px] rounded-full bg-white/30 overflow-hidden"
