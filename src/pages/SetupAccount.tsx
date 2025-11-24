@@ -85,9 +85,9 @@ export default function SetupAccount() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: "#252525" }}>
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md -mt-[50px]">
         <div className="text-center mb-8">
-          <div className="w-32 h-32 mx-auto mb-6 -mt-[50px] flex items-center justify-center">
+          <div className="w-32 h-32 mx-auto mb-6 flex items-center justify-center">
             <img 
               src={logoImage} 
               alt="Eleven Logo" 
