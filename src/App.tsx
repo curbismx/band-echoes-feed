@@ -11,6 +11,7 @@ import UserProfile from "./pages/UserProfile";
 import EditProfile from "./pages/EditProfile";
 import Favorites from "./pages/Favorites";
 import Auth from "./pages/Auth";
+import SetupAccount from "./pages/SetupAccount";
 import Upload from "./pages/Upload";
 import Admin from "./pages/Admin";
 import Settings from "./pages/Settings";
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/upload" element={<Upload />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/setup-account" element={<SetupAccount />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/settings" element={<Settings />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
