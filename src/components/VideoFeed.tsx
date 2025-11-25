@@ -73,6 +73,14 @@ export const VideoFeed = () => {
         setIsPlayingFavorites(true);
         // Clear the state so it doesn't persist
         window.history.replaceState({}, document.title);
+      } else if (location.state?.videoId) {
+        // Find the video index by ID
+        const videoIndex = sorted.findIndex(v => v.id === location.state.videoId);
+        if (videoIndex !== -1) {
+          setCurrentIndex(videoIndex);
+        }
+        // Clear the state so it doesn't persist
+        window.history.replaceState({}, document.title);
       } else {
         // restore index session
         const savedIndex = sessionStorage.getItem("feedIndex");
