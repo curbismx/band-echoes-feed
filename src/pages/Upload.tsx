@@ -380,7 +380,7 @@ const Upload = () => {
             <button onClick={() => setStep(2)} className="text-white">
               <ArrowLeft size={28} />
             </button>
-            <h1 className="text-white text-lg font-semibold">{editVideoId ? "Update" : "Share"}</h1>
+            <h1 className="text-white text-lg font-semibold">{editVideoId ? "Update" : "Post Video"}</h1>
             <div className="w-7" />
           </div>
 
@@ -418,7 +418,7 @@ const Upload = () => {
               disabled={isUploading}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6 text-lg rounded-xl font-semibold"
             >
-              {isUploading ? (editVideoId ? "Updating..." : "Uploading...") : (editVideoId ? "Update" : "Share")}
+              {isUploading ? (editVideoId ? "Updating..." : "Uploading...") : (editVideoId ? "Update" : "Post Video")}
             </Button>
           </div>
         </>
