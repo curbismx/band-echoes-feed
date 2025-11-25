@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -39,6 +39,7 @@ export const CommentsDrawer = ({ videoId, isOpen, onClose }: CommentsDrawerProps
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const emojis = ["❤️", "🙌", "🔥", "👏", "😢", "😍", "😮", "😂"];
 
@@ -137,6 +138,10 @@ export const CommentsDrawer = ({ videoId, isOpen, onClose }: CommentsDrawerProps
 
   const handleEmojiClick = (emoji: string) => {
     setNewComment((prev) => prev + emoji);
+    // Refocus the textarea to keep keyboard open
+    setTimeout(() => {
+      textareaRef.current?.focus();
+    }, 0);
   };
 
   return (
@@ -212,6 +217,7 @@ export const CommentsDrawer = ({ videoId, isOpen, onClose }: CommentsDrawerProps
             </Avatar>
             <div className="flex-1">
               <Textarea
+                ref={textareaRef}
                 placeholder="Add a comment..."
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
