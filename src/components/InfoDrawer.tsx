@@ -219,8 +219,9 @@ export const InfoDrawer = ({
 
       {/* Drawer */}
       <div
-        className="fixed bottom-0 left-0 right-0 bg-[#1a1a1a] rounded-t-3xl animate-slide-in-from-bottom"
+        className="fixed bottom-0 left-0 right-0 rounded-t-3xl animate-slide-in-from-bottom"
         style={{ 
+          backgroundColor: "#0A1014",
           zIndex: 9999,
           height: `${drawerHeight}vh`,
           transition: isDragging ? 'none' : 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1)'

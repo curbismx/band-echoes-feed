@@ -163,9 +163,9 @@ export default function Favorites() {
 
 
   return (
-    <div className="min-h-screen text-white" style={{ backgroundColor: "#252525" }}>
+    <div className="min-h-screen text-white" style={{ backgroundColor: "#0A1014" }}>
       {/* Top Gutter for Mobile Status Bar */}
-      <div className="h-[25px]" style={{ backgroundColor: "#252525" }} />
+      <div className="h-[25px]" style={{ backgroundColor: "#0A1014" }} />
       
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-white/10">

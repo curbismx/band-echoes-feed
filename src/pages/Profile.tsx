@@ -172,7 +172,7 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#252525" }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#0A1014" }}>
         <div className="text-white">Loading...</div>
       </div>
     );
@@ -193,9 +193,9 @@ export default function Profile() {
   };
 
   return (
-    <div className="h-screen flex flex-col text-white overflow-hidden" style={{ backgroundColor: "#252525" }}>
+    <div className="h-screen flex flex-col text-white overflow-hidden" style={{ backgroundColor: "#0A1014" }}>
       {/* Top Gutter for Mobile Status Bar */}
-      <div className="h-[25px] flex-shrink-0" style={{ backgroundColor: "#252525" }} />
+      <div className="h-[25px] flex-shrink-0" style={{ backgroundColor: "#0A1014" }} />
       
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-white/10 flex-shrink-0">
