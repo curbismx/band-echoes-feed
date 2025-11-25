@@ -191,7 +191,7 @@ export const VideoCard = ({
       {/* Left side info */}
       <div
         className="absolute z-20 pointer-events-auto"
-        style={{ left: 30, bottom: 60, maxWidth: 'calc(65% - 50px)' }}
+        style={{ left: 38, bottom: 60, maxWidth: 'calc(65% - 50px)' }}
       >
         {artistAvatar && (
           <button onClick={(e) => { e.stopPropagation(); navigate(`/user/${video.artistUserId}`); }} className="block bg-transparent border-0 p-0 m-0">
