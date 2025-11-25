@@ -133,7 +133,7 @@ export const VideoCard = ({
       v.addEventListener("canplay", tryPlay, { once: true });
       return () => v.removeEventListener("canplay", tryPlay);
     }
-  }, [isActive, isGloballyPaused, isMuted]);
+  }, [isActive, isGloballyPaused, isMuted, video.videoUrl]);
 
   const handleVideoClick = () => {
     onUnmute();
