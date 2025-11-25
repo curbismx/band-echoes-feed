@@ -1,18 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { VideoCard } from "./VideoCard";
-import { TapToStartOverlay } from "./TapToStartOverlay";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useIsMobile } from "@/hooks/use-mobile";
-import backIcon from "@/assets/back.png";
-import favsIcon from "@/assets/favs.png";
 
 export const VideoFeed = () => {
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
 
   const [videos, setVideos] = useState<any[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -21,10 +16,6 @@ export const VideoFeed = () => {
   const [isPlayingFavorites, setIsPlayingFavorites] = useState(false);
   const [originalVideos, setOriginalVideos] = useState<any[]>([]);
   const [originalIndex, setOriginalIndex] = useState(0);
-  const [hasUserInteracted, setHasUserInteracted] = useState(() => {
-    return sessionStorage.getItem('hasUserInteracted') === 'true';
-  });
-  const [showTapOverlay, setShowTapOverlay] = useState(!hasUserInteracted && isMobile);
 
   const touchStart = useRef(0);
   const touchEnd = useRef(0);
@@ -32,9 +23,7 @@ export const VideoFeed = () => {
   const [dragOffset, setDragOffset] = useState(0);
   const [isAnyDrawerOpen, setIsAnyDrawerOpen] = useState(false);
 
-  /* --------------------------------------------------
-      FETCH + SORT VIDEOS
-  -------------------------------------------------- */
+  // Fetch videos
   useEffect(() => {
     const fetchAndSort = async () => {
       const { data: videosData } = await supabase
@@ -44,7 +33,6 @@ export const VideoFeed = () => {
 
       if (!videosData) return;
 
-      // Fetch all unique user profiles
       const userIds = [...new Set(videosData.map(v => v.user_id))];
       const { data: profilesData } = await supabase
         .from("profiles")
@@ -53,7 +41,6 @@ export const VideoFeed = () => {
 
       const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
 
-      // Map database columns to Video interface
       const sorted = videosData.map(v => {
         const profile = profilesMap.get(v.user_id);
         return {
@@ -70,7 +57,6 @@ export const VideoFeed = () => {
 
       setVideos(sorted);
 
-      // Check if favorites were passed via location state
       if (location.state?.favoriteVideos && location.state?.startIndex !== undefined) {
         setOriginalVideos(sorted);
         const savedIndex = sessionStorage.getItem("feedIndex");
@@ -78,18 +64,14 @@ export const VideoFeed = () => {
         setVideos(location.state.favoriteVideos);
         setCurrentIndex(location.state.startIndex);
         setIsPlayingFavorites(true);
-        // Clear the state so it doesn't persist
         window.history.replaceState({}, document.title);
       } else if (location.state?.videoId) {
-        // Find the video index by ID
         const videoIndex = sorted.findIndex(v => v.id === location.state.videoId);
         if (videoIndex !== -1) {
           setCurrentIndex(videoIndex);
         }
-        // Clear the state so it doesn't persist
         window.history.replaceState({}, document.title);
       } else {
-        // restore index session
         const savedIndex = sessionStorage.getItem("feedIndex");
         if (savedIndex) {
           const idx = Number(savedIndex);
@@ -103,9 +85,7 @@ export const VideoFeed = () => {
     fetchAndSort();
   }, [location.state]);
 
-  /* --------------------------------------------------
-      KEYBOARD NAVIGATION
-  -------------------------------------------------- */
+  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isAnyDrawerOpen) return;
@@ -128,17 +108,13 @@ export const VideoFeed = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [videos.length, currentIndex, isPlayingFavorites, originalVideos, originalIndex, isAnyDrawerOpen]);
 
-  /* --------------------------------------------------
-      SAVE INDEX PERSISTENTLY
-  -------------------------------------------------- */
+  // Save index
   useEffect(() => {
     sessionStorage.setItem("feedIndex", String(currentIndex));
   }, [currentIndex]);
 
-  /* --------------------------------------------------
-      SWIPE HANDLERS
-  -------------------------------------------------- */
-  const MIN_SWIPE = 60;
+  // Swipe handlers
+  const MIN_SWIPE = 50;
 
   const onTouchStart = (e: React.TouchEvent) => {
     if (isAnyDrawerOpen) return;
@@ -164,119 +140,47 @@ export const VideoFeed = () => {
     const distance = touchStart.current - touchEnd.current;
 
     if (distance > MIN_SWIPE) {
-      // swipe UP
       if (isPlayingFavorites && currentIndex >= videos.length - 1) {
-        // End of favorites - return to normal feed
         setVideos(originalVideos);
         setCurrentIndex(originalIndex);
         setIsPlayingFavorites(false);
       } else {
-        setCurrentIndex(i =>
-          i < videos.length - 1 ? i + 1 : 0
-        );
+        setCurrentIndex(i => (i < videos.length - 1 ? i + 1 : 0));
       }
     } else if (distance < -MIN_SWIPE) {
-      // swipe DOWN
-      setCurrentIndex(i =>
-        i > 0 ? i - 1 : videos.length - 1
-      );
+      setCurrentIndex(i => (i > 0 ? i - 1 : videos.length - 1));
     }
 
     setDragOffset(0);
   };
 
-  /* --------------------------------------------------
-      BACK FROM FAVORITES
-  -------------------------------------------------- */
-  const handleBack = () => {
-    setIsPlayingFavorites(false);
-    setVideos(originalVideos);
-    setCurrentIndex(originalIndex);
-  };
-
-  /* --------------------------------------------------
-      VIRTUAL SCROLLING - RENDER ONLY ADJACENT VIDEOS
-  -------------------------------------------------- */
-  // Keep buffer at 2 for both mobile and desktop to ensure smooth transitions
-  const RENDER_BUFFER = 2;
-  
-  const getVisibleVideos = () => {
-    const startIndex = Math.max(0, currentIndex - RENDER_BUFFER);
-    const endIndex = Math.min(videos.length - 1, currentIndex + RENDER_BUFFER);
-    
-    const visibleVideos = [];
-    for (let i = startIndex; i <= endIndex; i++) {
-      visibleVideos.push({ video: videos[i], index: i });
-    }
-    return visibleVideos;
-  };
-
-  const visibleVideos = getVisibleVideos();
-
-  const handleUserInteraction = () => {
-    setHasUserInteracted(true);
-    setShowTapOverlay(false);
-    sessionStorage.setItem('hasUserInteracted', 'true');
-  };
-
-  /* --------------------------------------------------
-      RENDER
-  -------------------------------------------------- */
   return (
-    <>
-      {isMobile && showTapOverlay && videos.length > 0 && (
-        <TapToStartOverlay
-          posterUrl={videos[0]?.posterUrl}
-          onTap={handleUserInteraction}
-        />
-      )}
-      <div
-        className="relative h-screen w-screen overflow-hidden bg-black"
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-      >
+    <div
+      className="relative h-screen w-screen overflow-hidden bg-black"
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
       <div
         className="relative h-full"
         style={{
           transform: `translateY(calc(-${currentIndex * 100}vh + ${dragOffset}px))`,
-          transition: isDragging ? "none" : "transform 0.15s ease-out"
+          transition: isDragging ? "none" : "transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
         }}
       >
-        {visibleVideos.map(({ video, index }) => {
-          // Aggressive preload for current and next video, metadata for others
-          const isNext = index === currentIndex + 1;
-          const preloadStrategy = (index === currentIndex || isNext) ? "auto" : "metadata";
-          
-          return (
-            <div
-              key={video.id}
-              className="absolute top-0 left-0 w-full h-full"
-              style={{
-                transform: `translateY(${index * 100}vh)`
-              }}
-            >
-              <VideoCard
-                video={{
-                  ...video,
-                  videoUrl: video.videoUrl,
-                  posterUrl: video.posterUrl
-                }}
-                isActive={index === currentIndex}
-                isMuted={isMuted}
-                onUnmute={() => setIsMuted(false)}
-                isGloballyPaused={isGloballyPaused}
-                onTogglePause={setIsGloballyPaused}
-                preloadStrategy={preloadStrategy}
-                onDrawerStateChange={setIsAnyDrawerOpen}
-                hasUserInteracted={hasUserInteracted}
-                isMobile={isMobile}
-              />
-            </div>
-          );
-        })}
+        {videos.map((video, i) => (
+          <VideoCard
+            key={video.id}
+            video={video}
+            isActive={i === currentIndex}
+            isMuted={isMuted}
+            onUnmute={() => setIsMuted(false)}
+            isGloballyPaused={isGloballyPaused}
+            onTogglePause={setIsGloballyPaused}
+            onDrawerStateChange={setIsAnyDrawerOpen}
+          />
+        ))}
       </div>
     </div>
-    </>
   );
 };
