@@ -1,11 +1,10 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { VideoCard } from "./VideoCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-
-// Only render videos within this range of the active index
-const RENDER_WINDOW = 2;
+import backIcon from "@/assets/back.png";
+import favsIcon from "@/assets/favs.png";
 
 export const VideoFeed = () => {
   const { user } = useAuth();
@@ -19,15 +18,35 @@ export const VideoFeed = () => {
   const [isPlayingFavorites, setIsPlayingFavorites] = useState(false);
   const [originalVideos, setOriginalVideos] = useState<any[]>([]);
   const [originalIndex, setOriginalIndex] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
+
+  const touchStart = useRef(0);
+  const touchEnd = useRef(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
   const [isAnyDrawerOpen, setIsAnyDrawerOpen] = useState(false);
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const isScrollingRef = useRef(false);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout>();
+  /* --------------------------------------------------
+      FIX iOS VIEWPORT HEIGHT
+  -------------------------------------------------- */
+  useEffect(() => {
+    const updateHeight = () => {
+      setViewportHeight(window.innerHeight);
+    };
+    
+    updateHeight();
+    window.addEventListener('resize', updateHeight);
+    window.addEventListener('orientationchange', updateHeight);
+    
+    return () => {
+      window.removeEventListener('resize', updateHeight);
+      window.removeEventListener('orientationchange', updateHeight);
+    };
+  }, []);
 
-  // ============================================
-  // FETCH VIDEOS
-  // ============================================
+  /* --------------------------------------------------
+      FETCH + SORT VIDEOS
+  -------------------------------------------------- */
   useEffect(() => {
     const fetchAndSort = async () => {
       const { data: videosData } = await supabase
@@ -37,6 +56,7 @@ export const VideoFeed = () => {
 
       if (!videosData) return;
 
+      // Fetch all unique user profiles
       const userIds = [...new Set(videosData.map(v => v.user_id))];
       const { data: profilesData } = await supabase
         .from("profiles")
@@ -45,6 +65,7 @@ export const VideoFeed = () => {
 
       const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
 
+      // Map database columns to Video interface
       const sorted = videosData.map(v => {
         const profile = profilesMap.get(v.user_id);
         return {
@@ -61,7 +82,7 @@ export const VideoFeed = () => {
 
       setVideos(sorted);
 
-      // Handle favorites from location state
+      // Check if favorites were passed via location state
       if (location.state?.favoriteVideos && location.state?.startIndex !== undefined) {
         setOriginalVideos(sorted);
         const savedIndex = sessionStorage.getItem("feedIndex");
@@ -69,14 +90,18 @@ export const VideoFeed = () => {
         setVideos(location.state.favoriteVideos);
         setCurrentIndex(location.state.startIndex);
         setIsPlayingFavorites(true);
+        // Clear the state so it doesn't persist
         window.history.replaceState({}, document.title);
       } else if (location.state?.videoId) {
+        // Find the video index by ID
         const videoIndex = sorted.findIndex(v => v.id === location.state.videoId);
         if (videoIndex !== -1) {
           setCurrentIndex(videoIndex);
         }
+        // Clear the state so it doesn't persist
         window.history.replaceState({}, document.title);
       } else {
+        // restore index session
         const savedIndex = sessionStorage.getItem("feedIndex");
         if (savedIndex) {
           const idx = Number(savedIndex);
@@ -90,187 +115,151 @@ export const VideoFeed = () => {
     fetchAndSort();
   }, [location.state]);
 
-  // ============================================
-  // SCROLL TO CURRENT INDEX
-  // ============================================
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container || videos.length === 0) return;
-
-    // Scroll to current video without animation on mount/index change
-    const targetScroll = currentIndex * window.innerHeight;
-    container.scrollTo({ top: targetScroll, behavior: 'auto' });
-  }, [currentIndex, videos.length]);
-
-  // ============================================
-  // INTERSECTION OBSERVER FOR ACTIVE VIDEO
-  // ============================================
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container || videos.length === 0) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
-            const index = Number(entry.target.getAttribute('data-index'));
-            if (!isNaN(index) && index !== currentIndex) {
-              setCurrentIndex(index);
-            }
-          }
-        });
-      },
-      {
-        root: container,
-        threshold: 0.5,
-      }
-    );
-
-    // Observe all video items
-    const items = container.querySelectorAll('[data-index]');
-    items.forEach(item => observer.observe(item));
-
-    return () => observer.disconnect();
-  }, [videos.length, currentIndex]);
-
-  // ============================================
-  // KEYBOARD NAVIGATION
-  // ============================================
+  /* --------------------------------------------------
+      KEYBOARD NAVIGATION
+  -------------------------------------------------- */
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isAnyDrawerOpen) return;
-
-      if (e.key === "ArrowUp" && currentIndex > 0) {
+      if (e.key === "ArrowUp") {
         e.preventDefault();
-        scrollToIndex(currentIndex - 1);
+        setCurrentIndex(i => (i > 0 ? i - 1 : videos.length - 1));
       } else if (e.key === "ArrowDown") {
         e.preventDefault();
         if (isPlayingFavorites && currentIndex >= videos.length - 1) {
-          exitFavorites();
-        } else if (currentIndex < videos.length - 1) {
-          scrollToIndex(currentIndex + 1);
+          setVideos(originalVideos);
+          setCurrentIndex(originalIndex);
+          setIsPlayingFavorites(false);
+        } else {
+          setCurrentIndex(i => (i < videos.length - 1 ? i + 1 : 0));
         }
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentIndex, videos.length, isPlayingFavorites, isAnyDrawerOpen]);
+  }, [videos.length, currentIndex, isPlayingFavorites, originalVideos, originalIndex, isAnyDrawerOpen]);
 
-  // ============================================
-  // SAVE INDEX
-  // ============================================
+  /* --------------------------------------------------
+      SAVE INDEX PERSISTENTLY
+  -------------------------------------------------- */
   useEffect(() => {
-    if (!isPlayingFavorites) {
-      sessionStorage.setItem("feedIndex", String(currentIndex));
+    sessionStorage.setItem("feedIndex", String(currentIndex));
+  }, [currentIndex]);
+
+  /* --------------------------------------------------
+      SWIPE HANDLERS
+  -------------------------------------------------- */
+  const MIN_SWIPE = 60;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    if (isAnyDrawerOpen) return;
+    touchStart.current = e.targetTouches[0].clientY;
+    touchEnd.current = e.targetTouches[0].clientY;
+    setIsDragging(true);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || isAnyDrawerOpen) return;
+    touchEnd.current = e.targetTouches[0].clientY;
+    setDragOffset(touchEnd.current - touchStart.current);
+  };
+
+  const onTouchEnd = () => {
+    if (isAnyDrawerOpen) {
+      setIsDragging(false);
+      setDragOffset(0);
+      return;
     }
-  }, [currentIndex, isPlayingFavorites]);
+    setIsDragging(false);
 
-  // ============================================
-  // HELPERS
-  // ============================================
-  const scrollToIndex = useCallback((index: number) => {
-    const container = containerRef.current;
-    if (!container) return;
+    const distance = touchStart.current - touchEnd.current;
 
-    const clampedIndex = Math.max(0, Math.min(index, videos.length - 1));
-    container.scrollTo({
-      top: clampedIndex * window.innerHeight,
-      behavior: 'smooth'
-    });
-  }, [videos.length]);
+    if (distance > MIN_SWIPE) {
+      // swipe UP
+      if (isPlayingFavorites && currentIndex >= videos.length - 1) {
+        // End of favorites - return to normal feed
+        setVideos(originalVideos);
+        setCurrentIndex(originalIndex);
+        setIsPlayingFavorites(false);
+      } else {
+        setCurrentIndex(i =>
+          i < videos.length - 1 ? i + 1 : 0
+        );
+      }
+    } else if (distance < -MIN_SWIPE) {
+      // swipe DOWN
+      setCurrentIndex(i =>
+        i > 0 ? i - 1 : videos.length - 1
+      );
+    }
 
-  const exitFavorites = useCallback(() => {
+    setDragOffset(0);
+  };
+
+  /* --------------------------------------------------
+      BACK FROM FAVORITES
+  -------------------------------------------------- */
+  const handleBack = () => {
     setIsPlayingFavorites(false);
     setVideos(originalVideos);
     setCurrentIndex(originalIndex);
-  }, [originalVideos, originalIndex]);
+  };
 
-  // Check if a video should be rendered (windowed rendering)
-  const shouldRenderVideo = useCallback((index: number) => {
-    return Math.abs(index - currentIndex) <= RENDER_WINDOW;
-  }, [currentIndex]);
-
-  // ============================================
-  // HANDLE SCROLL END FOR FAVORITES
-  // ============================================
-  const handleScroll = useCallback(() => {
-    if (scrollTimeoutRef.current) {
-      clearTimeout(scrollTimeoutRef.current);
-    }
-
-    scrollTimeoutRef.current = setTimeout(() => {
-      // Check if at end of favorites
-      if (isPlayingFavorites && currentIndex >= videos.length - 1) {
-        const container = containerRef.current;
-        if (container) {
-          const scrollTop = container.scrollTop;
-          const maxScroll = (videos.length - 1) * window.innerHeight;
-          // If user tried to scroll past end
-          if (scrollTop > maxScroll + 50) {
-            exitFavorites();
-          }
-        }
-      }
-    }, 150);
-  }, [isPlayingFavorites, currentIndex, videos.length, exitFavorites]);
-
-  // ============================================
-  // RENDER
-  // ============================================
+  /* --------------------------------------------------
+      RENDER
+  -------------------------------------------------- */
   return (
     <div
-      ref={containerRef}
-      className="h-screen w-screen overflow-y-scroll overflow-x-hidden bg-black"
+      className="relative overflow-hidden bg-black"
       style={{
-        scrollSnapType: isAnyDrawerOpen ? 'none' : 'y mandatory',
+        width: '100vw',
+        height: `${viewportHeight}px`,
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        touchAction: 'none',
         WebkitOverflowScrolling: 'touch',
-        overscrollBehaviorY: 'contain',
-        scrollbarWidth: 'none',
-        msOverflowStyle: 'none',
       }}
-      onScroll={handleScroll}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
     >
-      <style>{`
-        div::-webkit-scrollbar { display: none; }
-      `}</style>
-
-      {videos.map((video, index) => (
-        <div
-          key={video.id}
-          data-index={index}
-          className="w-screen"
-          style={{
-            height: '100dvh',
-            scrollSnapAlign: 'start',
-            scrollSnapStop: 'always',
-          }}
-        >
-          {shouldRenderVideo(index) ? (
+      <div
+        className="relative"
+        style={{
+          height: '100%',
+          transform: `translateY(calc(-${currentIndex * viewportHeight}px + ${dragOffset}px))`,
+          transition: isDragging ? "none" : "transform 0.15s ease-out",
+          willChange: 'transform',
+        }}
+      >
+        {videos.map((video, i) => (
+          <div
+            key={video.id}
+            style={{
+              width: '100vw',
+              height: `${viewportHeight}px`,
+              position: 'relative',
+            }}
+          >
             <VideoCard
-              video={video}
-              isActive={index === currentIndex}
+              key={video.id}
+              video={{
+                ...video,
+                videoUrl: video.videoUrl,
+                posterUrl: video.posterUrl
+              }}
+              isActive={i === currentIndex}
               isMuted={isMuted}
               onUnmute={() => setIsMuted(false)}
               isGloballyPaused={isGloballyPaused}
               onTogglePause={setIsGloballyPaused}
               onDrawerStateChange={setIsAnyDrawerOpen}
             />
-          ) : (
-            // Placeholder for videos outside render window
-            <div className="w-full h-full bg-black flex items-center justify-center">
-              {video.posterUrl && (
-                <img
-                  src={video.posterUrl}
-                  alt=""
-                  className="w-full h-full object-cover opacity-50"
-                  loading="lazy"
-                />
-              )}
-            </div>
-          )}
-        </div>
-      ))}
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
