@@ -13,7 +13,6 @@ import accountIcon from "@/assets/account-new.png";
 import userAccountIcon from "@/assets/user-account.png";
 import circleIcon from "@/assets/circle-2.png";
 import shareIcon from "@/assets/new_share.png";
-import plusIcon from "@/assets/plus-3.png";
 import commentsIcon from "@/assets/comments.png";
 import followOffIcon from "@/assets/follow_OFF-2.png";
 import followOnIcon from "@/assets/follow_ON-3.png";
@@ -299,20 +298,6 @@ export const ActionButtons = ({
       <div className="relative h-[30px] mt-[40px]">
         <button onClick={handleShare} className="action-button flex items-center justify-center">
           <img src={shareIcon} alt="Share" className="h-[30px] w-[30px]" />
-        </button>
-      </div>
-
-      {/* Plus */}
-      <div className="relative h-[30px] mt-[40px]">
-        <button 
-          onClick={(e) => {
-            e.stopPropagation();
-            triggerHaptic();
-            navigate("/upload");
-          }}
-          className="action-button flex items-center justify-center"
-        >
-          <img src={plusIcon} alt="Add" className="h-[30px] w-[30px]" />
         </button>
       </div>
 
