@@ -105,6 +105,19 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     fetchArtistProfile();
   }, [video.artistUserId]);
 
+  // Force video load when becoming active
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v || !isActive) return;
+    
+    // If video is now active but hasn't loaded enough data, force a load
+    // readyState 0 = HAVE_NOTHING, 1 = HAVE_METADATA, 2 = HAVE_CURRENT_DATA
+    if (v.readyState < 2) {
+      console.log("Forcing video load for:", video.id);
+      v.load();
+    }
+  }, [isActive, video.id]);
+
   // Play/pause logic with mobile user interaction gate
   useEffect(() => {
     const v = videoRef.current;
@@ -121,16 +134,26 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
       return;
     }
 
-    // Try to play (muted initially for autoplay to work)
-    v.muted = isMuted;
-    const playPromise = v.play();
-    
-    if (playPromise !== undefined) {
-      playPromise.catch(() => {
-        // If autoplay fails, ensure it's muted and try again
-        v.muted = true;
-        v.play().catch(() => {});
-      });
+    // Only try to play when video has enough data
+    const attemptPlay = () => {
+      v.muted = isMuted;
+      const playPromise = v.play();
+      
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          v.muted = true;
+          v.play().catch(() => {});
+        });
+      }
+    };
+
+    // Check if video has enough data loaded (readyState >= 3 = HAVE_FUTURE_DATA)
+    if (v.readyState >= 3) {
+      attemptPlay();
+    } else {
+      // Wait for canplay event
+      v.addEventListener('canplay', attemptPlay, { once: true });
+      return () => v.removeEventListener('canplay', attemptPlay);
     }
   }, [isActive, isGloballyPaused, isMuted, hasUserInteracted, isMobile]);
 
