@@ -262,7 +262,8 @@ export const VideoFeed = () => {
               isGloballyPaused={isGloballyPaused}
               onTogglePause={setIsGloballyPaused}
               onDrawerStateChange={setIsAnyDrawerOpen}
-              hasUserInteracted={isMobile ? hasUserInteracted : true}
+              hasUserInteracted={hasUserInteracted}
+              isMobile={isMobile}
             />
           </div>
         ))}
