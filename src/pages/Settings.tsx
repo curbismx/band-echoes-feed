@@ -451,9 +451,13 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-7xl mx-auto pb-20">
-        {/* Header */}
+    <div className="min-h-screen bg-background">
+      {/* Top Gutter for Mobile Status Bar */}
+      <div className="h-[25px] flex-shrink-0 bg-background" />
+      
+      <div className="p-8">
+        <div className="max-w-7xl mx-auto pb-20">
+          {/* Header */}
         <div className="flex items-center gap-8 mb-8 pb-4 border-b border-border">
           <h1 className="text-xl font-normal text-foreground">Admin</h1>
           <button 
@@ -805,6 +809,7 @@ const Settings = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
     </div>
   );
 };
