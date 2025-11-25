@@ -34,7 +34,7 @@ interface VideoCardProps {
   onDrawerStateChange?: (isOpen: boolean) => void;
 }
 
-const VideoCardComponent = ({
+export const VideoCard = memo(function VideoCard({
   video,
   isActive,
   isMuted,
@@ -42,7 +42,7 @@ const VideoCardComponent = ({
   isGloballyPaused,
   onTogglePause,
   onDrawerStateChange,
-}: VideoCardProps) => {
+}: VideoCardProps) {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
   
@@ -114,7 +114,7 @@ const VideoCardComponent = ({
     }
   }, [isActive, isGloballyPaused]);
 
-  // Handle mute state changes separately (simpler)
+  // Handle mute state changes separately
   useEffect(() => {
     const v = videoRef.current;
     if (!v || !isActive) return;
@@ -224,17 +224,18 @@ const VideoCardComponent = ({
   }, [isDrawerOpen, onDrawerStateChange]);
 
   return (
-    <div className="relative h-full w-full bg-black">
-      {/* Video */}
+    <div className="relative h-screen w-screen">
+      {/* Video Background */}
       <video
         ref={videoRef}
         src={video.videoUrl}
-        poster={video.posterUrl || "/placeholder.svg"}
-        className="absolute inset-0 w-full h-full object-cover"
+        className={`absolute inset-0 w-[100vw] h-[100vh] object-cover cursor-pointer ${isDrawerOpen ? 'pointer-events-none' : ''}`}
         loop
         playsInline
-        muted
         preload="auto"
+        muted
+        poster={video.posterUrl || "/placeholder.svg"}
+        style={{ width: "100%", height: "100%", objectFit: "cover", background: "black" }}
         onClick={handleVideoClick}
         onLoadedMetadata={(e) => {
           const v = e.currentTarget;
@@ -251,109 +252,183 @@ const VideoCardComponent = ({
         }}
       />
 
-      {/* Click overlay */}
-      {!isDrawerOpen && (
-        <div className="absolute inset-0 z-10" onClick={handleVideoClick} />
-      )}
-
-      {/* Mute indicator */}
+      {/* Click area for video pause/play */}
+      <div 
+        className={`absolute inset-0 z-10 ${isDrawerOpen ? 'pointer-events-none' : ''}`}
+        style={{ pointerEvents: isDrawerOpen ? 'none' : 'auto' }}
+        onClick={handleVideoClick} 
+      />
+      
+      {/* Unmute indicator */}
       {isMuted && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none flex flex-col items-center gap-2 animate-pulse">
+        <div 
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none flex flex-col items-center gap-2"
+          style={{ animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}
+        >
           <div className="bg-black/60 backdrop-blur-sm rounded-full p-4">
             <VolumeX className="w-8 h-8 text-white" />
           </div>
           <div className="text-white text-sm font-medium drop-shadow-lg">Tap to unmute</div>
         </div>
       )}
-
-      {/* Left side info */}
+      
+      {/* Video Info Text - Left Side */}
       {!isDrawerOpen && (
         <div
-          className="absolute z-20 left-[30px] bottom-[60px]"
-          style={{ maxWidth: 'calc(65% - 50px)' }}
+          className={`absolute z-20 ${isDrawerOpen ? 'pointer-events-none' : 'pointer-events-auto'}`}
+          style={{
+            left: '30px',
+            bottom: '60px',
+            maxWidth: 'calc(65% - 50px)',
+          }}
         >
+          {/* Artist Avatar */}
           {artistAvatar && (
-            <button onClick={navigateToArtist} className="block p-0 m-0 border-0 bg-transparent">
-              <img
-                src={artistAvatar}
+            <button
+              onClick={navigateToArtist}
+              className="block cursor-pointer hover:opacity-80 transition-opacity touch-manipulation p-0 m-0 border-0 bg-transparent"
+            >
+              <img 
+                src={artistAvatar} 
                 alt={video.artistName}
-                className="w-8 h-8 rounded-full object-cover mb-2 border-2 border-white"
+                className="w-[32px] h-[32px] rounded-full object-cover mb-2 border-2 border-white"
               />
             </button>
           )}
-
+          
           <button
             onClick={navigateToArtist}
-            className="font-bold text-white drop-shadow-lg mb-1 cursor-pointer hover:underline text-left"
+            className="font-bold text-white drop-shadow-lg mb-1 cursor-pointer hover:underline text-left touch-manipulation"
           >
             {video.artistName}
           </button>
-
           {video.title && (
-            <div className="font-medium text-white drop-shadow-lg mb-1 line-clamp-2">
+            <div className="font-medium text-white drop-shadow-lg mb-1 pointer-events-none line-clamp-2">
               {video.title}
             </div>
           )}
-
           {video.caption && (
-            <div className="font-normal text-white drop-shadow-lg text-sm leading-relaxed mb-3 line-clamp-2">
+            <div className="font-normal text-white drop-shadow-lg text-sm leading-relaxed mb-3 pointer-events-none line-clamp-2">
               {video.caption}
             </div>
           )}
-
+          
+          {/* Follow and Info buttons */}
           <div className="flex gap-[30px] items-center" style={{ transform: 'translateY(3px)' }}>
-            <button onClick={(e) => { e.stopPropagation(); handleFollow(); }} className="flex items-center justify-center">
-              <img src={isFollowing ? followedIcon : infoFollowIcon} alt={isFollowing ? "Following" : "Follow"} className="h-[30px] w-auto" />
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                handleFollow();
+              }}
+              className="flex items-center justify-center"
+            >
+              <img 
+                src={isFollowing ? followedIcon : infoFollowIcon} 
+                alt={isFollowing ? "Following" : "Follow"} 
+                className="h-[30px] w-auto" 
+              />
             </button>
-            <button onClick={(e) => { e.stopPropagation(); setInfoOpen(true); }} className="flex items-center justify-center">
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                setInfoOpen(true);
+              }}
+              className="flex items-center justify-center"
+            >
               <img src={infoIcon} alt="Info" className="h-[30px] w-auto" />
             </button>
           </div>
         </div>
       )}
-
-      {/* Right side actions */}
+      
+      {/* Action Buttons - Right Side */}
       {!isDrawerOpen && (
-        <div className="absolute bottom-[70px] right-[30px] z-20">
-          <ActionButtons
-            likes={likes}
-            isLiked={isLiked}
-            averageRating={averageRating}
-            userRating={userRating}
-            onLike={handleLike}
-            onRate={handleRate}
-            artistAvatar={artistAvatar}
-            artistUserId={video.artistUserId}
-            videoTitle={video.title || ""}
-            artistName={video.artistName}
-            videoId={video.id.toString()}
-            onOpenComments={() => setCommentsOpen(true)}
-          />
-        </div>
-      )}
-
-      {/* Progress bar */}
-      {duration > 0 && !isDrawerOpen && (
-        <div className="absolute left-0 right-0 bottom-[24px] z-30 flex justify-center px-[5px]">
-          <div
-            className="relative w-[90%] h-[3px] rounded-full bg-white/30 overflow-hidden cursor-pointer"
-            onMouseDown={(e) => { e.stopPropagation(); setIsScrubbing(true); seekFromClientX(e.clientX, e.currentTarget); }}
-            onMouseUp={() => setIsScrubbing(false)}
-            onMouseLeave={() => setIsScrubbing(false)}
-            onTouchStart={(e) => { e.stopPropagation(); setIsScrubbing(true); seekFromClientX(e.touches[0]?.clientX, e.currentTarget); }}
-            onTouchMove={(e) => { e.stopPropagation(); seekFromClientX(e.touches[0]?.clientX, e.currentTarget); }}
-            onTouchEnd={() => setIsScrubbing(false)}
-            onClick={(e) => { e.stopPropagation(); seekFromClientX(e.clientX, e.currentTarget); }}
-          >
-            <div className="absolute left-0 top-0 bottom-0 rounded-full bg-white" style={{ width: `${progress * 100}%` }} />
+        <div className="absolute inset-0 flex flex-col justify-between p-4 pb-8 pr-[30px] pointer-events-none">
+          {/* Bottom Content */}
+          <div className={`mt-auto flex items-end justify-end mb-[10px] ${isDrawerOpen ? 'pointer-events-none' : 'pointer-events-auto'}`}>
+            <ActionButtons
+              likes={likes}
+              isLiked={isLiked}
+              averageRating={averageRating}
+              userRating={userRating}
+              onLike={handleLike}
+              onRate={handleRate}
+              artistAvatar={artistAvatar}
+              artistUserId={video.artistUserId}
+              videoTitle={video.title || "The songs name"}
+              artistName={video.artistName}
+              videoId={video.id.toString()}
+              onOpenComments={() => setCommentsOpen(true)}
+            />
           </div>
         </div>
       )}
+      
+      <CommentsDrawer 
+        videoId={video.id.toString()}
+        isOpen={commentsOpen}
+        onClose={() => setCommentsOpen(false)}
+      />
 
-      <CommentsDrawer videoId={video.id.toString()} isOpen={commentsOpen} onClose={() => setCommentsOpen(false)} />
-      <InfoDrawer isOpen={infoOpen} onClose={() => setInfoOpen(false)} videoId={video.id.toString()} videoTitle={video.title} artistName={video.artistName} caption={video.caption} links={video.links} />
+      <InfoDrawer 
+        isOpen={infoOpen}
+        onClose={() => setInfoOpen(false)}
+        videoId={video.id.toString()}
+        videoTitle={video.title}
+        artistName={video.artistName}
+        caption={video.caption}
+        links={video.links}
+      />
+
+      {/* Thin playback bar at bottom */}
+      {duration > 0 && !isDrawerOpen && (
+        <div
+          className={`absolute left-0 right-0 bottom-[24px] z-30 flex justify-center px-[5px] ${isDrawerOpen ? 'pointer-events-none' : 'pointer-events-auto'}`}
+        >
+          <div
+            className="relative w-[90%] h-[3px] rounded-full bg-white/30 overflow-hidden"
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              setIsScrubbing(true);
+              seekFromClientX(e.clientX, e.currentTarget);
+            }}
+            onMouseUp={(e) => {
+              e.stopPropagation();
+              setIsScrubbing(false);
+            }}
+            onMouseLeave={() => {
+              setIsScrubbing(false);
+            }}
+            onTouchStart={(e) => {
+              e.stopPropagation();
+              const touch = e.touches[0];
+              if (!touch) return;
+              setIsScrubbing(true);
+              seekFromClientX(touch.clientX, e.currentTarget);
+            }}
+            onTouchMove={(e) => {
+              e.stopPropagation();
+              const touch = e.touches[0];
+              if (!touch) return;
+              seekFromClientX(touch.clientX, e.currentTarget);
+            }}
+            onTouchEnd={(e) => {
+              e.stopPropagation();
+              setIsScrubbing(false);
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              const el = e.currentTarget as HTMLDivElement;
+              seekFromClientX(e.clientX, el);
+            }}
+          >
+            <div
+              className="absolute left-0 top-0 bottom-0 rounded-full bg-white"
+              style={{ width: `${progress * 100}%` }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
-};
-
-export const VideoCard = memo(VideoCardComponent);
+});
