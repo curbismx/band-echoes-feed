@@ -141,7 +141,7 @@ export const CommentsDrawer = ({ videoId, isOpen, onClose }: CommentsDrawerProps
 
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DrawerContent className="max-h-[50vh] h-[50vh] fixed bottom-0 flex flex-col rounded-t-3xl">
+      <DrawerContent className="h-[400px] fixed bottom-0 flex flex-col rounded-t-3xl" style={{ maxHeight: '400px' }}>
         <DrawerHeader className="border-b border-border flex-shrink-0">
           <DrawerTitle className="text-center">Comments</DrawerTitle>
         </DrawerHeader>
