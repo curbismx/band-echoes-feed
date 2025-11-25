@@ -6,6 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 import backIcon from "@/assets/back.png";
 import favsIcon from "@/assets/favs.png";
 
+// Session storage key for mute state
+const MUTE_STATE_KEY = "videoFeedMuted";
+
 export const VideoFeed = () => {
   const { user } = useAuth();
   const location = useLocation();
@@ -13,7 +16,13 @@ export const VideoFeed = () => {
 
   const [videos, setVideos] = useState<any[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isMuted, setIsMuted] = useState(true);
+  
+  // Initialize mute state from session storage (persists across navigation)
+  const [isMuted, setIsMuted] = useState(() => {
+    const stored = sessionStorage.getItem(MUTE_STATE_KEY);
+    return stored === null ? true : stored === "true";
+  });
+  
   const [isGloballyPaused, setIsGloballyPaused] = useState(false);
   const [isPlayingFavorites, setIsPlayingFavorites] = useState(false);
   const [originalVideos, setOriginalVideos] = useState<any[]>([]);
@@ -25,6 +34,13 @@ export const VideoFeed = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState(0);
   const [isAnyDrawerOpen, setIsAnyDrawerOpen] = useState(false);
+
+  /* --------------------------------------------------
+      PERSIST MUTE STATE
+  -------------------------------------------------- */
+  useEffect(() => {
+    sessionStorage.setItem(MUTE_STATE_KEY, String(isMuted));
+  }, [isMuted]);
 
   /* --------------------------------------------------
       FIX iOS VIEWPORT HEIGHT
