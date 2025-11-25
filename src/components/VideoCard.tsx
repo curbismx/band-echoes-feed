@@ -10,7 +10,7 @@ import followOnIcon from "@/assets/follow_ON.png";
 import followedIcon from "@/assets/followed.png";
 import infoIcon from "@/assets/info.png";
 import infoFollowIcon from "@/assets/info-follow.png";
-import { Volume2, VolumeX, Play } from "lucide-react";
+import { Volume2, VolumeX } from "lucide-react";
 
 interface Video {
   id: string;
@@ -35,22 +35,9 @@ interface VideoCardProps {
   onTogglePause: (paused: boolean) => void;
   preloadStrategy?: "auto" | "metadata" | "none";
   onDrawerStateChange?: (isOpen: boolean) => void;
-  hasUserInteracted: boolean;
-  onUserInteraction: () => void;
 }
 
-export const VideoCard = ({ 
-  video, 
-  isActive, 
-  isMuted, 
-  onUnmute, 
-  isGloballyPaused, 
-  onTogglePause, 
-  preloadStrategy = "metadata", 
-  onDrawerStateChange,
-  hasUserInteracted,
-  onUserInteraction
-}: VideoCardProps) => {
+export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused, onTogglePause, preloadStrategy = "metadata", onDrawerStateChange }: VideoCardProps) => {
   const navigate = useNavigate();
   const [isFollowing, setIsFollowing] = useState(video.isFollowing);
   const [isLiked, setIsLiked] = useState(false);
@@ -59,8 +46,10 @@ export const VideoCard = ({
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const [isUIHidden, setIsUIHidden] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [isScrubbing, setIsScrubbing] = useState(false);
 
   const { averageRating, userRating, submitRating } = useVideoRatings(video.id);
 
@@ -114,118 +103,67 @@ export const VideoCard = ({
     fetchArtistProfile();
   }, [video.artistUserId, isActive]);
 
-  // ===========================================
-  // VIDEO PLAYBACK
-  // ===========================================
+  // VIDEO PLAYBACK - Simple and clean
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
 
-    // Always pause non-active videos immediately
     if (!isActive || isGloballyPaused) {
       v.pause();
-      setIsPlaying(false);
       return;
     }
 
-    // Don't try to autoplay until user has interacted (iOS requirement)
-    if (!hasUserInteracted) {
-      setIsPlaying(false);
-      return;
-    }
+    // Active video - try to play
+    v.muted = true;
 
-    // This video IS active and user has interacted - play it
-    v.muted = isMuted;
-    v.currentTime = 0;
-
-    const attemptPlay = () => {
-      const playPromise = v.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            setIsPlaying(true);
-          })
-          .catch((err) => {
-            console.log("Play failed:", err);
-            // Try muted as fallback
-            v.muted = true;
-            v.play()
-              .then(() => setIsPlaying(true))
-              .catch(() => setIsPlaying(false));
-          });
-      }
+    const tryPlay = () => {
+      v.play()
+        .then(() => {
+          if (!isMuted) {
+            setTimeout(() => {
+              if (videoRef.current) videoRef.current.muted = false;
+            }, 150);
+          }
+        })
+        .catch(() => {
+          v.muted = true;
+          v.play().catch(() => {});
+        });
     };
 
     if (v.readyState >= 2) {
-      attemptPlay();
+      tryPlay();
     } else {
-      const onCanPlay = () => {
-        attemptPlay();
-      };
-      v.addEventListener("canplay", onCanPlay, { once: true });
-      return () => v.removeEventListener("canplay", onCanPlay);
+      v.addEventListener("canplay", tryPlay, { once: true });
+      return () => v.removeEventListener("canplay", tryPlay);
     }
-  }, [isActive, isGloballyPaused, hasUserInteracted, video.id]);
-
-  // Handle mute changes separately
-  useEffect(() => {
-    const v = videoRef.current;
-    if (v && isActive && isPlaying) {
-      v.muted = isMuted;
-    }
-  }, [isMuted, isActive, isPlaying]);
+  }, [isActive, isGloballyPaused, isMuted]);
 
   const handleVideoClick = () => {
-    // Mark that user has interacted
-    if (!hasUserInteracted) {
-      onUserInteraction();
-    }
-    
-    // Try to play current video if not playing
-    const v = videoRef.current;
-    if (v && isActive && !isPlaying) {
-      v.muted = true; // Start muted for first play
-      v.play()
-        .then(() => {
-          setIsPlaying(true);
-          // Now unmute if user preference
-          if (!isMuted) {
-            v.muted = false;
-          }
-        })
-        .catch(() => {});
-      return;
-    }
-    
-    // If already playing, handle unmute
     onUnmute();
   };
 
   const handleFollow = async () => {
-    // Optimistic UI toggle
     const next = !isFollowing;
     setIsFollowing(next);
 
-    // Attempt to persist if logged in and we have an artist id
     const { data: { user } } = await supabase.auth.getUser();
     if (!video.artistUserId || !user) {
-      return; // keep optimistic state locally
+      return;
     }
 
     if (next) {
-      // Follow
       const { error } = await supabase
         .from('follows')
         .insert({ follower_id: user.id, followed_id: video.artistUserId });
-      if (error) setIsFollowing(!next); // revert on error
+      if (error) setIsFollowing(!next);
     } else {
-      // Unfollow
       const { error } = await supabase
         .from('follows')
         .delete()
         .eq('follower_id', user.id)
         .eq('followed_id', video.artistUserId);
-      if (error) setIsFollowing(!next); // revert on error
+      if (error) setIsFollowing(!next);
     }
   };
 
@@ -238,12 +176,10 @@ export const VideoCard = ({
     if (!user) return;
 
     if (newLikedState) {
-      // Add to favorites
       await supabase
         .from("favorites")
         .insert({ user_id: user.id, video_id: video.id });
     } else {
-      // Remove from favorites
       await supabase
         .from("favorites")
         .delete()
@@ -256,19 +192,23 @@ export const VideoCard = ({
     submitRating(newRating);
   };
 
+  const seekFromClientX = (clientX: number, element: HTMLDivElement | null) => {
+    const v = videoRef.current;
+    if (!v || !element || !duration) return;
+    const rect = element.getBoundingClientRect();
+    const ratio = Math.min(Math.max((clientX - rect.left) / rect.width, 0), 1);
+    v.currentTime = ratio * duration;
+    setProgress(ratio);
+  };
+
   const isDrawerOpen = commentsOpen || infoOpen;
 
-  // Notify parent when drawer state changes
   useEffect(() => {
     onDrawerStateChange?.(isDrawerOpen);
   }, [isDrawerOpen, onDrawerStateChange]);
 
-  // Show tap to play overlay when active but not playing (iOS initial state)
-  const showTapToPlay = isActive && !isPlaying && !hasUserInteracted;
-
   return (
     <div className="relative h-screen w-screen">
-      {/* Video Background */}
       <video
         ref={videoRef}
         src={video.videoUrl}
@@ -287,29 +227,28 @@ export const VideoCard = ({
         onLoadedData={() => {
           console.log("Video loaded successfully:", video.videoUrl);
         }}
+        onLoadedMetadata={(e) => {
+          const v = e.currentTarget;
+          if (v.duration && !Number.isNaN(v.duration)) {
+            setDuration(v.duration);
+          }
+        }}
+        onTimeUpdate={(e) => {
+          if (isScrubbing) return;
+          const v = e.currentTarget;
+          if (v.duration && v.currentTime >= 0) {
+            setProgress(v.currentTime / v.duration);
+          }
+        }}
       />
 
-      {/* Click area for video */}
       <div 
         className={`absolute inset-0 z-10 ${isDrawerOpen ? 'pointer-events-none' : ''}`}
         style={{ pointerEvents: isDrawerOpen ? 'none' : 'auto' }}
         onClick={handleVideoClick} 
       />
       
-      {/* Tap to play indicator (iOS first interaction) */}
-      {showTapToPlay && (
-        <div 
-          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none flex flex-col items-center gap-2"
-        >
-          <div className="bg-black/60 backdrop-blur-sm rounded-full p-5">
-            <Play className="w-10 h-10 text-white" fill="white" />
-          </div>
-          <div className="text-white text-sm font-medium drop-shadow-lg">Tap to play</div>
-        </div>
-      )}
-      
-      {/* Unmute indicator (only show when playing but muted) */}
-      {isMuted && isPlaying && (
+      {isMuted && (
         <div 
           className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none flex flex-col items-center gap-2"
           style={{ animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}
@@ -321,7 +260,6 @@ export const VideoCard = ({
         </div>
       )}
       
-      {/* Video Info Text - Left Side */}
       {!isUIHidden && (
         <div
           className={`absolute z-20 ${isDrawerOpen ? 'pointer-events-none' : 'pointer-events-auto'}`}
@@ -331,7 +269,6 @@ export const VideoCard = ({
             maxWidth: 'calc(65% - 50px)',
           }}
         >
-        {/* Artist Avatar */}
         {artistAvatar && (
           <button
             onClick={(e) => {
@@ -378,7 +315,6 @@ export const VideoCard = ({
           </div>
         )}
         
-        {/* Follow and Info buttons */}
         <div className="flex gap-[30px] items-center" style={{ transform: 'translateY(3px)' }}>
           <button 
             onClick={(e) => {
@@ -413,9 +349,7 @@ export const VideoCard = ({
       
       {!isUIHidden && (
         <div className="absolute inset-0 flex flex-col justify-between p-4 pb-8 pr-[30px] pointer-events-none">
-        {/* Bottom Content */}
         <div className={`mt-auto flex items-end justify-end mb-[10px] ${isDrawerOpen ? 'pointer-events-none' : 'pointer-events-auto'}`}>
-          {/* Action Buttons */}
       <ActionButtons
         likes={likes}
         isLiked={isLiked}
@@ -450,6 +384,55 @@ export const VideoCard = ({
         caption={video.caption}
         links={video.links}
       />
+
+      {duration > 0 && (
+        <div
+          className={`absolute left-0 right-0 bottom-[24px] z-30 flex justify-center px-[5px] ${isDrawerOpen ? 'pointer-events-none' : 'pointer-events-auto'}`}
+        >
+          <div
+            className="relative w-[90%] h-[3px] rounded-full bg-white/30 overflow-hidden"
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              setIsScrubbing(true);
+              seekFromClientX(e.clientX, e.currentTarget);
+            }}
+            onMouseUp={(e) => {
+              e.stopPropagation();
+              setIsScrubbing(false);
+            }}
+            onMouseLeave={() => {
+              setIsScrubbing(false);
+            }}
+            onTouchStart={(e) => {
+              e.stopPropagation();
+              const touch = e.touches[0];
+              if (!touch) return;
+              setIsScrubbing(true);
+              seekFromClientX(touch.clientX, e.currentTarget);
+            }}
+            onTouchMove={(e) => {
+              e.stopPropagation();
+              const touch = e.touches[0];
+              if (!touch) return;
+              seekFromClientX(touch.clientX, e.currentTarget);
+            }}
+            onTouchEnd={(e) => {
+              e.stopPropagation();
+              setIsScrubbing(false);
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              const el = e.currentTarget as HTMLDivElement;
+              seekFromClientX(e.clientX, el);
+            }}
+          >
+            <div
+              className="absolute left-0 top-0 bottom-0 rounded-full bg-white"
+              style={{ width: `${progress * 100}%` }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
