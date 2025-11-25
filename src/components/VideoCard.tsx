@@ -200,7 +200,7 @@ export const VideoCard = ({
         className={`absolute inset-0 w-full h-full object-cover ${isDrawerOpen ? 'pointer-events-none' : ''}`}
         loop
         playsInline
-        webkit-playsinline="true"
+        {...({ webkitPlaysInline: true } as any)}
         preload="auto"
         muted
         poster={video.posterUrl || "/placeholder.svg"}
