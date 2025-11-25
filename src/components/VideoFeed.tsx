@@ -188,6 +188,24 @@ export const VideoFeed = () => {
   };
 
   /* --------------------------------------------------
+      VIRTUAL SCROLLING - RENDER ONLY ADJACENT VIDEOS
+  -------------------------------------------------- */
+  const RENDER_BUFFER = 2; // Render 2 videos before and after current (5 total)
+  
+  const getVisibleVideos = () => {
+    const startIndex = Math.max(0, currentIndex - RENDER_BUFFER);
+    const endIndex = Math.min(videos.length - 1, currentIndex + RENDER_BUFFER);
+    
+    const visibleVideos = [];
+    for (let i = startIndex; i <= endIndex; i++) {
+      visibleVideos.push({ video: videos[i], index: i });
+    }
+    return visibleVideos;
+  };
+
+  const visibleVideos = getVisibleVideos();
+
+  /* --------------------------------------------------
       RENDER
   -------------------------------------------------- */
   return (
@@ -204,21 +222,28 @@ export const VideoFeed = () => {
           transition: isDragging ? "none" : "transform 0.15s ease-out"
         }}
       >
-        {videos.map((video, i) => (
-          <VideoCard
+        {visibleVideos.map(({ video, index }) => (
+          <div
             key={video.id}
-            video={{
-              ...video,
-              videoUrl: video.videoUrl,
-              posterUrl: video.posterUrl
+            className="absolute top-0 left-0 w-full h-full"
+            style={{
+              transform: `translateY(${index * 100}vh)`
             }}
-            isActive={i === currentIndex}
-            isMuted={isMuted}
-            onUnmute={() => setIsMuted(false)}
-            isGloballyPaused={isGloballyPaused}
-            onTogglePause={setIsGloballyPaused}
-            onDrawerStateChange={setIsAnyDrawerOpen}
-          />
+          >
+            <VideoCard
+              video={{
+                ...video,
+                videoUrl: video.videoUrl,
+                posterUrl: video.posterUrl
+              }}
+              isActive={index === currentIndex}
+              isMuted={isMuted}
+              onUnmute={() => setIsMuted(false)}
+              isGloballyPaused={isGloballyPaused}
+              onTogglePause={setIsGloballyPaused}
+              onDrawerStateChange={setIsAnyDrawerOpen}
+            />
+          </div>
         ))}
       </div>
     </div>
