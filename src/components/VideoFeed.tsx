@@ -114,7 +114,7 @@ export const VideoFeed = () => {
       <div
         style={{
           transform: `translateY(calc(${-currentIndex * 100}vh + ${dragOffset}px))`,
-          transition: isDragging ? "none" : "transform 0.3s ease-out",
+          transition: isDragging ? "none" : "transform 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
         }}
       >
         {videos.map((video, index) => (
