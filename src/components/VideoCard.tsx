@@ -52,8 +52,6 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
   const [progress, setProgress] = useState(0);        // 0–1
   const [duration, setDuration] = useState(0);        // seconds
   const [isScrubbing, setIsScrubbing] = useState(false);
-  const [hasLoadedVideo, setHasLoadedVideo] = useState(false);
-  const loadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { averageRating, userRating, submitRating } = useVideoRatings(video.id);
 
@@ -107,96 +105,34 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     fetchArtistProfile();
   }, [video.artistUserId]);
 
-  // IntersectionObserver for smart video loading (MOBILE ONLY - Safari fix)
-  useEffect(() => {
-    // Only use IntersectionObserver on mobile devices
-    if (!isMobile) return;
-    
-    const v = videoRef.current;
-    if (!v || hasLoadedVideo) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && hasUserInteracted) {
-            // Manually trigger load for mobile Safari
-            v.load();
-            setHasLoadedVideo(true);
-            
-            // Fallback: if canplay doesn't fire in 3 seconds, try load() again
-            if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
-            loadTimeoutRef.current = setTimeout(() => {
-              if (v.readyState < 2) {
-                v.load();
-              }
-            }, 3000);
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-
-    observer.observe(v);
-
-    return () => {
-      observer.disconnect();
-      if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
-    };
-  }, [video.id, hasUserInteracted, hasLoadedVideo, isMobile]);
-
+  // Simple play/pause logic
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
 
-    // Always force muted on initial autoplay (Safari requirement)
-    v.muted = true;
-
-    // If this video is not the active one, pause it immediately
+    // Pause if not active or globally paused
     if (!isActive || isGloballyPaused) {
       v.pause();
       return;
     }
 
-    // Only gate on user interaction for mobile Safari
-    // Desktop Safari allows muted autoplay without interaction
+    // On mobile, wait for user interaction before playing
     if (isMobile && !hasUserInteracted) {
       return;
     }
 
-    // Safe play attempt
-    const tryPlay = () => {
-      const p = v.play();
-      if (!p || !p.then) return;
-
-      p.then(() => {
-        // Playback started successfully — now handle sound separately
-        if (!isMuted) {
-          // Delay unmute so Safari doesn't choke
-          setTimeout(() => {
-            v.muted = false;
-          }, 150);
-        }
-      }).catch(() => {
-        // If autoplay failed, fallback to muted only
+    // Try to play (muted initially for autoplay to work)
+    v.muted = isMuted;
+    const playPromise = v.play();
+    
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        // If autoplay fails, ensure it's muted and try again
         v.muted = true;
         v.play().catch(() => {});
       });
-    };
-
-    // If video is already buffered enough, play immediately
-    if (v.readyState >= 2) {
-      tryPlay();
-    } else {
-      // Wait until browser says "ready", but DO NOT kill poster or source
-      const onReady = () => {
-        v.removeEventListener("canplay", onReady);
-        tryPlay();
-      };
-      v.addEventListener("canplay", onReady);
-
-      return () => v.removeEventListener("canplay", onReady);
     }
-  }, [isActive, isGloballyPaused, isMuted, hasUserInteracted]);
+  }, [isActive, isGloballyPaused, isMuted, hasUserInteracted, isMobile]);
 
   const handleVideoClick = () => {
     onUnmute();
