@@ -47,8 +47,8 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
   const [infoOpen, setInfoOpen] = useState(false);
   const [isUIHidden, setIsUIHidden] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [progress, setProgress] = useState(0);
-  const [duration, setDuration] = useState(0);
+  const [progress, setProgress] = useState(0);        // 0–1
+  const [duration, setDuration] = useState(0);        // seconds
   const [isScrubbing, setIsScrubbing] = useState(false);
 
   const { averageRating, userRating, submitRating } = useVideoRatings(video.id);
@@ -85,9 +85,9 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     checkFavorite();
   }, [video.id]);
 
-  // Fetch artist profile avatar (only when video becomes active to reduce duplicate requests)
+  // Fetch artist profile avatar
   useEffect(() => {
-    if (!video.artistUserId || !isActive) return;
+    if (!video.artistUserId) return;
     const fetchArtistProfile = async () => {
       const { data } = await supabase
         .from("profiles")
@@ -101,41 +101,53 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     };
 
     fetchArtistProfile();
-  }, [video.artistUserId, isActive]);
+  }, [video.artistUserId]);
 
-  // VIDEO PLAYBACK - Simple and clean
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
 
+    // Always force muted on initial autoplay (Safari requirement)
+    v.muted = true;
+
+    // If this video is not the active one, pause it immediately
     if (!isActive || isGloballyPaused) {
       v.pause();
       return;
     }
 
-    // Active video - try to play
-    v.muted = true;
-
+    // Safe play attempt
     const tryPlay = () => {
-      v.play()
-        .then(() => {
-          if (!isMuted) {
-            setTimeout(() => {
-              if (videoRef.current) videoRef.current.muted = false;
-            }, 150);
-          }
-        })
-        .catch(() => {
-          v.muted = true;
-          v.play().catch(() => {});
-        });
+      const p = v.play();
+      if (!p || !p.then) return;
+
+      p.then(() => {
+        // Playback started successfully — now handle sound separately
+        if (!isMuted) {
+          // Delay unmute so Safari doesn't choke
+          setTimeout(() => {
+            v.muted = false;
+          }, 150);
+        }
+      }).catch(() => {
+        // If autoplay failed, fallback to muted only
+        v.muted = true;
+        v.play().catch(() => {});
+      });
     };
 
+    // If video is already buffered enough, play immediately
     if (v.readyState >= 2) {
       tryPlay();
     } else {
-      v.addEventListener("canplay", tryPlay, { once: true });
-      return () => v.removeEventListener("canplay", tryPlay);
+      // Wait until browser says "ready", but DO NOT kill poster or source
+      const onReady = () => {
+        v.removeEventListener("canplay", onReady);
+        tryPlay();
+      };
+      v.addEventListener("canplay", onReady);
+
+      return () => v.removeEventListener("canplay", onReady);
     }
   }, [isActive, isGloballyPaused, isMuted]);
 
@@ -144,26 +156,30 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
   };
 
   const handleFollow = async () => {
+    // Optimistic UI toggle
     const next = !isFollowing;
     setIsFollowing(next);
 
+    // Attempt to persist if logged in and we have an artist id
     const { data: { user } } = await supabase.auth.getUser();
     if (!video.artistUserId || !user) {
-      return;
+      return; // keep optimistic state locally
     }
 
     if (next) {
+      // Follow
       const { error } = await supabase
         .from('follows')
         .insert({ follower_id: user.id, followed_id: video.artistUserId });
-      if (error) setIsFollowing(!next);
+      if (error) setIsFollowing(!next); // revert on error
     } else {
+      // Unfollow
       const { error } = await supabase
         .from('follows')
         .delete()
         .eq('follower_id', user.id)
         .eq('followed_id', video.artistUserId);
-      if (error) setIsFollowing(!next);
+      if (error) setIsFollowing(!next); // revert on error
     }
   };
 
@@ -176,10 +192,12 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     if (!user) return;
 
     if (newLikedState) {
+      // Add to favorites
       await supabase
         .from("favorites")
         .insert({ user_id: user.id, video_id: video.id });
     } else {
+      // Remove from favorites
       await supabase
         .from("favorites")
         .delete()
@@ -203,12 +221,14 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
 
   const isDrawerOpen = commentsOpen || infoOpen;
 
+  // Notify parent when drawer state changes
   useEffect(() => {
     onDrawerStateChange?.(isDrawerOpen);
   }, [isDrawerOpen, onDrawerStateChange]);
 
   return (
     <div className="relative h-screen w-screen">
+      {/* Video Background */}
       <video
         ref={videoRef}
         src={video.videoUrl}
@@ -216,7 +236,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         loop
         playsInline
         {...({ 'webkit-playsinline': 'true' } as any)}
-        preload={preloadStrategy}
+        preload="auto"
         muted
         poster={video.posterUrl || "/placeholder.svg"}
         style={{ width: "100%", height: "100%", objectFit: "cover", background: "black" }}
@@ -242,12 +262,14 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         }}
       />
 
+      {/* Click area for video pause/play */}
       <div 
         className={`absolute inset-0 z-10 ${isDrawerOpen ? 'pointer-events-none' : ''}`}
         style={{ pointerEvents: isDrawerOpen ? 'none' : 'auto' }}
         onClick={handleVideoClick} 
       />
       
+      {/* Unmute indicator */}
       {isMuted && (
         <div 
           className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none flex flex-col items-center gap-2"
@@ -260,6 +282,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         </div>
       )}
       
+      {/* Video Info Text - Left Side */}
       {!isUIHidden && (
         <div
           className={`absolute z-20 ${isDrawerOpen ? 'pointer-events-none' : 'pointer-events-auto'}`}
@@ -269,6 +292,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
             maxWidth: 'calc(65% - 50px)',
           }}
         >
+        {/* Artist Avatar */}
         {artistAvatar && (
           <button
             onClick={(e) => {
@@ -315,6 +339,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
           </div>
         )}
         
+        {/* Follow and Info buttons */}
         <div className="flex gap-[30px] items-center" style={{ transform: 'translateY(3px)' }}>
           <button 
             onClick={(e) => {
@@ -349,7 +374,9 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
       
       {!isUIHidden && (
         <div className="absolute inset-0 flex flex-col justify-between p-4 pb-8 pr-[30px] pointer-events-none">
+        {/* Bottom Content */}
         <div className={`mt-auto flex items-end justify-end mb-[10px] ${isDrawerOpen ? 'pointer-events-none' : 'pointer-events-auto'}`}>
+          {/* Action Buttons */}
       <ActionButtons
         likes={likes}
         isLiked={isLiked}
@@ -385,6 +412,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         links={video.links}
       />
 
+      {/* Thin playback bar at bottom */}
       {duration > 0 && (
         <div
           className={`absolute left-0 right-0 bottom-[24px] z-30 flex justify-center px-[5px] ${isDrawerOpen ? 'pointer-events-none' : 'pointer-events-auto'}`}
