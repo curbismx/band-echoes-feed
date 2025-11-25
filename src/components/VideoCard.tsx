@@ -34,9 +34,10 @@ interface VideoCardProps {
   isGloballyPaused: boolean;
   onTogglePause: (paused: boolean) => void;
   preloadStrategy?: "auto" | "metadata" | "none";
+  onDrawerStateChange?: (isOpen: boolean) => void;
 }
 
-export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused, onTogglePause, preloadStrategy = "metadata" }: VideoCardProps) => {
+export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused, onTogglePause, preloadStrategy = "metadata", onDrawerStateChange }: VideoCardProps) => {
   const navigate = useNavigate();
   const [isFollowing, setIsFollowing] = useState(video.isFollowing);
   const [isLiked, setIsLiked] = useState(false);
@@ -219,6 +220,11 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
   };
 
   const isDrawerOpen = commentsOpen || infoOpen;
+
+  // Notify parent when drawer state changes
+  useEffect(() => {
+    onDrawerStateChange?.(isDrawerOpen);
+  }, [isDrawerOpen, onDrawerStateChange]);
 
   return (
     <div className="relative h-screen w-screen">
