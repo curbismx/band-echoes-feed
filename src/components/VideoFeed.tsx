@@ -24,6 +24,7 @@ export const VideoFeed = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState(0);
   const [isAnyDrawerOpen, setIsAnyDrawerOpen] = useState(false);
+  const [skipTransition, setSkipTransition] = useState(false);
 
   /* --------------------------------------------------
       FETCH + SORT VIDEOS
@@ -69,15 +70,21 @@ export const VideoFeed = () => {
         const savedIndex = sessionStorage.getItem("feedIndex");
         setOriginalIndex(savedIndex ? Number(savedIndex) : 0);
         setVideos(location.state.favoriteVideos);
+        setSkipTransition(true);
         setCurrentIndex(location.state.startIndex);
         setIsPlayingFavorites(true);
         // Clear the state so it doesn't persist
         window.history.replaceState({}, document.title);
+        // Re-enable transitions after a brief delay
+        setTimeout(() => setSkipTransition(false), 100);
       } else if (location.state?.videoId) {
         // Find the video index by ID
         const videoIndex = sorted.findIndex(v => v.id === location.state.videoId);
         if (videoIndex !== -1) {
+          setSkipTransition(true);
           setCurrentIndex(videoIndex);
+          // Re-enable transitions after a brief delay
+          setTimeout(() => setSkipTransition(false), 100);
         }
         // Clear the state so it doesn't persist
         window.history.replaceState({}, document.title);
@@ -87,7 +94,10 @@ export const VideoFeed = () => {
         if (savedIndex) {
           const idx = Number(savedIndex);
           if (idx >= 0 && idx < sorted.length) {
+            setSkipTransition(true);
             setCurrentIndex(idx);
+            // Re-enable transitions after a brief delay
+            setTimeout(() => setSkipTransition(false), 100);
           }
         }
       }
@@ -201,7 +211,7 @@ export const VideoFeed = () => {
         className="relative h-full"
         style={{
           transform: `translateY(calc(-${currentIndex * 100}vh + ${dragOffset}px))`,
-          transition: isDragging ? "none" : "transform 0.4s ease-out"
+          transition: (isDragging || skipTransition) ? "none" : "transform 0.4s ease-out"
         }}
       >
         {videos.map((video, i) => (
