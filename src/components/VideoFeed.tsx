@@ -23,6 +23,7 @@ export const VideoFeed = () => {
   const touchEnd = useRef(0);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState(0);
+  const [isAnyDrawerOpen, setIsAnyDrawerOpen] = useState(false);
 
   /* --------------------------------------------------
       FETCH + SORT VIDEOS
@@ -92,6 +93,7 @@ export const VideoFeed = () => {
   -------------------------------------------------- */
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (isAnyDrawerOpen) return;
       if (e.key === "ArrowUp") {
         e.preventDefault();
         setCurrentIndex(i => (i > 0 ? i - 1 : videos.length - 1));
@@ -109,7 +111,7 @@ export const VideoFeed = () => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [videos.length, currentIndex, isPlayingFavorites, originalVideos, originalIndex]);
+  }, [videos.length, currentIndex, isPlayingFavorites, originalVideos, originalIndex, isAnyDrawerOpen]);
 
   /* --------------------------------------------------
       SAVE INDEX PERSISTENTLY
@@ -124,18 +126,24 @@ export const VideoFeed = () => {
   const MIN_SWIPE = 60;
 
   const onTouchStart = (e: React.TouchEvent) => {
+    if (isAnyDrawerOpen) return;
     touchStart.current = e.targetTouches[0].clientY;
     touchEnd.current = e.targetTouches[0].clientY;
     setIsDragging(true);
   };
 
   const onTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging) return;
+    if (!isDragging || isAnyDrawerOpen) return;
     touchEnd.current = e.targetTouches[0].clientY;
     setDragOffset(touchEnd.current - touchStart.current);
   };
 
   const onTouchEnd = () => {
+    if (isAnyDrawerOpen) {
+      setIsDragging(false);
+      setDragOffset(0);
+      return;
+    }
     setIsDragging(false);
 
     const distance = touchStart.current - touchEnd.current;
@@ -201,6 +209,7 @@ export const VideoFeed = () => {
             onUnmute={() => setIsMuted(false)}
             isGloballyPaused={isGloballyPaused}
             onTogglePause={setIsGloballyPaused}
+            onDrawerStateChange={setIsAnyDrawerOpen}
           />
         ))}
       </div>
