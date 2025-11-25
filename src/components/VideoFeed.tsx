@@ -4,6 +4,7 @@ import { TapToStartOverlay } from "./TapToStartOverlay";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
 import backIcon from "@/assets/back.png";
 import favsIcon from "@/assets/favs.png";
 
@@ -11,6 +12,7 @@ export const VideoFeed = () => {
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const [videos, setVideos] = useState<any[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -22,7 +24,7 @@ export const VideoFeed = () => {
   const [hasUserInteracted, setHasUserInteracted] = useState(() => {
     return sessionStorage.getItem('hasUserInteracted') === 'true';
   });
-  const [showTapOverlay, setShowTapOverlay] = useState(!hasUserInteracted);
+  const [showTapOverlay, setShowTapOverlay] = useState(!hasUserInteracted && isMobile);
 
   const touchStart = useRef(0);
   const touchEnd = useRef(0);
@@ -221,7 +223,7 @@ export const VideoFeed = () => {
   -------------------------------------------------- */
   return (
     <>
-      {showTapOverlay && videos.length > 0 && (
+      {isMobile && showTapOverlay && videos.length > 0 && (
         <TapToStartOverlay
           posterUrl={videos[0]?.posterUrl}
           onTap={handleUserInteraction}
@@ -260,7 +262,7 @@ export const VideoFeed = () => {
               isGloballyPaused={isGloballyPaused}
               onTogglePause={setIsGloballyPaused}
               onDrawerStateChange={setIsAnyDrawerOpen}
-              hasUserInteracted={hasUserInteracted}
+              hasUserInteracted={isMobile ? hasUserInteracted : true}
             />
           </div>
         ))}
