@@ -280,7 +280,7 @@ export default function Profile() {
         </div>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-2 mb-4">
+        <div className="grid grid-cols-3 gap-2 mb-4">
           <button 
             onClick={() => navigate("/edit-profile")}
             className="bg-white/10 hover:bg-white/20 transition-colors py-2 rounded-lg font-semibold text-sm"
@@ -301,12 +301,6 @@ export default function Profile() {
             className="bg-white/10 hover:bg-white/20 transition-colors py-2 rounded-lg font-semibold text-sm"
           >
             View Favs
-          </button>
-          <button 
-            onClick={handleShareProfile}
-            className="bg-white/10 hover:bg-white/20 transition-colors py-2 rounded-lg font-semibold text-sm"
-          >
-            Share Profile
           </button>
         </div>
       </div>
