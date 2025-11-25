@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { VideoCard } from "./VideoCard";
+import { TapToStartOverlay } from "./TapToStartOverlay";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +19,10 @@ export const VideoFeed = () => {
   const [isPlayingFavorites, setIsPlayingFavorites] = useState(false);
   const [originalVideos, setOriginalVideos] = useState<any[]>([]);
   const [originalIndex, setOriginalIndex] = useState(0);
+  const [hasUserInteracted, setHasUserInteracted] = useState(() => {
+    return sessionStorage.getItem('hasUserInteracted') === 'true';
+  });
+  const [showTapOverlay, setShowTapOverlay] = useState(!hasUserInteracted);
 
   const touchStart = useRef(0);
   const touchEnd = useRef(0);
@@ -205,16 +210,29 @@ export const VideoFeed = () => {
 
   const visibleVideos = getVisibleVideos();
 
+  const handleUserInteraction = () => {
+    setHasUserInteracted(true);
+    setShowTapOverlay(false);
+    sessionStorage.setItem('hasUserInteracted', 'true');
+  };
+
   /* --------------------------------------------------
       RENDER
   -------------------------------------------------- */
   return (
-    <div
-      className="relative h-screen w-screen overflow-hidden bg-black"
-      onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
-      onTouchEnd={onTouchEnd}
-    >
+    <>
+      {showTapOverlay && videos.length > 0 && (
+        <TapToStartOverlay
+          posterUrl={videos[0]?.posterUrl}
+          onTap={handleUserInteraction}
+        />
+      )}
+      <div
+        className="relative h-screen w-screen overflow-hidden bg-black"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
       <div
         className="relative h-full"
         style={{
@@ -242,10 +260,12 @@ export const VideoFeed = () => {
               isGloballyPaused={isGloballyPaused}
               onTogglePause={setIsGloballyPaused}
               onDrawerStateChange={setIsAnyDrawerOpen}
+              hasUserInteracted={hasUserInteracted}
             />
           </div>
         ))}
       </div>
     </div>
+    </>
   );
 };
