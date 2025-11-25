@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { ChevronLeft, MoreVertical, Trash2, Edit, Share2 } from "lucide-react";
+import { ChevronLeft, MoreVertical, Trash2, Edit } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -166,34 +166,6 @@ export default function Profile() {
     } finally {
       setDeleteDialogOpen(false);
       setVideoToDelete(null);
-    }
-  };
-
-  const handleShareVideo = async (videoId: string) => {
-    triggerHaptic();
-    const videoUrl = `${window.location.origin}/?video=${videoId}`;
-    
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: "Check out this video",
-          url: videoUrl
-        });
-      } else {
-        await navigator.clipboard.writeText(videoUrl);
-        toast({
-          title: "Link copied!",
-          description: "Video link copied to clipboard",
-        });
-      }
-    } catch (error) {
-      if (error instanceof Error && error.name !== 'AbortError') {
-        toast({
-          title: "Error",
-          description: "Failed to share video",
-          variant: "destructive",
-        });
-      }
     }
   };
 
@@ -447,17 +419,6 @@ export default function Profile() {
                       <MoreVertical className="w-4 h-4 text-white" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="bg-[#1a1a1a] border-white/10">
-                      <DropdownMenuItem 
-                        className="text-white hover:bg-white/10 cursor-pointer"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          triggerHaptic();
-                          handleShareVideo(video.id);
-                        }}
-                      >
-                        <Share2 className="w-4 h-4 mr-2" />
-                        Share
-                      </DropdownMenuItem>
                       <DropdownMenuItem 
                         className="text-white hover:bg-white/10 cursor-pointer"
                         onClick={(e) => {
