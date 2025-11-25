@@ -35,9 +35,10 @@ interface VideoCardProps {
   onTogglePause: (paused: boolean) => void;
   preloadStrategy?: "auto" | "metadata" | "none";
   onDrawerStateChange?: (isOpen: boolean) => void;
+  hasUserInteracted?: boolean;
 }
 
-export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused, onTogglePause, preloadStrategy = "metadata", onDrawerStateChange }: VideoCardProps) => {
+export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused, onTogglePause, preloadStrategy = "metadata", onDrawerStateChange, hasUserInteracted = false }: VideoCardProps) => {
   const navigate = useNavigate();
   const [isFollowing, setIsFollowing] = useState(video.isFollowing);
   const [isLiked, setIsLiked] = useState(false);
@@ -50,6 +51,8 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
   const [progress, setProgress] = useState(0);        // 0–1
   const [duration, setDuration] = useState(0);        // seconds
   const [isScrubbing, setIsScrubbing] = useState(false);
+  const [hasLoadedVideo, setHasLoadedVideo] = useState(false);
+  const loadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { averageRating, userRating, submitRating } = useVideoRatings(video.id);
 
@@ -103,6 +106,41 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     fetchArtistProfile();
   }, [video.artistUserId]);
 
+  // IntersectionObserver for smart video loading (Safari mobile fix)
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v || hasLoadedVideo) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && hasUserInteracted) {
+            // Manually trigger load for Safari
+            v.load();
+            setHasLoadedVideo(true);
+            
+            // Fallback: if canplay doesn't fire in 3 seconds, try load() again
+            if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
+            loadTimeoutRef.current = setTimeout(() => {
+              if (v.readyState < 2) {
+                console.log('Retrying video load (Safari fallback):', video.id);
+                v.load();
+              }
+            }, 3000);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(v);
+
+    return () => {
+      observer.disconnect();
+      if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
+    };
+  }, [video.id, hasUserInteracted, hasLoadedVideo]);
+
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
@@ -113,6 +151,11 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     // If this video is not the active one, pause it immediately
     if (!isActive || isGloballyPaused) {
       v.pause();
+      return;
+    }
+
+    // Don't attempt autoplay until user has interacted (Safari requirement)
+    if (!hasUserInteracted) {
       return;
     }
 
@@ -149,7 +192,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
 
       return () => v.removeEventListener("canplay", onReady);
     }
-  }, [isActive, isGloballyPaused, isMuted]);
+  }, [isActive, isGloballyPaused, isMuted, hasUserInteracted]);
 
   const handleVideoClick = () => {
     onUnmute();
