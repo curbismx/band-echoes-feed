@@ -223,7 +223,7 @@ export default function Profile() {
               alt="Profile"
               className="w-20 h-20 rounded-full object-cover"
             />
-            <div className="text-sm text-white/80">@{profile.username || "user"}</div>
+            <div className="text-lg font-semibold">{profile.username || "user"}</div>
           </div>
           
           <div className="flex-1 flex justify-around">
