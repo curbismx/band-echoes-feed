@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { VideoCard } from "./VideoCard";
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,11 +9,9 @@ export const VideoFeed = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMuted, setIsMuted] = useState(true);
   const [isAnyDrawerOpen, setIsAnyDrawerOpen] = useState(false);
-
-  const touchStartY = useRef(0);
-  const touchStartTime = useRef(0);
-  const [dragOffset, setDragOffset] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
+  
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isScrolling = useRef(false);
 
   // Fetch videos on mount
   useEffect(() => {
@@ -52,7 +50,13 @@ export const VideoFeed = () => {
       // Handle navigation from other pages
       if (location.state?.videoId) {
         const idx = formatted.findIndex(v => v.id === location.state.videoId);
-        if (idx !== -1) setCurrentIndex(idx);
+        if (idx !== -1) {
+          setCurrentIndex(idx);
+          // Scroll to that video after render
+          setTimeout(() => {
+            containerRef.current?.scrollTo({ top: idx * window.innerHeight, behavior: 'auto' });
+          }, 0);
+        }
         window.history.replaceState({}, document.title);
       }
     };
@@ -60,57 +64,33 @@ export const VideoFeed = () => {
     fetchVideos();
   }, [location.state]);
 
-  // Swipe handling
-  const onTouchStart = (e: React.TouchEvent) => {
-    if (isAnyDrawerOpen) return;
-    touchStartY.current = e.touches[0].clientY;
-    touchStartTime.current = Date.now();
-    setIsDragging(true);
-  };
-
-  const onTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging || isAnyDrawerOpen) return;
-    const diff = e.touches[0].clientY - touchStartY.current;
-    setDragOffset(diff);
-  };
-
-  const onTouchEnd = (e: React.TouchEvent) => {
-    if (isAnyDrawerOpen) {
-      setIsDragging(false);
-      setDragOffset(0);
-      return;
+  // Detect which video is currently visible
+  const handleScroll = useCallback(() => {
+    if (!containerRef.current || isAnyDrawerOpen) return;
+    
+    const scrollTop = containerRef.current.scrollTop;
+    const videoHeight = window.innerHeight;
+    const newIndex = Math.round(scrollTop / videoHeight);
+    
+    if (newIndex !== currentIndex && newIndex >= 0 && newIndex < videos.length) {
+      setCurrentIndex(newIndex);
     }
-
-    const touchEndY = e.changedTouches[0].clientY;
-    const distance = touchStartY.current - touchEndY;
-    const time = Date.now() - touchStartTime.current;
-    const velocity = Math.abs(distance) / time;
-
-    setIsDragging(false);
-
-    // Swipe up (next video)
-    if (distance > 50 || (velocity > 0.3 && distance > 0)) {
-      setCurrentIndex(i => (i < videos.length - 1 ? i + 1 : 0));
-    }
-    // Swipe down (previous video)
-    else if (distance < -50 || (velocity > 0.3 && distance < 0)) {
-      setCurrentIndex(i => (i > 0 ? i - 1 : videos.length - 1));
-    }
-
-    // Reset dragOffset after a short delay to let transition start smoothly
-    requestAnimationFrame(() => {
-      setDragOffset(0);
-    });
-  };
+  }, [currentIndex, videos.length, isAnyDrawerOpen]);
 
   // Keyboard navigation
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (isAnyDrawerOpen) return;
-      if (e.key === "ArrowDown") {
-        setCurrentIndex(i => (i < videos.length - 1 ? i + 1 : 0));
-      } else if (e.key === "ArrowUp") {
-        setCurrentIndex(i => (i > 0 ? i - 1 : videos.length - 1));
+      if (e.key === "ArrowDown" && currentIndex < videos.length - 1) {
+        containerRef.current?.scrollTo({ 
+          top: (currentIndex + 1) * window.innerHeight, 
+          behavior: 'smooth' 
+        });
+      } else if (e.key === "ArrowUp" && currentIndex > 0) {
+        containerRef.current?.scrollTo({ 
+          top: (currentIndex - 1) * window.innerHeight, 
+          behavior: 'smooth' 
+        });
       }
     };
     window.addEventListener("keydown", handleKey);
@@ -119,28 +99,43 @@ export const VideoFeed = () => {
 
   return (
     <div
-      className="h-screen w-screen overflow-hidden bg-black"
-      onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
-      onTouchEnd={onTouchEnd}
+      ref={containerRef}
+      onScroll={handleScroll}
+      className="h-screen w-screen overflow-y-scroll overflow-x-hidden bg-black"
+      style={{
+        scrollSnapType: isAnyDrawerOpen ? 'none' : 'y mandatory',
+        WebkitOverflowScrolling: 'touch',
+      }}
     >
-      <div
-        style={{
-          transform: `translateY(calc(${-currentIndex * 100}vh + ${dragOffset}px))`,
-          transition: isDragging ? "none" : "transform 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
-        }}
-      >
-        {videos.map((video, index) => (
+      <style>{`
+        .video-feed-container::-webkit-scrollbar {
+          display: none;
+        }
+        .video-feed-container {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
+      
+      {videos.map((video, index) => (
+        <div
+          key={video.id}
+          style={{
+            height: '100vh',
+            width: '100vw',
+            scrollSnapAlign: 'start',
+            scrollSnapStop: 'always',
+          }}
+        >
           <VideoCard
-            key={video.id}
             video={video}
             isActive={index === currentIndex}
             isMuted={isMuted}
             onUnmute={() => setIsMuted(false)}
             onDrawerStateChange={setIsAnyDrawerOpen}
           />
-        ))}
-      </div>
+        </div>
+      ))}
     </div>
   );
 };
