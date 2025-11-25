@@ -6,8 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import backIcon from "@/assets/back.png";
 import favsIcon from "@/assets/favs.png";
 
-// Session storage key for mute state
-const MUTE_STATE_KEY = "videoFeedMuted";
+// Session key to track if user has interacted this session
+const USER_INTERACTED_KEY = "videoFeedUserInteracted";
 
 export const VideoFeed = () => {
   const { user } = useAuth();
@@ -16,18 +16,16 @@ export const VideoFeed = () => {
 
   const [videos, setVideos] = useState<any[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  
-  // Initialize mute state from session storage (persists across navigation)
-  const [isMuted, setIsMuted] = useState(() => {
-    const stored = sessionStorage.getItem(MUTE_STATE_KEY);
-    return stored === null ? true : stored === "true";
-  });
-  
+  const [isMuted, setIsMuted] = useState(true);
   const [isGloballyPaused, setIsGloballyPaused] = useState(false);
   const [isPlayingFavorites, setIsPlayingFavorites] = useState(false);
   const [originalVideos, setOriginalVideos] = useState<any[]>([]);
   const [originalIndex, setOriginalIndex] = useState(0);
-  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
+  
+  // Track if user has interacted (persists across navigation within session)
+  const [hasUserInteracted, setHasUserInteracted] = useState(() => {
+    return sessionStorage.getItem(USER_INTERACTED_KEY) === "true";
+  });
 
   const touchStart = useRef(0);
   const touchEnd = useRef(0);
@@ -35,30 +33,11 @@ export const VideoFeed = () => {
   const [dragOffset, setDragOffset] = useState(0);
   const [isAnyDrawerOpen, setIsAnyDrawerOpen] = useState(false);
 
-  /* --------------------------------------------------
-      PERSIST MUTE STATE
-  -------------------------------------------------- */
-  useEffect(() => {
-    sessionStorage.setItem(MUTE_STATE_KEY, String(isMuted));
-  }, [isMuted]);
-
-  /* --------------------------------------------------
-      FIX iOS VIEWPORT HEIGHT
-  -------------------------------------------------- */
-  useEffect(() => {
-    const updateHeight = () => {
-      setViewportHeight(window.innerHeight);
-    };
-    
-    updateHeight();
-    window.addEventListener('resize', updateHeight);
-    window.addEventListener('orientationchange', updateHeight);
-    
-    return () => {
-      window.removeEventListener('resize', updateHeight);
-      window.removeEventListener('orientationchange', updateHeight);
-    };
-  }, []);
+  // Persist user interaction state
+  const handleUserInteraction = () => {
+    setHasUserInteracted(true);
+    sessionStorage.setItem(USER_INTERACTED_KEY, "true");
+  };
 
   /* --------------------------------------------------
       FETCH + SORT VIDEOS
@@ -106,6 +85,8 @@ export const VideoFeed = () => {
         setVideos(location.state.favoriteVideos);
         setCurrentIndex(location.state.startIndex);
         setIsPlayingFavorites(true);
+        // User came from another page, so they've interacted
+        handleUserInteraction();
         // Clear the state so it doesn't persist
         window.history.replaceState({}, document.title);
       } else if (location.state?.videoId) {
@@ -114,6 +95,8 @@ export const VideoFeed = () => {
         if (videoIndex !== -1) {
           setCurrentIndex(videoIndex);
         }
+        // User came from another page, so they've interacted
+        handleUserInteraction();
         // Clear the state so it doesn't persist
         window.history.replaceState({}, document.title);
       } else {
@@ -139,6 +122,7 @@ export const VideoFeed = () => {
       if (isAnyDrawerOpen) return;
       if (e.key === "ArrowUp") {
         e.preventDefault();
+        // Loop: if at first video, go to last
         setCurrentIndex(i => (i > 0 ? i - 1 : videos.length - 1));
       } else if (e.key === "ArrowDown") {
         e.preventDefault();
@@ -147,6 +131,7 @@ export const VideoFeed = () => {
           setCurrentIndex(originalIndex);
           setIsPlayingFavorites(false);
         } else {
+          // Loop: if at last video, go to first
           setCurrentIndex(i => (i < videos.length - 1 ? i + 1 : 0));
         }
       }
@@ -170,6 +155,12 @@ export const VideoFeed = () => {
 
   const onTouchStart = (e: React.TouchEvent) => {
     if (isAnyDrawerOpen) return;
+    
+    // Any touch counts as user interaction
+    if (!hasUserInteracted) {
+      handleUserInteraction();
+    }
+    
     touchStart.current = e.targetTouches[0].clientY;
     touchEnd.current = e.targetTouches[0].clientY;
     setIsDragging(true);
@@ -192,22 +183,20 @@ export const VideoFeed = () => {
     const distance = touchStart.current - touchEnd.current;
 
     if (distance > MIN_SWIPE) {
-      // swipe UP
+      // swipe UP - next video
       if (isPlayingFavorites && currentIndex >= videos.length - 1) {
         // End of favorites - return to normal feed
         setVideos(originalVideos);
         setCurrentIndex(originalIndex);
         setIsPlayingFavorites(false);
       } else {
-        setCurrentIndex(i =>
-          i < videos.length - 1 ? i + 1 : 0
-        );
+        // Loop: if at last video, go to first
+        setCurrentIndex(i => (i < videos.length - 1 ? i + 1 : 0));
       }
     } else if (distance < -MIN_SWIPE) {
-      // swipe DOWN
-      setCurrentIndex(i =>
-        i > 0 ? i - 1 : videos.length - 1
-      );
+      // swipe DOWN - previous video
+      // Loop: if at first video, go to last
+      setCurrentIndex(i => (i > 0 ? i - 1 : videos.length - 1));
     }
 
     setDragOffset(0);
@@ -227,53 +216,35 @@ export const VideoFeed = () => {
   -------------------------------------------------- */
   return (
     <div
-      className="relative overflow-hidden bg-black"
-      style={{
-        width: '100vw',
-        height: `${viewportHeight}px`,
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        touchAction: 'none',
-        WebkitOverflowScrolling: 'touch',
-      }}
+      className="relative h-screen w-screen overflow-hidden bg-black"
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
     >
       <div
-        className="relative"
+        className="relative h-full"
         style={{
-          height: '100%',
-          transform: `translateY(calc(-${currentIndex * viewportHeight}px + ${dragOffset}px))`,
-          transition: isDragging ? "none" : "transform 0.15s ease-out",
-          willChange: 'transform',
+          transform: `translateY(calc(-${currentIndex * 100}vh + ${dragOffset}px))`,
+          transition: isDragging ? "none" : "transform 0.15s ease-out"
         }}
       >
         {videos.map((video, i) => (
-          <div
+          <VideoCard
             key={video.id}
-            style={{
-              width: '100vw',
-              height: `${viewportHeight}px`,
-              position: 'relative',
+            video={{
+              ...video,
+              videoUrl: video.videoUrl,
+              posterUrl: video.posterUrl
             }}
-          >
-            <VideoCard
-              key={video.id}
-              video={{
-                ...video,
-                videoUrl: video.videoUrl,
-                posterUrl: video.posterUrl
-              }}
-              isActive={i === currentIndex}
-              isMuted={isMuted}
-              onUnmute={() => setIsMuted(false)}
-              isGloballyPaused={isGloballyPaused}
-              onTogglePause={setIsGloballyPaused}
-              onDrawerStateChange={setIsAnyDrawerOpen}
-            />
-          </div>
+            isActive={i === currentIndex}
+            isMuted={isMuted}
+            onUnmute={() => setIsMuted(false)}
+            isGloballyPaused={isGloballyPaused}
+            onTogglePause={setIsGloballyPaused}
+            onDrawerStateChange={setIsAnyDrawerOpen}
+            hasUserInteracted={hasUserInteracted}
+            onUserInteraction={handleUserInteraction}
+          />
         ))}
       </div>
     </div>

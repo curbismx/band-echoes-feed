@@ -10,7 +10,7 @@ import followOnIcon from "@/assets/follow_ON.png";
 import followedIcon from "@/assets/followed.png";
 import infoIcon from "@/assets/info.png";
 import infoFollowIcon from "@/assets/info-follow.png";
-import { Volume2, VolumeX } from "lucide-react";
+import { Volume2, VolumeX, Play } from "lucide-react";
 
 interface Video {
   id: string;
@@ -35,9 +35,22 @@ interface VideoCardProps {
   onTogglePause: (paused: boolean) => void;
   preloadStrategy?: "auto" | "metadata" | "none";
   onDrawerStateChange?: (isOpen: boolean) => void;
+  hasUserInteracted: boolean;
+  onUserInteraction: () => void;
 }
 
-export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused, onTogglePause, preloadStrategy = "auto", onDrawerStateChange }: VideoCardProps) => {
+export const VideoCard = ({ 
+  video, 
+  isActive, 
+  isMuted, 
+  onUnmute, 
+  isGloballyPaused, 
+  onTogglePause, 
+  preloadStrategy = "metadata", 
+  onDrawerStateChange,
+  hasUserInteracted,
+  onUserInteraction
+}: VideoCardProps) => {
   const navigate = useNavigate();
   const [isFollowing, setIsFollowing] = useState(video.isFollowing);
   const [isLiked, setIsLiked] = useState(false);
@@ -46,8 +59,8 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const [isUIHidden, setIsUIHidden] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const hasAttemptedPlay = useRef(false);
 
   const { averageRating, userRating, submitRating } = useVideoRatings(video.id);
 
@@ -83,26 +96,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     checkFavorite();
   }, [video.id]);
 
-  // Check if already following this artist
-  useEffect(() => {
-    const checkFollowing = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user || !video.artistUserId) return;
-
-      const { data } = await supabase
-        .from("follows")
-        .select("id")
-        .eq("follower_id", user.id)
-        .eq("followed_id", video.artistUserId)
-        .maybeSingle();
-
-      setIsFollowing(!!data);
-    };
-
-    checkFollowing();
-  }, [video.artistUserId]);
-
-  // Fetch artist profile avatar
+  // Fetch artist profile avatar (only when video becomes active to reduce duplicate requests)
   useEffect(() => {
     if (!video.artistUserId || !isActive) return;
     const fetchArtistProfile = async () => {
@@ -120,133 +114,118 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     fetchArtistProfile();
   }, [video.artistUserId, isActive]);
 
-  // ============================================
-  // VIDEO PLAYBACK - More aggressive initial play
-  // ============================================
+  // ===========================================
+  // VIDEO PLAYBACK
+  // ===========================================
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
 
-    // If not active or globally paused, pause
+    // Always pause non-active videos immediately
     if (!isActive || isGloballyPaused) {
       v.pause();
-      hasAttemptedPlay.current = false;
+      setIsPlaying(false);
       return;
     }
 
-    // Play function
-    const playVideo = async () => {
-      if (hasAttemptedPlay.current) return;
-      hasAttemptedPlay.current = true;
+    // Don't try to autoplay until user has interacted (iOS requirement)
+    if (!hasUserInteracted) {
+      setIsPlaying(false);
+      return;
+    }
 
-      try {
-        v.muted = true; // Always start muted
-        v.currentTime = 0;
-        await v.play();
-        
-        // Apply user's mute preference after play starts
-        if (!isMuted) {
-          v.muted = false;
-        }
-      } catch (err) {
-        console.log("Autoplay failed, retrying muted");
-        v.muted = true;
-        try { 
-          await v.play(); 
-        } catch (e) {
-          console.log("Play failed completely");
-        }
+    // This video IS active and user has interacted - play it
+    v.muted = isMuted;
+    v.currentTime = 0;
+
+    const attemptPlay = () => {
+      const playPromise = v.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setIsPlaying(true);
+          })
+          .catch((err) => {
+            console.log("Play failed:", err);
+            // Try muted as fallback
+            v.muted = true;
+            v.play()
+              .then(() => setIsPlaying(true))
+              .catch(() => setIsPlaying(false));
+          });
       }
     };
 
-    // Try to play immediately
     if (v.readyState >= 2) {
-      playVideo();
+      attemptPlay();
     } else {
-      // Wait for video to be ready
       const onCanPlay = () => {
-        playVideo();
+        attemptPlay();
       };
-      
-      const onLoadedData = () => {
-        playVideo();
-      };
-
-      v.addEventListener("canplay", onCanPlay);
-      v.addEventListener("loadeddata", onLoadedData);
-      
-      // Also try loading the video
-      v.load();
-
-      return () => {
-        v.removeEventListener("canplay", onCanPlay);
-        v.removeEventListener("loadeddata", onLoadedData);
-      };
+      v.addEventListener("canplay", onCanPlay, { once: true });
+      return () => v.removeEventListener("canplay", onCanPlay);
     }
-  }, [isActive, isGloballyPaused, video.videoUrl]);
+  }, [isActive, isGloballyPaused, hasUserInteracted, video.id]);
 
-  // Handle mute toggle separately
+  // Handle mute changes separately
   useEffect(() => {
     const v = videoRef.current;
-    if (v && isActive) {
+    if (v && isActive && isPlaying) {
       v.muted = isMuted;
     }
-  }, [isMuted, isActive]);
-
-  // Reset play attempt when video changes
-  useEffect(() => {
-    hasAttemptedPlay.current = false;
-  }, [video.id]);
+  }, [isMuted, isActive, isPlaying]);
 
   const handleVideoClick = () => {
-    const isDrawerOpen = commentsOpen || infoOpen;
+    // Mark that user has interacted
+    if (!hasUserInteracted) {
+      onUserInteraction();
+    }
     
-    // If drawer is open, close it
-    if (isDrawerOpen) {
-      setCommentsOpen(false);
-      setInfoOpen(false);
+    // Try to play current video if not playing
+    const v = videoRef.current;
+    if (v && isActive && !isPlaying) {
+      v.muted = true; // Start muted for first play
+      v.play()
+        .then(() => {
+          setIsPlaying(true);
+          // Now unmute if user preference
+          if (!isMuted) {
+            v.muted = false;
+          }
+        })
+        .catch(() => {});
       return;
     }
     
-    // Otherwise unmute
+    // If already playing, handle unmute
     onUnmute();
   };
 
   const handleFollow = async () => {
+    // Optimistic UI toggle
+    const next = !isFollowing;
+    setIsFollowing(next);
+
+    // Attempt to persist if logged in and we have an artist id
     const { data: { user } } = await supabase.auth.getUser();
     if (!video.artistUserId || !user) {
-      console.log("Cannot follow: no user or artistUserId");
-      return;
+      return; // keep optimistic state locally
     }
 
-    const next = !isFollowing;
-    setIsFollowing(next); // Optimistic update
-
-    try {
-      if (next) {
-        // Follow
-        const { error } = await supabase
-          .from('follows')
-          .insert({ follower_id: user.id, followed_id: video.artistUserId });
-        if (error) {
-          console.error("Follow error:", error);
-          setIsFollowing(!next); // Revert on error
-        }
-      } else {
-        // Unfollow
-        const { error } = await supabase
-          .from('follows')
-          .delete()
-          .eq('follower_id', user.id)
-          .eq('followed_id', video.artistUserId);
-        if (error) {
-          console.error("Unfollow error:", error);
-          setIsFollowing(!next); // Revert on error
-        }
-      }
-    } catch (err) {
-      console.error("Follow/unfollow exception:", err);
-      setIsFollowing(!next); // Revert on error
+    if (next) {
+      // Follow
+      const { error } = await supabase
+        .from('follows')
+        .insert({ follower_id: user.id, followed_id: video.artistUserId });
+      if (error) setIsFollowing(!next); // revert on error
+    } else {
+      // Unfollow
+      const { error } = await supabase
+        .from('follows')
+        .delete()
+        .eq('follower_id', user.id)
+        .eq('followed_id', video.artistUserId);
+      if (error) setIsFollowing(!next); // revert on error
     }
   };
 
@@ -259,10 +238,12 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     if (!user) return;
 
     if (newLikedState) {
+      // Add to favorites
       await supabase
         .from("favorites")
         .insert({ user_id: user.id, video_id: video.id });
     } else {
+      // Remove from favorites
       await supabase
         .from("favorites")
         .delete()
@@ -282,54 +263,53 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     onDrawerStateChange?.(isDrawerOpen);
   }, [isDrawerOpen, onDrawerStateChange]);
 
+  // Show tap to play overlay when active but not playing (iOS initial state)
+  const showTapToPlay = isActive && !isPlaying && !hasUserInteracted;
+
   return (
-    <div 
-      className="relative w-full h-full"
-      style={{
-        position: 'relative',
-        width: '100%',
-        height: '100%',
-        overflow: 'hidden',
-        backgroundColor: '#000',
-      }}
-    >
+    <div className="relative h-screen w-screen">
       {/* Video Background */}
       <video
         ref={videoRef}
         src={video.videoUrl}
-        className="absolute inset-0 object-cover cursor-pointer"
+        className={`absolute inset-0 w-[100vw] h-[100vh] object-cover cursor-pointer ${isDrawerOpen ? 'pointer-events-none' : ''}`}
         loop
         playsInline
-        webkit-playsinline="true"
+        {...({ 'webkit-playsinline': 'true' } as any)}
         preload={preloadStrategy}
         muted
         poster={video.posterUrl || "/placeholder.svg"}
-        style={{ 
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%', 
-          height: '100%', 
-          objectFit: 'cover', 
-          backgroundColor: 'black' 
-        }}
+        style={{ width: "100%", height: "100%", objectFit: "cover", background: "black" }}
         onClick={handleVideoClick}
         onError={(e) => {
           console.error("Video load error:", video.videoUrl, e);
         }}
+        onLoadedData={() => {
+          console.log("Video loaded successfully:", video.videoUrl);
+        }}
       />
 
-      {/* Tap area to close drawer when open */}
-      {isDrawerOpen && (
+      {/* Click area for video */}
+      <div 
+        className={`absolute inset-0 z-10 ${isDrawerOpen ? 'pointer-events-none' : ''}`}
+        style={{ pointerEvents: isDrawerOpen ? 'none' : 'auto' }}
+        onClick={handleVideoClick} 
+      />
+      
+      {/* Tap to play indicator (iOS first interaction) */}
+      {showTapToPlay && (
         <div 
-          className="absolute inset-0 z-40"
-          onClick={handleVideoClick}
-          style={{ cursor: 'pointer' }}
-        />
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none flex flex-col items-center gap-2"
+        >
+          <div className="bg-black/60 backdrop-blur-sm rounded-full p-5">
+            <Play className="w-10 h-10 text-white" fill="white" />
+          </div>
+          <div className="text-white text-sm font-medium drop-shadow-lg">Tap to play</div>
+        </div>
       )}
-
-      {/* Unmute indicator */}
-      {isMuted && !isDrawerOpen && (
+      
+      {/* Unmute indicator (only show when playing but muted) */}
+      {isMuted && isPlaying && (
         <div 
           className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none flex flex-col items-center gap-2"
           style={{ animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}
@@ -342,9 +322,9 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
       )}
       
       {/* Video Info Text - Left Side */}
-      {!isUIHidden && !isDrawerOpen && (
+      {!isUIHidden && (
         <div
-          className="absolute z-20 pointer-events-auto"
+          className={`absolute z-20 ${isDrawerOpen ? 'pointer-events-none' : 'pointer-events-auto'}`}
           style={{
             left: '30px',
             bottom: '60px',
@@ -405,12 +385,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
               e.stopPropagation();
               handleFollow();
             }}
-            onTouchEnd={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              handleFollow();
-            }}
-            className="flex items-center justify-center touch-manipulation"
+            className="flex items-center justify-center"
           >
             <img 
               src={isFollowing ? followedIcon : infoFollowIcon} 
@@ -428,7 +403,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
               e.preventDefault();
               setInfoOpen(true);
             }}
-            className="flex items-center justify-center touch-manipulation"
+            className="flex items-center justify-center"
           >
             <img src={infoIcon} alt="Info" className="h-[30px] w-auto" />
           </button>
@@ -436,10 +411,10 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
       </div>
       )}
       
-      {!isUIHidden && !isDrawerOpen && (
+      {!isUIHidden && (
         <div className="absolute inset-0 flex flex-col justify-between p-4 pb-8 pr-[30px] pointer-events-none">
         {/* Bottom Content */}
-        <div className="mt-auto flex items-end justify-end mb-[10px] pointer-events-auto">
+        <div className={`mt-auto flex items-end justify-end mb-[10px] ${isDrawerOpen ? 'pointer-events-none' : 'pointer-events-auto'}`}>
           {/* Action Buttons */}
       <ActionButtons
         likes={likes}
