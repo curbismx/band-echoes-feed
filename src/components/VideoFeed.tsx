@@ -1,10 +1,11 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { VideoCard } from "./VideoCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import backIcon from "@/assets/back.png";
-import favsIcon from "@/assets/favs.png";
+
+// Only render videos within this range of the active index
+const RENDER_WINDOW = 2;
 
 export const VideoFeed = () => {
   const { user } = useAuth();
@@ -18,16 +19,15 @@ export const VideoFeed = () => {
   const [isPlayingFavorites, setIsPlayingFavorites] = useState(false);
   const [originalVideos, setOriginalVideos] = useState<any[]>([]);
   const [originalIndex, setOriginalIndex] = useState(0);
-
-  const touchStart = useRef(0);
-  const touchEnd = useRef(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState(0);
   const [isAnyDrawerOpen, setIsAnyDrawerOpen] = useState(false);
 
-  /* --------------------------------------------------
-      FETCH + SORT VIDEOS
-  -------------------------------------------------- */
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isScrollingRef = useRef(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout>();
+
+  // ============================================
+  // FETCH VIDEOS
+  // ============================================
   useEffect(() => {
     const fetchAndSort = async () => {
       const { data: videosData } = await supabase
@@ -37,7 +37,6 @@ export const VideoFeed = () => {
 
       if (!videosData) return;
 
-      // Fetch all unique user profiles
       const userIds = [...new Set(videosData.map(v => v.user_id))];
       const { data: profilesData } = await supabase
         .from("profiles")
@@ -46,7 +45,6 @@ export const VideoFeed = () => {
 
       const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
 
-      // Map database columns to Video interface
       const sorted = videosData.map(v => {
         const profile = profilesMap.get(v.user_id);
         return {
@@ -63,7 +61,7 @@ export const VideoFeed = () => {
 
       setVideos(sorted);
 
-      // Check if favorites were passed via location state
+      // Handle favorites from location state
       if (location.state?.favoriteVideos && location.state?.startIndex !== undefined) {
         setOriginalVideos(sorted);
         const savedIndex = sessionStorage.getItem("feedIndex");
@@ -71,18 +69,14 @@ export const VideoFeed = () => {
         setVideos(location.state.favoriteVideos);
         setCurrentIndex(location.state.startIndex);
         setIsPlayingFavorites(true);
-        // Clear the state so it doesn't persist
         window.history.replaceState({}, document.title);
       } else if (location.state?.videoId) {
-        // Find the video index by ID
         const videoIndex = sorted.findIndex(v => v.id === location.state.videoId);
         if (videoIndex !== -1) {
           setCurrentIndex(videoIndex);
         }
-        // Clear the state so it doesn't persist
         window.history.replaceState({}, document.title);
       } else {
-        // restore index session
         const savedIndex = sessionStorage.getItem("feedIndex");
         if (savedIndex) {
           const idx = Number(savedIndex);
@@ -96,131 +90,187 @@ export const VideoFeed = () => {
     fetchAndSort();
   }, [location.state]);
 
-  /* --------------------------------------------------
-      KEYBOARD NAVIGATION
-  -------------------------------------------------- */
+  // ============================================
+  // SCROLL TO CURRENT INDEX
+  // ============================================
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || videos.length === 0) return;
+
+    // Scroll to current video without animation on mount/index change
+    const targetScroll = currentIndex * window.innerHeight;
+    container.scrollTo({ top: targetScroll, behavior: 'auto' });
+  }, [currentIndex, videos.length]);
+
+  // ============================================
+  // INTERSECTION OBSERVER FOR ACTIVE VIDEO
+  // ============================================
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || videos.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+            const index = Number(entry.target.getAttribute('data-index'));
+            if (!isNaN(index) && index !== currentIndex) {
+              setCurrentIndex(index);
+            }
+          }
+        });
+      },
+      {
+        root: container,
+        threshold: 0.5,
+      }
+    );
+
+    // Observe all video items
+    const items = container.querySelectorAll('[data-index]');
+    items.forEach(item => observer.observe(item));
+
+    return () => observer.disconnect();
+  }, [videos.length, currentIndex]);
+
+  // ============================================
+  // KEYBOARD NAVIGATION
+  // ============================================
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isAnyDrawerOpen) return;
-      if (e.key === "ArrowUp") {
+
+      if (e.key === "ArrowUp" && currentIndex > 0) {
         e.preventDefault();
-        setCurrentIndex(i => (i > 0 ? i - 1 : videos.length - 1));
+        scrollToIndex(currentIndex - 1);
       } else if (e.key === "ArrowDown") {
         e.preventDefault();
         if (isPlayingFavorites && currentIndex >= videos.length - 1) {
-          setVideos(originalVideos);
-          setCurrentIndex(originalIndex);
-          setIsPlayingFavorites(false);
-        } else {
-          setCurrentIndex(i => (i < videos.length - 1 ? i + 1 : 0));
+          exitFavorites();
+        } else if (currentIndex < videos.length - 1) {
+          scrollToIndex(currentIndex + 1);
         }
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [videos.length, currentIndex, isPlayingFavorites, originalVideos, originalIndex, isAnyDrawerOpen]);
+  }, [currentIndex, videos.length, isPlayingFavorites, isAnyDrawerOpen]);
 
-  /* --------------------------------------------------
-      SAVE INDEX PERSISTENTLY
-  -------------------------------------------------- */
+  // ============================================
+  // SAVE INDEX
+  // ============================================
   useEffect(() => {
-    sessionStorage.setItem("feedIndex", String(currentIndex));
-  }, [currentIndex]);
-
-  /* --------------------------------------------------
-      SWIPE HANDLERS
-  -------------------------------------------------- */
-  const MIN_SWIPE = 60;
-
-  const onTouchStart = (e: React.TouchEvent) => {
-    if (isAnyDrawerOpen) return;
-    touchStart.current = e.targetTouches[0].clientY;
-    touchEnd.current = e.targetTouches[0].clientY;
-    setIsDragging(true);
-  };
-
-  const onTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging || isAnyDrawerOpen) return;
-    touchEnd.current = e.targetTouches[0].clientY;
-    setDragOffset(touchEnd.current - touchStart.current);
-  };
-
-  const onTouchEnd = () => {
-    if (isAnyDrawerOpen) {
-      setIsDragging(false);
-      setDragOffset(0);
-      return;
+    if (!isPlayingFavorites) {
+      sessionStorage.setItem("feedIndex", String(currentIndex));
     }
-    setIsDragging(false);
+  }, [currentIndex, isPlayingFavorites]);
 
-    const distance = touchStart.current - touchEnd.current;
+  // ============================================
+  // HELPERS
+  // ============================================
+  const scrollToIndex = useCallback((index: number) => {
+    const container = containerRef.current;
+    if (!container) return;
 
-    if (distance > MIN_SWIPE) {
-      // swipe UP
-      if (isPlayingFavorites && currentIndex >= videos.length - 1) {
-        // End of favorites - return to normal feed
-        setVideos(originalVideos);
-        setCurrentIndex(originalIndex);
-        setIsPlayingFavorites(false);
-      } else {
-        setCurrentIndex(i =>
-          i < videos.length - 1 ? i + 1 : 0
-        );
-      }
-    } else if (distance < -MIN_SWIPE) {
-      // swipe DOWN
-      setCurrentIndex(i =>
-        i > 0 ? i - 1 : videos.length - 1
-      );
-    }
+    const clampedIndex = Math.max(0, Math.min(index, videos.length - 1));
+    container.scrollTo({
+      top: clampedIndex * window.innerHeight,
+      behavior: 'smooth'
+    });
+  }, [videos.length]);
 
-    setDragOffset(0);
-  };
-
-  /* --------------------------------------------------
-      BACK FROM FAVORITES
-  -------------------------------------------------- */
-  const handleBack = () => {
+  const exitFavorites = useCallback(() => {
     setIsPlayingFavorites(false);
     setVideos(originalVideos);
     setCurrentIndex(originalIndex);
-  };
+  }, [originalVideos, originalIndex]);
 
-  /* --------------------------------------------------
-      RENDER
-  -------------------------------------------------- */
+  // Check if a video should be rendered (windowed rendering)
+  const shouldRenderVideo = useCallback((index: number) => {
+    return Math.abs(index - currentIndex) <= RENDER_WINDOW;
+  }, [currentIndex]);
+
+  // ============================================
+  // HANDLE SCROLL END FOR FAVORITES
+  // ============================================
+  const handleScroll = useCallback(() => {
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+
+    scrollTimeoutRef.current = setTimeout(() => {
+      // Check if at end of favorites
+      if (isPlayingFavorites && currentIndex >= videos.length - 1) {
+        const container = containerRef.current;
+        if (container) {
+          const scrollTop = container.scrollTop;
+          const maxScroll = (videos.length - 1) * window.innerHeight;
+          // If user tried to scroll past end
+          if (scrollTop > maxScroll + 50) {
+            exitFavorites();
+          }
+        }
+      }
+    }, 150);
+  }, [isPlayingFavorites, currentIndex, videos.length, exitFavorites]);
+
+  // ============================================
+  // RENDER
+  // ============================================
   return (
     <div
-      className="relative h-screen w-screen overflow-hidden bg-black"
-      onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
-      onTouchEnd={onTouchEnd}
+      ref={containerRef}
+      className="h-screen w-screen overflow-y-scroll overflow-x-hidden bg-black"
+      style={{
+        scrollSnapType: isAnyDrawerOpen ? 'none' : 'y mandatory',
+        WebkitOverflowScrolling: 'touch',
+        overscrollBehaviorY: 'contain',
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
+      }}
+      onScroll={handleScroll}
     >
-      <div
-        className="relative h-full"
-        style={{
-          transform: `translateY(calc(-${currentIndex * 100}vh + ${dragOffset}px))`,
-          transition: isDragging ? "none" : "transform 0.15s ease-out"
-        }}
-      >
-        {videos.map((video, i) => (
-          <VideoCard
-            key={video.id}
-            video={{
-              ...video,
-              videoUrl: video.videoUrl,
-              posterUrl: video.posterUrl
-            }}
-            isActive={i === currentIndex}
-            isMuted={isMuted}
-            onUnmute={() => setIsMuted(false)}
-            isGloballyPaused={isGloballyPaused}
-            onTogglePause={setIsGloballyPaused}
-            onDrawerStateChange={setIsAnyDrawerOpen}
-          />
-        ))}
-      </div>
+      <style>{`
+        div::-webkit-scrollbar { display: none; }
+      `}</style>
+
+      {videos.map((video, index) => (
+        <div
+          key={video.id}
+          data-index={index}
+          className="w-screen"
+          style={{
+            height: '100dvh',
+            scrollSnapAlign: 'start',
+            scrollSnapStop: 'always',
+          }}
+        >
+          {shouldRenderVideo(index) ? (
+            <VideoCard
+              video={video}
+              isActive={index === currentIndex}
+              isMuted={isMuted}
+              onUnmute={() => setIsMuted(false)}
+              isGloballyPaused={isGloballyPaused}
+              onTogglePause={setIsGloballyPaused}
+              onDrawerStateChange={setIsAnyDrawerOpen}
+            />
+          ) : (
+            // Placeholder for videos outside render window
+            <div className="w-full h-full bg-black flex items-center justify-center">
+              {video.posterUrl && (
+                <img
+                  src={video.posterUrl}
+                  alt=""
+                  className="w-full h-full object-cover opacity-50"
+                  loading="lazy"
+                />
+              )}
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 };
