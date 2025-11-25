@@ -127,7 +127,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     };
   }, []);
 
-  // Play/pause logic with mobile user interaction gate and ready-state checking
+  // Play/pause logic with mobile user interaction gate
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
@@ -143,31 +143,16 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
       return;
     }
 
-    // Helper to attempt play
-    const attemptPlay = () => {
-      v.muted = isMuted;
-      const playPromise = v.play();
-      
-      if (playPromise !== undefined) {
-        playPromise.catch(() => {
-          // If autoplay fails, ensure it's muted and try again
-          v.muted = true;
-          v.play().catch(() => {});
-        });
-      }
-    };
-
-    // If video already has enough data, play immediately
-    if (v.readyState >= 3) { // HAVE_FUTURE_DATA
-      attemptPlay();
-    } else {
-      // Wait for canplay event before attempting to play
-      const handleCanPlay = () => {
-        attemptPlay();
-      };
-      
-      v.addEventListener('canplay', handleCanPlay, { once: true });
-      return () => v.removeEventListener('canplay', handleCanPlay);
+    // Simple: just try to play
+    v.muted = isMuted;
+    const playPromise = v.play();
+    
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        // If autoplay fails, ensure it's muted and try again
+        v.muted = true;
+        v.play().catch(() => {});
+      });
     }
   }, [isActive, isGloballyPaused, isMuted, hasUserInteracted, isMobile]);
 
