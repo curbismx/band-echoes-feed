@@ -11,6 +11,7 @@ export const VideoFeed = () => {
   const [isAnyDrawerOpen, setIsAnyDrawerOpen] = useState(false);
 
   const touchStartY = useRef(0);
+  const touchStartTime = useRef(0);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -63,6 +64,7 @@ export const VideoFeed = () => {
   const onTouchStart = (e: React.TouchEvent) => {
     if (isAnyDrawerOpen) return;
     touchStartY.current = e.touches[0].clientY;
+    touchStartTime.current = Date.now();
     setIsDragging(true);
   };
 
@@ -72,18 +74,29 @@ export const VideoFeed = () => {
     setDragOffset(diff);
   };
 
-  const onTouchEnd = () => {
+  const onTouchEnd = (e: React.TouchEvent) => {
     if (isAnyDrawerOpen) {
       setIsDragging(false);
       setDragOffset(0);
       return;
     }
 
-    const threshold = 50;
-    if (dragOffset < -threshold && currentIndex < videos.length - 1) {
-      setCurrentIndex(i => i + 1);
-    } else if (dragOffset > threshold && currentIndex > 0) {
-      setCurrentIndex(i => i - 1);
+    const touchEndY = e.changedTouches[0].clientY;
+    const distance = touchStartY.current - touchEndY;
+    const time = Date.now() - touchStartTime.current;
+    const velocity = Math.abs(distance) / time;
+
+    // Swipe up (next video) - either fast flick OR dragged past threshold
+    if (distance > 50 || (velocity > 0.3 && distance > 0)) {
+      if (currentIndex < videos.length - 1) {
+        setCurrentIndex(i => i + 1);
+      }
+    }
+    // Swipe down (previous video)
+    else if (distance < -50 || (velocity > 0.3 && distance < 0)) {
+      if (currentIndex > 0) {
+        setCurrentIndex(i => i - 1);
+      }
     }
 
     setIsDragging(false);
