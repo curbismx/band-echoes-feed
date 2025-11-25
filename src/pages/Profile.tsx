@@ -205,7 +205,7 @@ export default function Profile() {
         >
           <ChevronLeft className="w-6 h-6" />
         </button>
-        <span className="font-semibold text-lg">{profile.username || "user"}</span>
+        <div className="w-6" />
         <button className="px-3 py-1 text-sm font-semibold" onClick={handleSignOut}>
           Logout
         </button>
