@@ -10,7 +10,7 @@ import followOnIcon from "@/assets/follow_ON.png";
 import followedIcon from "@/assets/followed.png";
 import infoIcon from "@/assets/info.png";
 import infoFollowIcon from "@/assets/info-follow.png";
-import { Volume2, VolumeX } from "lucide-react";
+import { VolumeX } from "lucide-react";
 
 interface Video {
   id: string;
@@ -33,13 +33,18 @@ interface VideoCardProps {
   onUnmute: () => void;
   isGloballyPaused: boolean;
   onTogglePause: (paused: boolean) => void;
-  preloadStrategy?: "auto" | "metadata" | "none";
   onDrawerStateChange?: (isOpen: boolean) => void;
-  hasUserInteracted?: boolean;
-  isMobile?: boolean;
 }
 
-export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused, onTogglePause, preloadStrategy = "metadata", onDrawerStateChange, hasUserInteracted = false, isMobile = false }: VideoCardProps) => {
+export const VideoCard = ({ 
+  video, 
+  isActive, 
+  isMuted, 
+  onUnmute, 
+  isGloballyPaused, 
+  onTogglePause, 
+  onDrawerStateChange 
+}: VideoCardProps) => {
   const navigate = useNavigate();
   const [isFollowing, setIsFollowing] = useState(video.isFollowing);
   const [isLiked, setIsLiked] = useState(false);
@@ -47,11 +52,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
   const [artistAvatar, setArtistAvatar] = useState<string>("");
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
-  const [isUIHidden, setIsUIHidden] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [progress, setProgress] = useState(0);        // 0–1
-  const [duration, setDuration] = useState(0);        // seconds
-  const [isScrubbing, setIsScrubbing] = useState(false);
 
   const { averageRating, userRating, submitRating } = useVideoRatings(video.id);
 
@@ -60,13 +61,6 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     setIsFollowing(video.isFollowing);
     setLikes(video.likes);
   }, [video.id, video.isFollowing, video.likes]);
-
-  // Reset UI visibility when switching to a new video
-  useEffect(() => {
-    if (isActive) {
-      setIsUIHidden(false);
-    }
-  }, [isActive]);
 
   // Check if video is favorited
   useEffect(() => {
@@ -105,64 +99,65 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     fetchArtistProfile();
   }, [video.artistUserId]);
 
-  // Play/pause logic with mobile user interaction gate
+  // Simple video play/pause logic
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
 
-    // Pause if not active or globally paused
     if (!isActive || isGloballyPaused) {
       v.pause();
       return;
     }
 
-    // On mobile, wait for user interaction before playing
-    if (isMobile && !hasUserInteracted) {
-      return;
-    }
+    // Active - try to play
+    v.muted = true;
 
-    // Try to play (muted initially for autoplay to work)
-    v.muted = isMuted;
-    const playPromise = v.play();
-    
-    if (playPromise !== undefined) {
-      playPromise.catch(() => {
-        // If autoplay fails, ensure it's muted and try again
-        v.muted = true;
-        v.play().catch(() => {});
-      });
+    const tryPlay = () => {
+      v.play()
+        .then(() => {
+          if (!isMuted) {
+            setTimeout(() => {
+              if (videoRef.current) videoRef.current.muted = false;
+            }, 150);
+          }
+        })
+        .catch(() => {
+          v.muted = true;
+          v.play().catch(() => {});
+        });
+    };
+
+    if (v.readyState >= 2) {
+      tryPlay();
+    } else {
+      v.addEventListener("canplay", tryPlay, { once: true });
+      return () => v.removeEventListener("canplay", tryPlay);
     }
-  }, [isActive, isGloballyPaused, isMuted, hasUserInteracted, isMobile]);
+  }, [isActive, isGloballyPaused, isMuted]);
 
   const handleVideoClick = () => {
     onUnmute();
   };
 
   const handleFollow = async () => {
-    // Optimistic UI toggle
     const next = !isFollowing;
     setIsFollowing(next);
 
-    // Attempt to persist if logged in and we have an artist id
     const { data: { user } } = await supabase.auth.getUser();
-    if (!video.artistUserId || !user) {
-      return; // keep optimistic state locally
-    }
+    if (!video.artistUserId || !user) return;
 
     if (next) {
-      // Follow
       const { error } = await supabase
         .from('follows')
         .insert({ follower_id: user.id, followed_id: video.artistUserId });
-      if (error) setIsFollowing(!next); // revert on error
+      if (error) setIsFollowing(!next);
     } else {
-      // Unfollow
       const { error } = await supabase
         .from('follows')
         .delete()
         .eq('follower_id', user.id)
         .eq('followed_id', video.artistUserId);
-      if (error) setIsFollowing(!next); // revert on error
+      if (error) setIsFollowing(!next);
     }
   };
 
@@ -175,12 +170,10 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     if (!user) return;
 
     if (newLikedState) {
-      // Add to favorites
       await supabase
         .from("favorites")
         .insert({ user_id: user.id, video_id: video.id });
     } else {
-      // Remove from favorites
       await supabase
         .from("favorites")
         .delete()
@@ -193,71 +186,36 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     submitRating(newRating);
   };
 
-  const seekFromClientX = (clientX: number, element: HTMLDivElement | null) => {
-    const v = videoRef.current;
-    if (!v || !element || !duration) return;
-    const rect = element.getBoundingClientRect();
-    const ratio = Math.min(Math.max((clientX - rect.left) / rect.width, 0), 1);
-    v.currentTime = ratio * duration;
-    setProgress(ratio);
-  };
-
   const isDrawerOpen = commentsOpen || infoOpen;
 
-  // Notify parent when drawer state changes
   useEffect(() => {
     onDrawerStateChange?.(isDrawerOpen);
   }, [isDrawerOpen, onDrawerStateChange]);
 
   return (
     <div className="relative h-screen w-screen">
-      {/* Video Background */}
       <video
         ref={videoRef}
         src={video.videoUrl}
-        className={`absolute inset-0 w-[100vw] h-[100vh] object-cover cursor-pointer ${isDrawerOpen ? 'pointer-events-none' : ''}`}
+        className={`absolute inset-0 w-full h-full object-cover ${isDrawerOpen ? 'pointer-events-none' : ''}`}
         loop
         playsInline
-        {...({ 'webkit-playsinline': 'true' } as any)}
-        preload={preloadStrategy}
+        webkit-playsinline="true"
+        preload="auto"
         muted
         poster={video.posterUrl || "/placeholder.svg"}
-        style={{ width: "100%", height: "100%", objectFit: "cover", background: "black" }}
         onClick={handleVideoClick}
-        onError={(e) => {
-          console.error("Video load error:", video.videoUrl, e);
-        }}
-        onLoadedData={() => {
-          console.log("Video loaded successfully:", video.videoUrl);
-        }}
-        onLoadedMetadata={(e) => {
-          const v = e.currentTarget;
-          if (v.duration && !Number.isNaN(v.duration)) {
-            setDuration(v.duration);
-          }
-        }}
-        onTimeUpdate={(e) => {
-          if (isScrubbing) return;
-          const v = e.currentTarget;
-          if (v.duration && v.currentTime >= 0) {
-            setProgress(v.currentTime / v.duration);
-          }
-        }}
       />
 
-      {/* Click area for video pause/play */}
+      {/* Click area */}
       <div 
         className={`absolute inset-0 z-10 ${isDrawerOpen ? 'pointer-events-none' : ''}`}
-        style={{ pointerEvents: isDrawerOpen ? 'none' : 'auto' }}
         onClick={handleVideoClick} 
       />
       
       {/* Unmute indicator */}
       {isMuted && (
-        <div 
-          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none flex flex-col items-center gap-2"
-          style={{ animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}
-        >
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none flex flex-col items-center gap-2 animate-pulse">
           <div className="bg-black/60 backdrop-blur-sm rounded-full p-4">
             <VolumeX className="w-8 h-8 text-white" />
           </div>
@@ -265,119 +223,76 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         </div>
       )}
       
-      {/* Video Info Text - Left Side */}
-      {!isUIHidden && (
-        <div
-          className={`absolute z-20 ${isDrawerOpen ? 'pointer-events-none' : 'pointer-events-auto'}`}
-          style={{
-            left: '30px',
-            bottom: '60px',
-            maxWidth: 'calc(65% - 50px)',
-          }}
-        >
-        {/* Artist Avatar */}
+      {/* Video Info - Left Side */}
+      <div
+        className={`absolute z-20 ${isDrawerOpen ? 'pointer-events-none' : 'pointer-events-auto'}`}
+        style={{ left: '30px', bottom: '60px', maxWidth: 'calc(65% - 50px)' }}
+      >
         {artistAvatar && (
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/user/${video.artistUserId}`);
-            }}
-            onTouchEnd={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              navigate(`/user/${video.artistUserId}`);
-            }}
-            className="block cursor-pointer hover:opacity-80 transition-opacity touch-manipulation p-0 m-0 border-0 bg-transparent"
+            onClick={(e) => { e.stopPropagation(); navigate(`/user/${video.artistUserId}`); }}
+            className="block p-0 m-0 border-0 bg-transparent"
           >
             <img 
               src={artistAvatar} 
               alt={video.artistName}
-              className="w-[32px] h-[32px] rounded-full object-cover mb-2 border-2 border-white"
+              className="w-8 h-8 rounded-full object-cover mb-2 border-2 border-white"
             />
           </button>
         )}
         
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-            navigate(`/user/${video.artistUserId}`);
-          }}
-          onTouchEnd={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            navigate(`/user/${video.artistUserId}`);
-          }}
-          className="font-bold text-white drop-shadow-lg mb-1 cursor-pointer hover:underline text-left touch-manipulation"
+          onClick={(e) => { e.stopPropagation(); navigate(`/user/${video.artistUserId}`); }}
+          className="font-bold text-white drop-shadow-lg mb-1 hover:underline text-left"
         >
           {video.artistName}
         </button>
+        
         {video.title && (
-          <div className="font-medium text-white drop-shadow-lg mb-1 pointer-events-none line-clamp-2">
+          <div className="font-medium text-white drop-shadow-lg mb-1 line-clamp-2">
             {video.title}
           </div>
         )}
+        
         {video.caption && (
-          <div className="font-normal text-white drop-shadow-lg text-sm leading-relaxed mb-3 pointer-events-none line-clamp-2">
+          <div className="text-white drop-shadow-lg text-sm mb-3 line-clamp-2">
             {video.caption}
           </div>
         )}
         
-        {/* Follow and Info buttons */}
-        <div className="flex gap-[30px] items-center" style={{ transform: 'translateY(3px)' }}>
-          <button 
-            onClick={(e) => {
-              e.stopPropagation();
-              handleFollow();
-            }}
-            className="flex items-center justify-center"
-          >
+        <div className="flex gap-8 items-center">
+          <button onClick={(e) => { e.stopPropagation(); handleFollow(); }}>
             <img 
               src={isFollowing ? followedIcon : infoFollowIcon} 
               alt={isFollowing ? "Following" : "Follow"} 
-              className="h-[30px] w-auto" 
+              className="h-8 w-auto" 
             />
           </button>
-          <button 
-            onClick={(e) => {
-              e.stopPropagation();
-              setInfoOpen(true);
-            }}
-            onTouchEnd={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              setInfoOpen(true);
-            }}
-            className="flex items-center justify-center"
-          >
-            <img src={infoIcon} alt="Info" className="h-[30px] w-auto" />
+          <button onClick={(e) => { e.stopPropagation(); setInfoOpen(true); }}>
+            <img src={infoIcon} alt="Info" className="h-8 w-auto" />
           </button>
         </div>
       </div>
-      )}
       
-      {!isUIHidden && (
-        <div className="absolute inset-0 flex flex-col justify-between p-4 pb-8 pr-[30px] pointer-events-none">
-        {/* Bottom Content */}
-        <div className={`mt-auto flex items-end justify-end mb-[10px] ${isDrawerOpen ? 'pointer-events-none' : 'pointer-events-auto'}`}>
-          {/* Action Buttons */}
-      <ActionButtons
-        likes={likes}
-        isLiked={isLiked}
-        averageRating={averageRating}
-        userRating={userRating}
-        onLike={handleLike}
-        onRate={handleRate}
-        artistAvatar={artistAvatar}
-        artistUserId={video.artistUserId}
-        videoTitle="The songs name"
-        artistName={video.artistName}
-        videoId={video.id.toString()}
-        onOpenComments={() => setCommentsOpen(true)}
-      />
+      {/* Action Buttons - Right Side */}
+      <div className="absolute inset-0 flex flex-col justify-end p-4 pb-8 pr-8 pointer-events-none">
+        <div className={`flex justify-end mb-3 ${isDrawerOpen ? 'pointer-events-none' : 'pointer-events-auto'}`}>
+          <ActionButtons
+            likes={likes}
+            isLiked={isLiked}
+            averageRating={averageRating}
+            userRating={userRating}
+            onLike={handleLike}
+            onRate={handleRate}
+            artistAvatar={artistAvatar}
+            artistUserId={video.artistUserId}
+            videoTitle={video.title || ""}
+            artistName={video.artistName}
+            videoId={video.id.toString()}
+            onOpenComments={() => setCommentsOpen(true)}
+          />
         </div>
-
       </div>
-      )}
       
       <CommentsDrawer 
         videoId={video.id.toString()}
@@ -394,56 +309,6 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         caption={video.caption}
         links={video.links}
       />
-
-      {/* Thin playback bar at bottom */}
-      {duration > 0 && (
-        <div
-          className={`absolute left-0 right-0 bottom-[24px] z-30 flex justify-center px-[5px] ${isDrawerOpen ? 'pointer-events-none' : 'pointer-events-auto'}`}
-        >
-          <div
-            className="relative w-[90%] h-[3px] rounded-full bg-white/30 overflow-hidden"
-            onMouseDown={(e) => {
-              e.stopPropagation();
-              setIsScrubbing(true);
-              seekFromClientX(e.clientX, e.currentTarget);
-            }}
-            onMouseUp={(e) => {
-              e.stopPropagation();
-              setIsScrubbing(false);
-            }}
-            onMouseLeave={() => {
-              setIsScrubbing(false);
-            }}
-            onTouchStart={(e) => {
-              e.stopPropagation();
-              const touch = e.touches[0];
-              if (!touch) return;
-              setIsScrubbing(true);
-              seekFromClientX(touch.clientX, e.currentTarget);
-            }}
-            onTouchMove={(e) => {
-              e.stopPropagation();
-              const touch = e.touches[0];
-              if (!touch) return;
-              seekFromClientX(touch.clientX, e.currentTarget);
-            }}
-            onTouchEnd={(e) => {
-              e.stopPropagation();
-              setIsScrubbing(false);
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              const el = e.currentTarget as HTMLDivElement;
-              seekFromClientX(e.clientX, el);
-            }}
-          >
-            <div
-              className="absolute left-0 top-0 bottom-0 rounded-full bg-white"
-              style={{ width: `${progress * 100}%` }}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 };
