@@ -85,9 +85,9 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     checkFavorite();
   }, [video.id]);
 
-  // Fetch artist profile avatar
+  // Fetch artist profile avatar (only when video becomes active to reduce duplicate requests)
   useEffect(() => {
-    if (!video.artistUserId) return;
+    if (!video.artistUserId || !isActive) return;
     const fetchArtistProfile = async () => {
       const { data } = await supabase
         .from("profiles")
@@ -101,7 +101,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     };
 
     fetchArtistProfile();
-  }, [video.artistUserId]);
+  }, [video.artistUserId, isActive]);
 
   useEffect(() => {
     const v = videoRef.current;
@@ -236,7 +236,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         loop
         playsInline
         {...({ 'webkit-playsinline': 'true' } as any)}
-        preload="auto"
+        preload={preloadStrategy}
         muted
         poster={video.posterUrl || "/placeholder.svg"}
         style={{ width: "100%", height: "100%", objectFit: "cover", background: "black" }}
