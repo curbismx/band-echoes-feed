@@ -203,18 +203,6 @@ export const InfoDrawer = ({
         className="fixed inset-0 bg-black/50 animate-fade-in"
         style={{ zIndex: 9998 }}
         onClick={onClose}
-        onTouchStart={(e) => {
-          e.stopPropagation();
-          e.preventDefault();
-        }}
-        onTouchMove={(e) => {
-          e.stopPropagation();
-          e.preventDefault();
-        }}
-        onTouchEnd={(e) => {
-          e.stopPropagation();
-          e.preventDefault();
-        }}
       />
 
       {/* Drawer */}
