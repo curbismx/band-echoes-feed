@@ -197,8 +197,8 @@ export const VideoFeed = () => {
   /* --------------------------------------------------
       VIRTUAL SCROLLING - RENDER ONLY ADJACENT VIDEOS
   -------------------------------------------------- */
-  // Device-aware buffer: mobile gets 1 video buffer (3 total), desktop gets 2 (5 total)
-  const RENDER_BUFFER = isMobile ? 1 : 2;
+  // Keep buffer at 2 for both mobile and desktop to ensure smooth transitions
+  const RENDER_BUFFER = 2;
   
   const getVisibleVideos = () => {
     const startIndex = Math.max(0, currentIndex - RENDER_BUFFER);
@@ -244,8 +244,9 @@ export const VideoFeed = () => {
         }}
       >
         {visibleVideos.map(({ video, index }) => {
-          // Smart preload: full auto for current video, metadata only for adjacent
-          const preloadStrategy = index === currentIndex ? "auto" : "metadata";
+          // Aggressive preload for current and next video, metadata for others
+          const isNext = index === currentIndex + 1;
+          const preloadStrategy = (index === currentIndex || isNext) ? "auto" : "metadata";
           
           return (
             <div
