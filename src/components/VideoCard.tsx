@@ -106,7 +106,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     fetchArtistProfile();
   }, [video.artistUserId]);
 
-  // IntersectionObserver for smart video loading (Safari mobile fix)
+  // IntersectionObserver for smart video loading (mobile Safari fix)
   useEffect(() => {
     const v = videoRef.current;
     if (!v || hasLoadedVideo) return;
@@ -115,7 +115,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting && hasUserInteracted) {
-            // Manually trigger load for Safari
+            // Manually trigger load for mobile Safari
             v.load();
             setHasLoadedVideo(true);
             
@@ -123,7 +123,6 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
             if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
             loadTimeoutRef.current = setTimeout(() => {
               if (v.readyState < 2) {
-                console.log('Retrying video load (Safari fallback):', video.id);
                 v.load();
               }
             }, 3000);
@@ -154,7 +153,8 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
       return;
     }
 
-    // Don't attempt autoplay until user has interacted (Safari requirement)
+    // Don't attempt autoplay until user has interacted (mobile Safari requirement)
+    // Desktop Safari allows muted autoplay without interaction
     if (!hasUserInteracted) {
       return;
     }
