@@ -105,7 +105,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     fetchArtistProfile();
   }, [video.artistUserId]);
 
-  // Simple play/pause logic - no mobile-specific gates
+  // Play/pause logic with mobile user interaction gate
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
@@ -113,6 +113,11 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     // Pause if not active or globally paused
     if (!isActive || isGloballyPaused) {
       v.pause();
+      return;
+    }
+
+    // On mobile, wait for user interaction before playing
+    if (isMobile && !hasUserInteracted) {
       return;
     }
 
@@ -127,7 +132,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         v.play().catch(() => {});
       });
     }
-  }, [isActive, isGloballyPaused, isMuted]);
+  }, [isActive, isGloballyPaused, isMuted, hasUserInteracted, isMobile]);
 
   const handleVideoClick = () => {
     onUnmute();
