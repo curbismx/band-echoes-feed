@@ -217,11 +217,14 @@ export default function Profile() {
         <div className="p-4">
         {/* Profile Picture and Stats */}
         <div className="flex items-center gap-6 mb-4">
-          <img
-            src={profile.avatar_url || "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200&h=200&fit=crop"}
-            alt="Profile"
-            className="w-20 h-20 rounded-full object-cover"
-          />
+          <div className="flex flex-col items-center gap-2">
+            <img
+              src={profile.avatar_url || "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200&h=200&fit=crop"}
+              alt="Profile"
+              className="w-20 h-20 rounded-full object-cover"
+            />
+            <div className="text-sm text-white/80">@{profile.username || "user"}</div>
+          </div>
           
           <div className="flex-1 flex justify-around">
             <div className="text-center">
@@ -289,11 +292,8 @@ export default function Profile() {
               triggerHaptic();
               navigate("/upload");
             }}
-            className="bg-white/10 hover:bg-white/20 transition-colors py-2 rounded-lg font-semibold text-sm flex items-center justify-center gap-2"
+            className="bg-white/10 hover:bg-white/20 transition-colors py-2 rounded-lg font-semibold text-sm"
           >
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-            </svg>
             Upload Video
           </button>
           <button 
