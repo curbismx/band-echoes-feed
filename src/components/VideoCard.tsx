@@ -36,9 +36,10 @@ interface VideoCardProps {
   preloadStrategy?: "auto" | "metadata" | "none";
   onDrawerStateChange?: (isOpen: boolean) => void;
   hasUserInteracted?: boolean;
+  isMobile?: boolean;
 }
 
-export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused, onTogglePause, preloadStrategy = "metadata", onDrawerStateChange, hasUserInteracted = false }: VideoCardProps) => {
+export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused, onTogglePause, preloadStrategy = "metadata", onDrawerStateChange, hasUserInteracted = false, isMobile = false }: VideoCardProps) => {
   const navigate = useNavigate();
   const [isFollowing, setIsFollowing] = useState(video.isFollowing);
   const [isLiked, setIsLiked] = useState(false);
@@ -106,8 +107,11 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     fetchArtistProfile();
   }, [video.artistUserId]);
 
-  // IntersectionObserver for smart video loading (mobile Safari fix)
+  // IntersectionObserver for smart video loading (MOBILE ONLY - Safari fix)
   useEffect(() => {
+    // Only use IntersectionObserver on mobile devices
+    if (!isMobile) return;
+    
     const v = videoRef.current;
     if (!v || hasLoadedVideo) return;
 
@@ -138,7 +142,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
       observer.disconnect();
       if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
     };
-  }, [video.id, hasUserInteracted, hasLoadedVideo]);
+  }, [video.id, hasUserInteracted, hasLoadedVideo, isMobile]);
 
   useEffect(() => {
     const v = videoRef.current;
@@ -153,9 +157,9 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
       return;
     }
 
-    // Don't attempt autoplay until user has interacted (mobile Safari requirement)
+    // Only gate on user interaction for mobile Safari
     // Desktop Safari allows muted autoplay without interaction
-    if (!hasUserInteracted) {
+    if (isMobile && !hasUserInteracted) {
       return;
     }
 
