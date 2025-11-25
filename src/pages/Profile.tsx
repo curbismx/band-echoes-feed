@@ -371,7 +371,7 @@ export default function Profile() {
               >
                 <div 
                   className="w-full h-full cursor-pointer hover:opacity-80 transition-opacity"
-                  onClick={() => navigate(`/`)}
+                  onClick={() => navigate("/", { state: { videoId: video.id } })}
                 >
                   {video.thumbnail_url ? (
                     <img
