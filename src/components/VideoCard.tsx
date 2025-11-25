@@ -91,6 +91,24 @@ export const VideoCard = ({
     fetchArtistProfile();
   }, [video.artistUserId]);
 
+  // Check follow status
+  useEffect(() => {
+    const checkFollowStatus = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !video.artistUserId) return;
+      
+      const { data } = await supabase
+        .from("follows")
+        .select("id")
+        .eq("follower_id", user.id)
+        .eq("followed_id", video.artistUserId)
+        .maybeSingle();
+      
+      setIsFollowing(!!data);
+    };
+    checkFollowStatus();
+  }, [video.artistUserId]);
+
   // VIDEO PLAYBACK - Simple as possible
   useEffect(() => {
     const video = videoRef.current;
