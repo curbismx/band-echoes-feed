@@ -34,7 +34,7 @@ interface VideoCardProps {
   onDrawerStateChange?: (isOpen: boolean) => void;
 }
 
-export const VideoCard = memo(function VideoCard({
+const VideoCardComponent = ({
   video,
   isActive,
   isMuted,
@@ -42,7 +42,7 @@ export const VideoCard = memo(function VideoCard({
   isGloballyPaused,
   onTogglePause,
   onDrawerStateChange,
-}: VideoCardProps) {
+}: VideoCardProps) => {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
   
@@ -354,4 +354,6 @@ export const VideoCard = memo(function VideoCard({
       <InfoDrawer isOpen={infoOpen} onClose={() => setInfoOpen(false)} videoId={video.id.toString()} videoTitle={video.title} artistName={video.artistName} caption={video.caption} links={video.links} />
     </div>
   );
-});
+};
+
+export const VideoCard = memo(VideoCardComponent);
