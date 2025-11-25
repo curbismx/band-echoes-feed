@@ -88,15 +88,11 @@ export const VideoFeed = () => {
 
     // Swipe up (next video) - either fast flick OR dragged past threshold
     if (distance > 50 || (velocity > 0.3 && distance > 0)) {
-      if (currentIndex < videos.length - 1) {
-        setCurrentIndex(i => i + 1);
-      }
+      setCurrentIndex(i => (i < videos.length - 1 ? i + 1 : 0));
     }
     // Swipe down (previous video)
     else if (distance < -50 || (velocity > 0.3 && distance < 0)) {
-      if (currentIndex > 0) {
-        setCurrentIndex(i => i - 1);
-      }
+      setCurrentIndex(i => (i > 0 ? i - 1 : videos.length - 1));
     }
 
     setIsDragging(false);
@@ -107,10 +103,10 @@ export const VideoFeed = () => {
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (isAnyDrawerOpen) return;
-      if (e.key === "ArrowDown" && currentIndex < videos.length - 1) {
-        setCurrentIndex(i => i + 1);
-      } else if (e.key === "ArrowUp" && currentIndex > 0) {
-        setCurrentIndex(i => i - 1);
+      if (e.key === "ArrowDown") {
+        setCurrentIndex(i => (i < videos.length - 1 ? i + 1 : 0));
+      } else if (e.key === "ArrowUp") {
+        setCurrentIndex(i => (i > 0 ? i - 1 : videos.length - 1));
       }
     };
     window.addEventListener("keydown", handleKey);
