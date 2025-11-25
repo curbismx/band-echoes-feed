@@ -105,7 +105,29 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     fetchArtistProfile();
   }, [video.artistUserId]);
 
-  // Play/pause logic with mobile user interaction gate
+  // Explicitly load video when entering DOM - critical for iOS
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    
+    // Explicitly load the video
+    v.load();
+  }, [video.videoUrl]);
+
+  // Cleanup: release video resources on unmount - critical for iOS
+  useEffect(() => {
+    const v = videoRef.current;
+    
+    return () => {
+      if (v) {
+        v.pause();
+        v.removeAttribute('src');
+        v.load(); // Releases the video resource on iOS
+      }
+    };
+  }, []);
+
+  // Play/pause logic with mobile user interaction gate and ready-state checking
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
@@ -121,16 +143,31 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
       return;
     }
 
-    // Try to play (muted initially for autoplay to work)
-    v.muted = isMuted;
-    const playPromise = v.play();
-    
-    if (playPromise !== undefined) {
-      playPromise.catch(() => {
-        // If autoplay fails, ensure it's muted and try again
-        v.muted = true;
-        v.play().catch(() => {});
-      });
+    // Helper to attempt play
+    const attemptPlay = () => {
+      v.muted = isMuted;
+      const playPromise = v.play();
+      
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          // If autoplay fails, ensure it's muted and try again
+          v.muted = true;
+          v.play().catch(() => {});
+        });
+      }
+    };
+
+    // If video already has enough data, play immediately
+    if (v.readyState >= 3) { // HAVE_FUTURE_DATA
+      attemptPlay();
+    } else {
+      // Wait for canplay event before attempting to play
+      const handleCanPlay = () => {
+        attemptPlay();
+      };
+      
+      v.addEventListener('canplay', handleCanPlay, { once: true });
+      return () => v.removeEventListener('canplay', handleCanPlay);
     }
   }, [isActive, isGloballyPaused, isMuted, hasUserInteracted, isMobile]);
 
