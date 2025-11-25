@@ -173,16 +173,16 @@ export default function Favorites() {
       </div>
 
       {/* Video Grid */}
-      <div className="p-4">
-        <div className="grid grid-cols-4 gap-2">
+      <div className="p-2">
+        <div className="grid grid-cols-4 gap-1">
           {favoriteVideos.map((video, index) => (
             <div 
               key={video.id} 
               className="relative"
             >
-              {/* Rounded video container ONLY */}
+              {/* Square video container */}
               <div 
-                className="relative z-0 aspect-[9/16] rounded-lg overflow-hidden bg-white/5 cursor-pointer hover:opacity-80 transition-opacity"
+                className="relative z-0 aspect-[9/16] overflow-hidden bg-white/5 cursor-pointer hover:opacity-80 transition-opacity"
                 onClick={() => navigate("/", { state: { favoriteVideos, startIndex: index } })}
               >
                 {(video.thumbnail || thumbs[video.id]) ? (
