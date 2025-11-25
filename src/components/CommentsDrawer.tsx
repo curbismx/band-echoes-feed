@@ -140,14 +140,14 @@ export const CommentsDrawer = ({ videoId, isOpen, onClose }: CommentsDrawerProps
   };
 
   return (
-    <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DrawerContent className="h-[50vh] flex flex-col rounded-t-3xl">
-        <DrawerHeader className="border-b border-border">
+    <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()} modal={false}>
+      <DrawerContent className="max-h-[50vh] h-[50vh] fixed bottom-0 flex flex-col rounded-t-3xl">
+        <DrawerHeader className="border-b border-border flex-shrink-0">
           <DrawerTitle className="text-center">Comments</DrawerTitle>
         </DrawerHeader>
 
         {/* Comments List */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6 min-h-0">
           {loading ? (
             <div className="text-center text-muted-foreground">Loading...</div>
           ) : comments.length === 0 ? (
@@ -187,7 +187,7 @@ export const CommentsDrawer = ({ videoId, isOpen, onClose }: CommentsDrawerProps
         </div>
 
         {/* Emoji Bar */}
-        <div className="border-t border-border px-4 py-3">
+        <div className="border-t border-border px-4 py-3 flex-shrink-0">
           <div className="flex justify-around items-center">
             {emojis.map((emoji) => (
               <button
@@ -202,7 +202,7 @@ export const CommentsDrawer = ({ videoId, isOpen, onClose }: CommentsDrawerProps
         </div>
 
         {/* Comment Input */}
-        <div className="border-t border-border p-4">
+        <div className="border-t border-border p-4 flex-shrink-0">
           <div className="flex gap-3 items-start">
             <Avatar className="h-10 w-10 flex-shrink-0">
               <AvatarImage src={userAvatar || undefined} />
