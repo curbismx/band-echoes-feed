@@ -197,7 +197,8 @@ export const VideoFeed = () => {
   /* --------------------------------------------------
       VIRTUAL SCROLLING - RENDER ONLY ADJACENT VIDEOS
   -------------------------------------------------- */
-  const RENDER_BUFFER = 2; // Render 2 videos before and after current (5 total)
+  // Device-aware buffer: mobile gets 1 video buffer (3 total), desktop gets 2 (5 total)
+  const RENDER_BUFFER = isMobile ? 1 : 2;
   
   const getVisibleVideos = () => {
     const startIndex = Math.max(0, currentIndex - RENDER_BUFFER);
@@ -242,31 +243,37 @@ export const VideoFeed = () => {
           transition: isDragging ? "none" : "transform 0.15s ease-out"
         }}
       >
-        {visibleVideos.map(({ video, index }) => (
-          <div
-            key={video.id}
-            className="absolute top-0 left-0 w-full h-full"
-            style={{
-              transform: `translateY(${index * 100}vh)`
-            }}
-          >
-            <VideoCard
-              video={{
-                ...video,
-                videoUrl: video.videoUrl,
-                posterUrl: video.posterUrl
+        {visibleVideos.map(({ video, index }) => {
+          // Smart preload: full auto for current video, metadata only for adjacent
+          const preloadStrategy = index === currentIndex ? "auto" : "metadata";
+          
+          return (
+            <div
+              key={video.id}
+              className="absolute top-0 left-0 w-full h-full"
+              style={{
+                transform: `translateY(${index * 100}vh)`
               }}
-              isActive={index === currentIndex}
-              isMuted={isMuted}
-              onUnmute={() => setIsMuted(false)}
-              isGloballyPaused={isGloballyPaused}
-              onTogglePause={setIsGloballyPaused}
-              onDrawerStateChange={setIsAnyDrawerOpen}
-              hasUserInteracted={hasUserInteracted}
-              isMobile={isMobile}
-            />
-          </div>
-        ))}
+            >
+              <VideoCard
+                video={{
+                  ...video,
+                  videoUrl: video.videoUrl,
+                  posterUrl: video.posterUrl
+                }}
+                isActive={index === currentIndex}
+                isMuted={isMuted}
+                onUnmute={() => setIsMuted(false)}
+                isGloballyPaused={isGloballyPaused}
+                onTogglePause={setIsGloballyPaused}
+                preloadStrategy={preloadStrategy}
+                onDrawerStateChange={setIsAnyDrawerOpen}
+                hasUserInteracted={hasUserInteracted}
+                isMobile={isMobile}
+              />
+            </div>
+          );
+        })}
       </div>
     </div>
     </>

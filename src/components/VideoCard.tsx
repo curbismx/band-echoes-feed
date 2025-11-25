@@ -105,7 +105,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     fetchArtistProfile();
   }, [video.artistUserId]);
 
-  // Simple play/pause logic
+  // Simple play/pause logic - no mobile-specific gates
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
@@ -113,11 +113,6 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     // Pause if not active or globally paused
     if (!isActive || isGloballyPaused) {
       v.pause();
-      return;
-    }
-
-    // On mobile, wait for user interaction before playing
-    if (isMobile && !hasUserInteracted) {
       return;
     }
 
@@ -132,7 +127,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         v.play().catch(() => {});
       });
     }
-  }, [isActive, isGloballyPaused, isMuted, hasUserInteracted, isMobile]);
+  }, [isActive, isGloballyPaused, isMuted]);
 
   const handleVideoClick = () => {
     onUnmute();
@@ -219,7 +214,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
         loop
         playsInline
         {...({ 'webkit-playsinline': 'true' } as any)}
-        preload="auto"
+        preload={preloadStrategy}
         muted
         poster={video.posterUrl || "/placeholder.svg"}
         style={{ width: "100%", height: "100%", objectFit: "cover", background: "black" }}
