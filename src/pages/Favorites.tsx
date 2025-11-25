@@ -168,8 +168,15 @@ export default function Favorites() {
       <div className="h-[25px]" style={{ backgroundColor: "#252525" }} />
       
       {/* Header */}
-      <div className="flex items-center justify-center p-4 border-b border-white/10">
+      <div className="flex items-center justify-between p-4 border-b border-white/10">
+        <button
+          onClick={() => navigate("/profile")}
+          className="flex items-center justify-center w-10 h-10 hover:bg-white/10 rounded-full transition-colors"
+        >
+          <ChevronLeft className="w-6 h-6" />
+        </button>
         <span className="font-semibold text-lg">Your Favorites</span>
+        <div className="w-10" /> {/* Spacer for centering */}
       </div>
 
       {/* Video Grid */}
