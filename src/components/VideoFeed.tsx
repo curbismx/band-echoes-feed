@@ -6,9 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 import backIcon from "@/assets/back.png";
 import favsIcon from "@/assets/favs.png";
 
-// Session key to track if user has interacted this session
-const USER_INTERACTED_KEY = "videoFeedUserInteracted";
-
 export const VideoFeed = () => {
   const { user } = useAuth();
   const location = useLocation();
@@ -21,23 +18,12 @@ export const VideoFeed = () => {
   const [isPlayingFavorites, setIsPlayingFavorites] = useState(false);
   const [originalVideos, setOriginalVideos] = useState<any[]>([]);
   const [originalIndex, setOriginalIndex] = useState(0);
-  
-  // Track if user has interacted (persists across navigation within session)
-  const [hasUserInteracted, setHasUserInteracted] = useState(() => {
-    return sessionStorage.getItem(USER_INTERACTED_KEY) === "true";
-  });
 
   const touchStart = useRef(0);
   const touchEnd = useRef(0);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState(0);
   const [isAnyDrawerOpen, setIsAnyDrawerOpen] = useState(false);
-
-  // Persist user interaction state
-  const handleUserInteraction = () => {
-    setHasUserInteracted(true);
-    sessionStorage.setItem(USER_INTERACTED_KEY, "true");
-  };
 
   /* --------------------------------------------------
       FETCH + SORT VIDEOS
@@ -85,8 +71,6 @@ export const VideoFeed = () => {
         setVideos(location.state.favoriteVideos);
         setCurrentIndex(location.state.startIndex);
         setIsPlayingFavorites(true);
-        // User came from another page, so they've interacted
-        handleUserInteraction();
         // Clear the state so it doesn't persist
         window.history.replaceState({}, document.title);
       } else if (location.state?.videoId) {
@@ -95,8 +79,6 @@ export const VideoFeed = () => {
         if (videoIndex !== -1) {
           setCurrentIndex(videoIndex);
         }
-        // User came from another page, so they've interacted
-        handleUserInteraction();
         // Clear the state so it doesn't persist
         window.history.replaceState({}, document.title);
       } else {
@@ -122,7 +104,6 @@ export const VideoFeed = () => {
       if (isAnyDrawerOpen) return;
       if (e.key === "ArrowUp") {
         e.preventDefault();
-        // Loop: if at first video, go to last
         setCurrentIndex(i => (i > 0 ? i - 1 : videos.length - 1));
       } else if (e.key === "ArrowDown") {
         e.preventDefault();
@@ -131,7 +112,6 @@ export const VideoFeed = () => {
           setCurrentIndex(originalIndex);
           setIsPlayingFavorites(false);
         } else {
-          // Loop: if at last video, go to first
           setCurrentIndex(i => (i < videos.length - 1 ? i + 1 : 0));
         }
       }
@@ -155,12 +135,6 @@ export const VideoFeed = () => {
 
   const onTouchStart = (e: React.TouchEvent) => {
     if (isAnyDrawerOpen) return;
-    
-    // Any touch counts as user interaction
-    if (!hasUserInteracted) {
-      handleUserInteraction();
-    }
-    
     touchStart.current = e.targetTouches[0].clientY;
     touchEnd.current = e.targetTouches[0].clientY;
     setIsDragging(true);
@@ -183,20 +157,22 @@ export const VideoFeed = () => {
     const distance = touchStart.current - touchEnd.current;
 
     if (distance > MIN_SWIPE) {
-      // swipe UP - next video
+      // swipe UP
       if (isPlayingFavorites && currentIndex >= videos.length - 1) {
         // End of favorites - return to normal feed
         setVideos(originalVideos);
         setCurrentIndex(originalIndex);
         setIsPlayingFavorites(false);
       } else {
-        // Loop: if at last video, go to first
-        setCurrentIndex(i => (i < videos.length - 1 ? i + 1 : 0));
+        setCurrentIndex(i =>
+          i < videos.length - 1 ? i + 1 : 0
+        );
       }
     } else if (distance < -MIN_SWIPE) {
-      // swipe DOWN - previous video
-      // Loop: if at first video, go to last
-      setCurrentIndex(i => (i > 0 ? i - 1 : videos.length - 1));
+      // swipe DOWN
+      setCurrentIndex(i =>
+        i > 0 ? i - 1 : videos.length - 1
+      );
     }
 
     setDragOffset(0);
@@ -242,8 +218,6 @@ export const VideoFeed = () => {
             isGloballyPaused={isGloballyPaused}
             onTogglePause={setIsGloballyPaused}
             onDrawerStateChange={setIsAnyDrawerOpen}
-            hasUserInteracted={hasUserInteracted}
-            onUserInteraction={handleUserInteraction}
           />
         ))}
       </div>
