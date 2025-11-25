@@ -105,28 +105,6 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
     fetchArtistProfile();
   }, [video.artistUserId]);
 
-  // Explicitly load video when entering DOM - critical for iOS
-  useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    
-    // Explicitly load the video
-    v.load();
-  }, [video.videoUrl]);
-
-  // Cleanup: release video resources on unmount - critical for iOS
-  useEffect(() => {
-    const v = videoRef.current;
-    
-    return () => {
-      if (v) {
-        v.pause();
-        v.removeAttribute('src');
-        v.load(); // Releases the video resource on iOS
-      }
-    };
-  }, []);
-
   // Play/pause logic with mobile user interaction gate
   useEffect(() => {
     const v = videoRef.current;
@@ -143,7 +121,7 @@ export const VideoCard = ({ video, isActive, isMuted, onUnmute, isGloballyPaused
       return;
     }
 
-    // Simple: just try to play
+    // Try to play (muted initially for autoplay to work)
     v.muted = isMuted;
     const playPromise = v.play();
     
