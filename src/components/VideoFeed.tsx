@@ -86,7 +86,9 @@ export const VideoFeed = () => {
     const time = Date.now() - touchStartTime.current;
     const velocity = Math.abs(distance) / time;
 
-    // Swipe up (next video) - either fast flick OR dragged past threshold
+    setIsDragging(false);
+
+    // Swipe up (next video)
     if (distance > 50 || (velocity > 0.3 && distance > 0)) {
       setCurrentIndex(i => (i < videos.length - 1 ? i + 1 : 0));
     }
@@ -95,8 +97,10 @@ export const VideoFeed = () => {
       setCurrentIndex(i => (i > 0 ? i - 1 : videos.length - 1));
     }
 
-    setIsDragging(false);
-    setDragOffset(0);
+    // Reset dragOffset after a short delay to let transition start smoothly
+    requestAnimationFrame(() => {
+      setDragOffset(0);
+    });
   };
 
   // Keyboard navigation
