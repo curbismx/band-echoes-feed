@@ -44,20 +44,37 @@ export const compressVideo = async (
   // Write input file
   await ffmpeg.writeFile("input.mp4", await fetchFile(file));
 
-  // Compress with high quality settings
-  // CRF 23 is good quality, lower = better quality but larger file
-  // preset 'medium' balances speed and compression
-  await ffmpeg.exec([
-    "-i", "input.mp4",
-    "-c:v", "libx264",
-    "-preset", "medium",
-    "-crf", "23",
-    "-c:a", "aac",
-    "-b:a", "128k",
-    "-movflags", "+faststart",
-    "-y",
-    "output.mp4"
-  ]);
+  try {
+    // Try to compress video while preserving original audio quality
+    // CRF 23 is good quality, lower = better quality but larger file
+    // preset 'medium' balances speed and compression
+    // -c:a copy preserves original audio without re-encoding
+    await ffmpeg.exec([
+      "-i", "input.mp4",
+      "-c:v", "libx264",
+      "-preset", "medium",
+      "-crf", "23",
+      "-c:a", "copy",
+      "-movflags", "+faststart",
+      "-y",
+      "output.mp4"
+    ]);
+  } catch (error) {
+    console.log("Audio copy failed, retrying with high-quality AAC encoding...");
+    
+    // Fallback: Re-encode audio with high-quality AAC if copy fails
+    await ffmpeg.exec([
+      "-i", "input.mp4",
+      "-c:v", "libx264",
+      "-preset", "medium",
+      "-crf", "23",
+      "-c:a", "aac",
+      "-b:a", "320k",
+      "-movflags", "+faststart",
+      "-y",
+      "output.mp4"
+    ]);
+  }
 
   // Read output file
   const data = await ffmpeg.readFile("output.mp4") as Uint8Array;
