@@ -1459,44 +1459,44 @@ const Admin = () => {
                                     )}
                                   </div>
 
-                                  {/* Crop Control */}
-                                  {form.file && (
-                                    <div className="col-span-12">
-                                      <label className="block text-xs text-muted-foreground mb-2">Video Format</label>
-                                      <RadioGroup 
-                                        value={form.shouldCrop} 
-                                        onValueChange={(value) => setVideoForms((prev) => ({
-                                          ...prev,
-                                          [usr.id]: { ...(prev[usr.id] || getDefaultVideoForm()), shouldCrop: value as 'auto' | 'crop' | 'original' },
-                                        }))}
-                                        className="flex flex-wrap gap-4"
-                                      >
-                                        <div className="flex items-center space-x-2">
-                                          <RadioGroupItem value="auto" id={`auto-${usr.id}`} />
-                                          <Label htmlFor={`auto-${usr.id}`} className="text-xs cursor-pointer">
-                                            Auto (crop landscape to square)
-                                          </Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                          <RadioGroupItem value="crop" id={`crop-${usr.id}`} />
-                                          <Label htmlFor={`crop-${usr.id}`} className="text-xs cursor-pointer">
-                                            Force crop to square
-                                          </Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                          <RadioGroupItem value="original" id={`original-${usr.id}`} />
-                                          <Label htmlFor={`original-${usr.id}`} className="text-xs cursor-pointer">
-                                            Keep original format
-                                          </Label>
-                                        </div>
-                                      </RadioGroup>
-                                      {form.isCompressing && form.compressionProgress && (
-                                        <p className="text-xs text-muted-foreground mt-2">
+                                  {/* Crop Control - ALWAYS visible */}
+                                  <div className="col-span-12 border-t border-border pt-3 mt-2">
+                                    <label className="block text-sm font-semibold text-foreground mb-3">🎬 Video Format Control</label>
+                                    <RadioGroup 
+                                      value={form.shouldCrop} 
+                                      onValueChange={(value) => setVideoForms((prev) => ({
+                                        ...prev,
+                                        [usr.id]: { ...(prev[usr.id] || getDefaultVideoForm()), shouldCrop: value as 'auto' | 'crop' | 'original' },
+                                      }))}
+                                      className="flex flex-col gap-3"
+                                    >
+                                      <div className="flex items-center space-x-2 p-2 rounded hover:bg-muted/50">
+                                        <RadioGroupItem value="auto" id={`auto-${usr.id}`} />
+                                        <Label htmlFor={`auto-${usr.id}`} className="text-sm cursor-pointer">
+                                          <strong>Auto</strong> - Crop landscape videos to square (recommended)
+                                        </Label>
+                                      </div>
+                                      <div className="flex items-center space-x-2 p-2 rounded hover:bg-muted/50">
+                                        <RadioGroupItem value="crop" id={`crop-${usr.id}`} />
+                                        <Label htmlFor={`crop-${usr.id}`} className="text-sm cursor-pointer">
+                                          <strong>Force crop</strong> - Always crop to square (all videos)
+                                        </Label>
+                                      </div>
+                                      <div className="flex items-center space-x-2 p-2 rounded hover:bg-muted/50">
+                                        <RadioGroupItem value="original" id={`original-${usr.id}`} />
+                                        <Label htmlFor={`original-${usr.id}`} className="text-sm cursor-pointer">
+                                          <strong>Keep original</strong> - No cropping (upload as-is)
+                                        </Label>
+                                      </div>
+                                    </RadioGroup>
+                                    {form.isCompressing && form.compressionProgress && (
+                                      <div className="mt-3 p-2 bg-blue-500/10 rounded border border-blue-500/20">
+                                        <p className="text-sm text-blue-500 font-medium">
                                           {form.compressionProgress.status}
                                         </p>
-                                      )}
-                                    </div>
-                                  )}
+                                      </div>
+                                    )}
+                                  </div>
 
                                   {/* Title */}
                                   <div className="col-span-12 md:col-span-3">
