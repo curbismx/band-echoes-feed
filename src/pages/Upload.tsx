@@ -137,13 +137,14 @@ const Upload = () => {
 
       // Compress video before uploading
       const originalSize = getVideoSize(selectedVideo);
-      toast({
-        title: "Compressing video...",
-        description: `Original size: ${formatFileSize(originalSize)}`,
-      });
-
+      
       setIsCompressing(true);
       try {
+        toast({
+          title: "Processing video...",
+          description: "Analyzing video dimensions",
+        });
+        
         fileToUpload = await compressVideo(selectedVideo, (progress) => {
           setCompressionProgress(progress);
         });
@@ -152,8 +153,8 @@ const Upload = () => {
         const savedPercent = Math.round((1 - compressedSize / originalSize) * 100);
         
         toast({
-          title: "Compression complete!",
-          description: `Saved ${savedPercent}% (${formatFileSize(originalSize)} → ${formatFileSize(compressedSize)})`,
+          title: "Video processed!",
+          description: `Size: ${formatFileSize(originalSize)} → ${formatFileSize(compressedSize)} (${savedPercent}% saved)`,
         });
       } catch (compressionError) {
         console.error("Compression failed:", compressionError);
