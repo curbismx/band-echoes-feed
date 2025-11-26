@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { detectPlatform, isValidUrl } from "@/utils/platformDetection";
 import { getPlatformIcon } from "@/components/PlatformIcons";
+import { compressVideo, formatFileSize, getVideoSize, type CompressionProgress } from "@/utils/videoCompression";
 
 const Upload = () => {
   const navigate = useNavigate();
@@ -23,6 +24,8 @@ const Upload = () => {
   const [existingVideoUrl, setExistingVideoUrl] = useState<string>("");
   const [links, setLinks] = useState<string[]>(["", ""]);
   const [searching, setSearching] = useState(false);
+  const [compressionProgress, setCompressionProgress] = useState<CompressionProgress | null>(null);
+  const [isCompressing, setIsCompressing] = useState(false);
 
   // Fetch video data if editing
   useEffect(() => {
@@ -131,6 +134,39 @@ const Upload = () => {
       }
 
       let fileToUpload: File | Blob = selectedVideo;
+
+      // Compress video before uploading
+      const originalSize = getVideoSize(selectedVideo);
+      toast({
+        title: "Compressing video...",
+        description: `Original size: ${formatFileSize(originalSize)}`,
+      });
+
+      setIsCompressing(true);
+      try {
+        fileToUpload = await compressVideo(selectedVideo, (progress) => {
+          setCompressionProgress(progress);
+        });
+        
+        const compressedSize = getVideoSize(fileToUpload);
+        const savedPercent = Math.round((1 - compressedSize / originalSize) * 100);
+        
+        toast({
+          title: "Compression complete!",
+          description: `Saved ${savedPercent}% (${formatFileSize(originalSize)} → ${formatFileSize(compressedSize)})`,
+        });
+      } catch (compressionError) {
+        console.error("Compression failed:", compressionError);
+        toast({
+          title: "Compression failed",
+          description: "Uploading original video instead",
+          variant: "destructive",
+        });
+        // Continue with original file if compression fails
+      } finally {
+        setIsCompressing(false);
+        setCompressionProgress(null);
+      }
 
       // Upload video to storage
       const fileExt = selectedVideo.name.split(".").pop();
@@ -413,12 +449,26 @@ const Upload = () => {
           </div>
 
           <div className="p-4">
+            {isCompressing && compressionProgress && (
+              <div className="mb-4 p-4 bg-white/10 rounded-lg">
+                <div className="flex justify-between text-white text-sm mb-2">
+                  <span>Compressing video...</span>
+                  <span>{compressionProgress.progress}%</span>
+                </div>
+                <div className="w-full bg-white/20 rounded-full h-2">
+                  <div 
+                    className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${compressionProgress.progress}%` }}
+                  />
+                </div>
+              </div>
+            )}
             <Button
               onClick={handleUpload}
-              disabled={isUploading}
+              disabled={isUploading || isCompressing}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6 text-lg rounded-xl font-semibold"
             >
-              {isUploading ? (editVideoId ? "Updating..." : "Uploading...") : (editVideoId ? "Update" : "Post Video")}
+              {isCompressing ? "Compressing..." : isUploading ? (editVideoId ? "Updating..." : "Uploading...") : (editVideoId ? "Update" : "Post Video")}
             </Button>
           </div>
         </>
