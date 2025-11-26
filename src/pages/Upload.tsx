@@ -191,25 +191,8 @@ const Upload = () => {
         .filter(link => isValidUrl(link))
         .map(url => ({ url }));
 
-      // LANDSCAPE VIDEO SQUARE CROP: Detect aspect ratio from preview video element
-      let detectedAspectRatio = aspectRatio;
-      if (videoPreviewRef.current) {
-        const width = videoPreviewRef.current.videoWidth;
-        const height = videoPreviewRef.current.videoHeight;
-        if (width > 0 && height > 0) {
-          if (width > height) {
-            detectedAspectRatio = 'landscape';
-          } else if (height > width) {
-            detectedAspectRatio = 'portrait';
-          } else {
-            detectedAspectRatio = 'square';
-          }
-          console.log('LANDSCAPE VIDEO SQUARE CROP: Detected from preview:', detectedAspectRatio, 'width:', width, 'height:', height);
-        }
-      }
-
-      // LANDSCAPE VIDEO SQUARE CROP: Save aspect ratio to database
-      console.log('LANDSCAPE VIDEO SQUARE CROP: Saving aspect ratio to DB:', detectedAspectRatio);
+      // LANDSCAPE VIDEO SQUARE CROP: Use the detected aspect ratio from state
+      console.log('LANDSCAPE VIDEO SQUARE CROP: Saving aspect ratio to DB:', aspectRatio);
       const { error: dbError } = await supabase
         .from("videos")
         .insert({
@@ -218,7 +201,7 @@ const Upload = () => {
           caption: caption || null,
           title: title || null,
           links: validLinks,
-          aspect_ratio: detectedAspectRatio || null,
+          aspect_ratio: aspectRatio || null,
         });
 
       if (dbError) throw dbError;
@@ -351,6 +334,7 @@ const Upload = () => {
                 src={videoPreview}
                 className="w-full max-h-[400px] rounded-lg object-contain bg-black"
                 controls
+                preload="metadata"
                 onLoadedMetadata={(e) => {
                   // LANDSCAPE VIDEO SQUARE CROP: Detect aspect ratio when metadata loads
                   const video = e.currentTarget;
