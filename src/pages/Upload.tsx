@@ -69,35 +69,6 @@ const Upload = () => {
       setSelectedVideo(file);
       const preview = URL.createObjectURL(file);
       setVideoPreview(preview);
-      
-      // LANDSCAPE VIDEO SQUARE CROP: Detect aspect ratio
-      console.log('LANDSCAPE VIDEO SQUARE CROP: Starting aspect ratio detection');
-      const videoElement = document.createElement('video');
-      videoElement.preload = 'metadata';
-      
-      videoElement.onloadedmetadata = () => {
-        const width = videoElement.videoWidth;
-        const height = videoElement.videoHeight;
-        let ratio = 'square';
-        if (width > height) {
-          ratio = 'landscape';
-        } else if (height > width) {
-          ratio = 'portrait';
-        }
-        console.log('LANDSCAPE VIDEO SQUARE CROP: Detected aspect ratio:', ratio, 'width:', width, 'height:', height);
-        setAspectRatio(ratio);
-        URL.revokeObjectURL(videoElement.src);
-      };
-      
-      videoElement.onerror = (e) => {
-        console.error('LANDSCAPE VIDEO SQUARE CROP: Failed to load video metadata', e);
-      };
-      
-      console.log('LANDSCAPE VIDEO SQUARE CROP: Setting video src and calling load()');
-      videoElement.src = preview;
-      videoElement.load();
-      
-      // Always proceed to step 2 immediately - aspect ratio will be set async
       setStep(2);
     } else {
       toast({
@@ -380,6 +351,20 @@ const Upload = () => {
                 src={videoPreview}
                 className="w-full max-h-[400px] rounded-lg object-contain bg-black"
                 controls
+                onLoadedMetadata={(e) => {
+                  // LANDSCAPE VIDEO SQUARE CROP: Detect aspect ratio when metadata loads
+                  const video = e.currentTarget;
+                  const width = video.videoWidth;
+                  const height = video.videoHeight;
+                  let ratio = 'square';
+                  if (width > height) {
+                    ratio = 'landscape';
+                  } else if (height > width) {
+                    ratio = 'portrait';
+                  }
+                  console.log('LANDSCAPE VIDEO SQUARE CROP: Preview loaded, aspect ratio:', ratio, 'width:', width, 'height:', height);
+                  setAspectRatio(ratio);
+                }}
               />
             </div>
 
