@@ -905,7 +905,16 @@ const Admin = () => {
       <div className="max-w-7xl mx-auto pb-20">
         {/* Header */}
         <div className="flex items-center gap-8 mb-8 pb-4 border-b border-border">
-          <h1 className="text-xl font-normal text-foreground">Admin</h1>
+          <button 
+            onClick={() => setActiveTab("analytics")}
+            className={`text-xl font-normal transition-colors ${
+              activeTab === "analytics"
+                ? "text-primary border-b-2 border-primary pb-1"
+                : "text-foreground hover:text-primary"
+            }`}
+          >
+            Analytics
+          </button>
           <button 
             onClick={() => setActiveTab("accounts")}
             className={`text-xl font-normal transition-colors ${
@@ -925,16 +934,6 @@ const Admin = () => {
             }`}
           >
             Users
-          </button>
-          <button 
-            onClick={() => setActiveTab("analytics")}
-            className={`text-xl font-normal transition-colors ${
-              activeTab === "analytics"
-                ? "text-primary border-b-2 border-primary pb-1"
-                : "text-foreground hover:text-primary"
-            }`}
-          >
-            Analytics
           </button>
           <button 
             onClick={() => navigate("/settings")}
