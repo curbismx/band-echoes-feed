@@ -24,7 +24,6 @@ interface Video {
   caption?: string;
   links?: Array<{ url: string }>;
   posterUrl?: string;
-  aspectRatio?: string; // LANDSCAPE VIDEO SQUARE CROP: Add aspect ratio field
 }
 
 interface VideoCardProps {
@@ -166,7 +165,6 @@ export const VideoCard = ({
 
   return (
     <div className="relative h-screen w-screen bg-black">
-      {/* Video is now always full screen - landscape videos are physically cropped during upload */}
       <video
         ref={videoRef}
         src={video.videoUrl}
