@@ -81,12 +81,16 @@ const Upload = () => {
         } else if (height > width) {
           ratio = 'portrait';
         }
+        console.log('LANDSCAPE VIDEO SQUARE CROP: Detected aspect ratio:', ratio, 'width:', width, 'height:', height);
         setAspectRatio(ratio);
         URL.revokeObjectURL(videoElement.src);
+        setStep(2);
+      };
+      videoElement.onerror = () => {
+        console.error('LANDSCAPE VIDEO SQUARE CROP: Failed to load video metadata');
+        setStep(2); // Proceed anyway if metadata fails to load
       };
       videoElement.src = preview;
-      
-      setStep(2);
     } else {
       toast({
         title: "Invalid file",
@@ -209,6 +213,7 @@ const Upload = () => {
         .map(url => ({ url }));
 
       // LANDSCAPE VIDEO SQUARE CROP: Save aspect ratio to database
+      console.log('LANDSCAPE VIDEO SQUARE CROP: Saving aspect ratio to DB:', aspectRatio);
       const { error: dbError } = await supabase
         .from("videos")
         .insert({
