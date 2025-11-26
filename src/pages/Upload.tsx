@@ -21,14 +21,11 @@ const Upload = () => {
   const [title, setTitle] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const videoPreviewRef = useRef<HTMLVideoElement>(null); // LANDSCAPE VIDEO SQUARE CROP: Ref for aspect ratio detection
   const [existingVideoUrl, setExistingVideoUrl] = useState<string>("");
   const [links, setLinks] = useState<string[]>(["", ""]);
   const [searching, setSearching] = useState(false);
   const [compressionProgress, setCompressionProgress] = useState<CompressionProgress | null>(null);
   const [isCompressing, setIsCompressing] = useState(false);
-  // LANDSCAPE VIDEO SQUARE CROP: Store detected aspect ratio
-  const [aspectRatio, setAspectRatio] = useState<string>("");
 
   // Fetch video data if editing
   useEffect(() => {
@@ -191,8 +188,7 @@ const Upload = () => {
         .filter(link => isValidUrl(link))
         .map(url => ({ url }));
 
-      // LANDSCAPE VIDEO SQUARE CROP: Use the detected aspect ratio from state
-      console.log('LANDSCAPE VIDEO SQUARE CROP: Saving aspect ratio to DB:', aspectRatio);
+      // LANDSCAPE VIDEO SQUARE CROP: Videos are now physically cropped during compression
       const { error: dbError } = await supabase
         .from("videos")
         .insert({
@@ -201,7 +197,7 @@ const Upload = () => {
           caption: caption || null,
           title: title || null,
           links: validLinks,
-          aspect_ratio: aspectRatio || null,
+          aspect_ratio: null, // No longer needed - videos are cropped to square
         });
 
       if (dbError) throw dbError;
@@ -330,25 +326,10 @@ const Upload = () => {
           <div className="flex-1 overflow-y-auto p-4">
             <div className="mb-4">
               <video
-                ref={videoPreviewRef}
                 src={videoPreview}
                 className="w-full max-h-[400px] rounded-lg object-contain bg-black"
                 controls
                 preload="metadata"
-                onLoadedMetadata={(e) => {
-                  // LANDSCAPE VIDEO SQUARE CROP: Detect aspect ratio when metadata loads
-                  const video = e.currentTarget;
-                  const width = video.videoWidth;
-                  const height = video.videoHeight;
-                  let ratio = 'square';
-                  if (width > height) {
-                    ratio = 'landscape';
-                  } else if (height > width) {
-                    ratio = 'portrait';
-                  }
-                  console.log('LANDSCAPE VIDEO SQUARE CROP: Preview loaded, aspect ratio:', ratio, 'width:', width, 'height:', height);
-                  setAspectRatio(ratio);
-                }}
               />
             </div>
 

@@ -166,34 +166,17 @@ export const VideoCard = ({
 
   return (
     <div className="relative h-screen w-screen bg-black">
-      {/* LANDSCAPE VIDEO SQUARE CROP: Conditional rendering based on aspect ratio */}
-      {video.aspectRatio === 'landscape' ? (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="aspect-square w-full max-h-screen relative">
-            <video
-              ref={videoRef}
-              src={video.videoUrl}
-              poster={video.posterUrl}
-              className="w-full h-full object-cover"
-              loop
-              muted
-              playsInline
-              onClick={onUnmute}
-            />
-          </div>
-        </div>
-      ) : (
-        <video
-          ref={videoRef}
-          src={video.videoUrl}
-          poster={video.posterUrl}
-          className="absolute inset-0 w-full h-full object-cover"
-          loop
-          muted
-          playsInline
-          onClick={onUnmute}
-        />
-      )}
+      {/* Video is now always full screen - landscape videos are physically cropped during upload */}
+      <video
+        ref={videoRef}
+        src={video.videoUrl}
+        poster={video.posterUrl}
+        className="absolute inset-0 w-full h-full object-cover"
+        loop
+        muted
+        playsInline
+        onClick={onUnmute}
+      />
 
       {/* Tap to unmute */}
       {isMuted && (

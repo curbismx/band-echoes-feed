@@ -9,6 +9,37 @@ export interface CompressionProgress {
   status: string;
 }
 
+interface VideoMetadata {
+  width: number;
+  height: number;
+  isLandscape: boolean;
+}
+
+const getVideoMetadata = async (file: File): Promise<VideoMetadata> => {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    
+    video.onloadedmetadata = () => {
+      const width = video.videoWidth;
+      const height = video.videoHeight;
+      URL.revokeObjectURL(video.src);
+      resolve({
+        width,
+        height,
+        isLandscape: width > height
+      });
+    };
+    
+    video.onerror = () => {
+      URL.revokeObjectURL(video.src);
+      reject(new Error('Failed to load video metadata'));
+    };
+    
+    video.src = URL.createObjectURL(file);
+  });
+};
+
 export const loadFFmpeg = async (): Promise<FFmpeg> => {
   if (ffmpeg) return ffmpeg;
 
@@ -29,6 +60,10 @@ export const compressVideo = async (
   onProgress?: (progress: CompressionProgress) => void
 ): Promise<Blob> => {
   const ffmpeg = await loadFFmpeg();
+  
+  // Get video metadata to check if we need to crop
+  const metadata = await getVideoMetadata(file);
+  console.log('Video metadata:', metadata);
 
   // Set up progress listener
   ffmpeg.on("progress", ({ progress, time }) => {
@@ -36,7 +71,9 @@ export const compressVideo = async (
       onProgress({
         progress: Math.round(progress * 100),
         time,
-        status: `Compressing... ${Math.round(progress * 100)}%`,
+        status: metadata.isLandscape 
+          ? `Cropping to square... ${Math.round(progress * 100)}%`
+          : `Compressing... ${Math.round(progress * 100)}%`,
       });
     }
   });
@@ -45,12 +82,19 @@ export const compressVideo = async (
   await ffmpeg.writeFile("input.mp4", await fetchFile(file));
 
   try {
-    // Try to compress video while preserving original audio quality
-    // CRF 23 is good quality, lower = better quality but larger file
-    // preset 'medium' balances speed and compression
-    // -c:a copy preserves original audio without re-encoding
-    await ffmpeg.exec([
-      "-i", "input.mp4",
+    // Build FFmpeg command based on whether video is landscape
+    const ffmpegArgs = ["-i", "input.mp4"];
+    
+    if (metadata.isLandscape) {
+      // Crop landscape video to square (centered)
+      // crop=height:height:(width-height)/2:0
+      const cropFilter = `crop=${metadata.height}:${metadata.height}:${(metadata.width - metadata.height) / 2}:0`;
+      ffmpegArgs.push("-vf", cropFilter);
+      console.log('Applying crop filter:', cropFilter);
+    }
+    
+    // Add compression settings
+    ffmpegArgs.push(
       "-c:v", "libx264",
       "-preset", "medium",
       "-crf", "23",
@@ -58,13 +102,21 @@ export const compressVideo = async (
       "-movflags", "+faststart",
       "-y",
       "output.mp4"
-    ]);
+    );
+    
+    await ffmpeg.exec(ffmpegArgs);
   } catch (error) {
     console.log("Audio copy failed, retrying with high-quality AAC encoding...");
     
     // Fallback: Re-encode audio with high-quality AAC if copy fails
-    await ffmpeg.exec([
-      "-i", "input.mp4",
+    const ffmpegArgs = ["-i", "input.mp4"];
+    
+    if (metadata.isLandscape) {
+      const cropFilter = `crop=${metadata.height}:${metadata.height}:${(metadata.width - metadata.height) / 2}:0`;
+      ffmpegArgs.push("-vf", cropFilter);
+    }
+    
+    ffmpegArgs.push(
       "-c:v", "libx264",
       "-preset", "medium",
       "-crf", "23",
@@ -73,7 +125,9 @@ export const compressVideo = async (
       "-movflags", "+faststart",
       "-y",
       "output.mp4"
-    ]);
+    );
+    
+    await ffmpeg.exec(ffmpegArgs);
   }
 
   // Read output file
