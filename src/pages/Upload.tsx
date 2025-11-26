@@ -188,7 +188,6 @@ const Upload = () => {
         .filter(link => isValidUrl(link))
         .map(url => ({ url }));
 
-      // LANDSCAPE VIDEO SQUARE CROP: Videos are now physically cropped during compression
       const { error: dbError } = await supabase
         .from("videos")
         .insert({
@@ -197,7 +196,6 @@ const Upload = () => {
           caption: caption || null,
           title: title || null,
           links: validLinks,
-          aspect_ratio: null, // No longer needed - videos are cropped to square
         });
 
       if (dbError) throw dbError;
