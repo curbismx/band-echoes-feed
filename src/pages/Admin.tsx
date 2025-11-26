@@ -274,22 +274,15 @@ const Admin = () => {
 
       if (profilesError) throw profilesError;
 
-      console.log("Fetching emails from profiles_private...");
       // Fetch emails from profiles_private
       const { data: privateData, error: privateError } = await supabase
         .from("profiles_private")
         .select("id, email");
 
-      console.log("Private data result:", { privateData, privateError });
-
-      if (privateError) {
-        console.error("Error fetching profiles_private:", privateError);
-        throw privateError;
-      }
+      if (privateError) throw privateError;
 
       // Create a map of user_id to email
       const emailMap = new Map(privateData?.map(p => [p.id, p.email]) || []);
-      console.log("Email map created:", emailMap.size, "entries");
 
       // Fetch admin roles for all users
       const { data: roles, error: rolesError } = await supabase
