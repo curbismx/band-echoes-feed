@@ -163,19 +163,31 @@ const cropVideoToSquare = async (
 
 export const compressVideo = async (
   file: File,
+  cropMode: 'auto' | 'crop' | 'original',
   onProgress?: (progress: CompressionProgress) => void
 ): Promise<Blob> => {
   try {
     const metadata = await getVideoMetadata(file);
     console.log('📐 Video metadata:', metadata);
+    console.log('🎛️ Crop mode:', cropMode);
     
-    if (metadata.isLandscape) {
-      console.log('🎬 LANDSCAPE VIDEO - Cropping to square with Canvas API');
+    // Decide whether to crop based on mode
+    let shouldCrop = false;
+    if (cropMode === 'crop') {
+      shouldCrop = true;
+      console.log('🎬 FORCE CROP - User selected crop to square');
+    } else if (cropMode === 'auto' && metadata.isLandscape) {
+      shouldCrop = true;
+      console.log('🎬 AUTO CROP - Landscape video detected, cropping to square');
+    } else {
+      console.log('✅ Keeping original format - no cropping');
+    }
+    
+    if (shouldCrop) {
       return await cropVideoToSquare(file, metadata, onProgress);
     }
     
-    console.log('✅ Portrait/square video - no cropping needed');
-    return file; // Return original if not landscape
+    return file; // Return original
   } catch (error) {
     console.error('❌ Video processing failed:', error);
     throw error;

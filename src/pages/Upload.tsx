@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, X, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { detectPlatform, isValidUrl } from "@/utils/platformDetection";
@@ -26,6 +28,7 @@ const Upload = () => {
   const [searching, setSearching] = useState(false);
   const [compressionProgress, setCompressionProgress] = useState<CompressionProgress | null>(null);
   const [isCompressing, setIsCompressing] = useState(false);
+  const [shouldCrop, setShouldCrop] = useState<'auto' | 'crop' | 'original'>('auto');
 
   // Fetch video data if editing
   useEffect(() => {
@@ -145,7 +148,7 @@ const Upload = () => {
           description: "Analyzing video dimensions",
         });
         
-        fileToUpload = await compressVideo(selectedVideo, (progress) => {
+        fileToUpload = await compressVideo(selectedVideo, shouldCrop, (progress) => {
           setCompressionProgress(progress);
         });
         
@@ -334,6 +337,33 @@ const Upload = () => {
                 preload="metadata"
               />
             </div>
+
+            {/* Crop Control - only show for new uploads */}
+            {!editVideoId && selectedVideo && (
+              <div className="mb-6 p-4 bg-gray-900 rounded-lg">
+                <Label className="text-white font-semibold mb-3 block">Video Format</Label>
+                <RadioGroup value={shouldCrop} onValueChange={(value) => setShouldCrop(value as 'auto' | 'crop' | 'original')}>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <RadioGroupItem value="auto" id="auto" />
+                    <Label htmlFor="auto" className="text-white text-sm cursor-pointer">
+                      Auto (crop landscape videos to square)
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <RadioGroupItem value="crop" id="crop" />
+                    <Label htmlFor="crop" className="text-white text-sm cursor-pointer">
+                      Force crop to square
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="original" id="original" />
+                    <Label htmlFor="original" className="text-white text-sm cursor-pointer">
+                      Keep original format (no cropping)
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+            )}
 
             <input
               type="text"
