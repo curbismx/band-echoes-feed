@@ -1,7 +1,7 @@
-// Extend HTMLVideoElement to include captureStream (not in standard TS definitions)
-interface HTMLVideoElementWithCapture extends HTMLVideoElement {
-  captureStream(): MediaStream;
-}
+import { FFmpeg } from "@ffmpeg/ffmpeg";
+import { fetchFile, toBlobURL } from "@ffmpeg/util";
+
+let ffmpeg: FFmpeg | null = null;
 
 export interface CompressionProgress {
   progress: number;
@@ -9,189 +9,83 @@ export interface CompressionProgress {
   status: string;
 }
 
-interface VideoMetadata {
-  width: number;
-  height: number;
-  isLandscape: boolean;
-}
+export const loadFFmpeg = async (): Promise<FFmpeg> => {
+  if (ffmpeg) return ffmpeg;
 
-const getVideoMetadata = async (file: File): Promise<VideoMetadata> => {
-  return new Promise((resolve, reject) => {
-    const video = document.createElement('video');
-    video.preload = 'metadata';
-    
-    video.onloadedmetadata = () => {
-      const width = video.videoWidth;
-      const height = video.videoHeight;
-      URL.revokeObjectURL(video.src);
-      resolve({
-        width,
-        height,
-        isLandscape: width > height
-      });
-    };
-    
-    video.onerror = () => {
-      URL.revokeObjectURL(video.src);
-      reject(new Error('Failed to load video metadata'));
-    };
-    
-    video.src = URL.createObjectURL(file);
+  ffmpeg = new FFmpeg();
+  
+  const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd";
+  
+  await ffmpeg.load({
+    coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
+    wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
   });
-};
 
-const cropVideoToSquare = async (
-  file: File,
-  metadata: VideoMetadata,
-  onProgress?: (progress: CompressionProgress) => void
-): Promise<Blob> => {
-  return new Promise((resolve, reject) => {
-    // 1. Create hidden video element to play the source
-    const video = document.createElement('video');
-    video.muted = true; // Mute to allow autoplay
-    video.playsInline = true;
-    
-    // 2. Create canvas with square dimensions
-    const canvas = document.createElement('canvas');
-    const size = metadata.height; // Use height as square size
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d');
-    
-    if (!ctx) {
-      reject(new Error('Failed to get canvas context'));
-      return;
-    }
-    
-    // 3. Calculate crop offset (center crop)
-    const offsetX = Math.round((metadata.width - metadata.height) / 2);
-    
-    // 4. Set up video event handlers
-    video.onloadedmetadata = () => {
-      const duration = video.duration;
-      
-      // Get canvas stream at 30fps
-      const canvasStream = canvas.captureStream(30);
-      
-      // Get audio from the original video and add to stream
-      const videoStream = (video as HTMLVideoElementWithCapture).captureStream();
-      const audioTracks = videoStream.getAudioTracks();
-      if (audioTracks.length > 0) {
-        canvasStream.addTrack(audioTracks[0]);
-      }
-      
-      // Set up MediaRecorder with fallback codec support
-      let mimeType = 'video/webm;codecs=vp9,opus';
-      if (!MediaRecorder.isTypeSupported(mimeType)) {
-        mimeType = 'video/webm;codecs=vp8,opus';
-        if (!MediaRecorder.isTypeSupported(mimeType)) {
-          mimeType = 'video/webm';
-        }
-      }
-      
-      const chunks: Blob[] = [];
-      const recorder = new MediaRecorder(canvasStream, { mimeType });
-      
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunks.push(e.data);
-      };
-      
-      recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'video/webm' });
-        URL.revokeObjectURL(video.src);
-        resolve(blob);
-      };
-      
-      recorder.onerror = (e) => {
-        URL.revokeObjectURL(video.src);
-        reject(new Error('MediaRecorder error: ' + e));
-      };
-      
-      // Draw frames at ~30fps
-      const drawFrame = () => {
-        if (video.paused || video.ended) return;
-        
-        // Draw cropped region from center
-        ctx.drawImage(
-          video,
-          offsetX, 0, size, size,  // Source: crop from center
-          0, 0, size, size          // Destination: full canvas
-        );
-        
-        // Report progress
-        if (onProgress) {
-          const progress = Math.min(Math.round((video.currentTime / duration) * 100), 99);
-          onProgress({
-            progress,
-            time: video.currentTime,
-            status: `Cropping to square... ${progress}%`
-          });
-        }
-        
-        requestAnimationFrame(drawFrame);
-      };
-      
-      // Start recording and playing
-      recorder.start();
-      video.play().catch(err => {
-        URL.revokeObjectURL(video.src);
-        reject(new Error('Failed to play video: ' + err));
-      });
-      drawFrame();
-      
-      // Stop when video ends
-      video.onended = () => {
-        if (onProgress) {
-          onProgress({
-            progress: 100,
-            time: duration,
-            status: 'Finalizing...'
-          });
-        }
-        recorder.stop();
-      };
-    };
-    
-    video.onerror = () => {
-      URL.revokeObjectURL(video.src);
-      reject(new Error('Failed to load video'));
-    };
-    
-    video.src = URL.createObjectURL(file);
-  });
+  return ffmpeg;
 };
 
 export const compressVideo = async (
   file: File,
-  cropMode: 'auto' | 'crop' | 'original',
   onProgress?: (progress: CompressionProgress) => void
 ): Promise<Blob> => {
+  const ffmpeg = await loadFFmpeg();
+
+  // Set up progress listener
+  ffmpeg.on("progress", ({ progress, time }) => {
+    if (onProgress) {
+      onProgress({
+        progress: Math.round(progress * 100),
+        time,
+        status: `Compressing... ${Math.round(progress * 100)}%`,
+      });
+    }
+  });
+
+  // Write input file
+  await ffmpeg.writeFile("input.mp4", await fetchFile(file));
+
   try {
-    const metadata = await getVideoMetadata(file);
-    console.log('📐 Video metadata:', metadata);
-    console.log('🎛️ Crop mode:', cropMode);
-    
-    // Decide whether to crop based on mode
-    let shouldCrop = false;
-    if (cropMode === 'crop') {
-      shouldCrop = true;
-      console.log('🎬 FORCE CROP - User selected crop to square');
-    } else if (cropMode === 'auto' && metadata.isLandscape) {
-      shouldCrop = true;
-      console.log('🎬 AUTO CROP - Landscape video detected, cropping to square');
-    } else {
-      console.log('✅ Keeping original format - no cropping');
-    }
-    
-    if (shouldCrop) {
-      return await cropVideoToSquare(file, metadata, onProgress);
-    }
-    
-    return file; // Return original
+    // Try to compress video while preserving original audio quality
+    // CRF 23 is good quality, lower = better quality but larger file
+    // preset 'medium' balances speed and compression
+    // -c:a copy preserves original audio without re-encoding
+    await ffmpeg.exec([
+      "-i", "input.mp4",
+      "-c:v", "libx264",
+      "-preset", "medium",
+      "-crf", "23",
+      "-c:a", "copy",
+      "-movflags", "+faststart",
+      "-y",
+      "output.mp4"
+    ]);
   } catch (error) {
-    console.error('❌ Video processing failed:', error);
-    throw error;
+    console.log("Audio copy failed, retrying with high-quality AAC encoding...");
+    
+    // Fallback: Re-encode audio with high-quality AAC if copy fails
+    await ffmpeg.exec([
+      "-i", "input.mp4",
+      "-c:v", "libx264",
+      "-preset", "medium",
+      "-crf", "23",
+      "-c:a", "aac",
+      "-b:a", "320k",
+      "-movflags", "+faststart",
+      "-y",
+      "output.mp4"
+    ]);
   }
+
+  // Read output file
+  const data = await ffmpeg.readFile("output.mp4") as Uint8Array;
+  
+  // Clean up
+  await ffmpeg.deleteFile("input.mp4");
+  await ffmpeg.deleteFile("output.mp4");
+
+  // Convert to standard Uint8Array to avoid SharedArrayBuffer issues
+  const standardArray = new Uint8Array(data);
+  return new Blob([standardArray], { type: "video/mp4" });
 };
 
 export const getVideoSize = (file: File | Blob): number => {

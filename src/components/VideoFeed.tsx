@@ -58,7 +58,7 @@ export const VideoFeed = () => {
             artistName: profile?.display_name || profile?.username || "Unknown Artist",
             artistUserId: v.user_id,
             rating: 0,
-            isFollowing: false,
+            isFollowing: false
           };
         });
 
