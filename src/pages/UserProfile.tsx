@@ -22,9 +22,10 @@ export default function UserProfile() {
     }
 
     const fetchProfile = async () => {
+      // Only select public fields - exclude email and created_by for security
       const { data, error } = await supabase
         .from("profiles")
-        .select("*")
+        .select("id, username, display_name, bio, avatar_url, website, followers_count, following_count, posts_count")
         .eq("id", userId)
         .maybeSingle();
 
@@ -197,9 +198,9 @@ export default function UserProfile() {
               {profile.bio || "No bio yet"}
             </div>
             
-            {/* Website and Email Links */}
-            <div className="mt-3 space-y-2">
-              {profile.website && (
+            {/* Website Link */}
+            {profile.website && (
+              <div className="mt-3">
                 <a
                   href={profile.website.startsWith('http') ? profile.website : `https://${profile.website}`}
                   target="_blank"
@@ -211,20 +212,8 @@ export default function UserProfile() {
                   </svg>
                   {profile.website}
                 </a>
-              )}
-              {profile.email && (
-                <a
-                  href={`mailto:${profile.email}`}
-                  className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors"
-                >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                  </svg>
-                  {profile.email}
-                </a>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Action Buttons */}
