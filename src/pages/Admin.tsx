@@ -9,7 +9,8 @@ import { toast } from "sonner";
 import { Plus, Upload, ChevronDown, ChevronRight, Trash2, Edit2, Mail, TrendingUp, Users, Video, Calendar } from "lucide-react";
 import { AdminMessageDialog } from "@/components/AdminMessageDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { format, subDays } from "date-fns";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { format, subDays, startOfWeek, startOfMonth, startOfYear } from "date-fns";
 
 
 interface VideoInput {
@@ -78,6 +79,39 @@ const Admin = () => {
     from: format(subDays(new Date(), 30), "yyyy-MM-dd"),
     to: format(new Date(), "yyyy-MM-dd"),
   });
+  const [datePreset, setDatePreset] = useState<string>("this-month");
+
+  const handleDatePresetChange = (preset: string) => {
+    setDatePreset(preset);
+    const today = new Date();
+    
+    switch (preset) {
+      case "this-week":
+        setDateRange({
+          from: format(startOfWeek(today, { weekStartsOn: 1 }), "yyyy-MM-dd"),
+          to: format(today, "yyyy-MM-dd"),
+        });
+        break;
+      case "this-month":
+        setDateRange({
+          from: format(startOfMonth(today), "yyyy-MM-dd"),
+          to: format(today, "yyyy-MM-dd"),
+        });
+        break;
+      case "this-year":
+        setDateRange({
+          from: format(startOfYear(today), "yyyy-MM-dd"),
+          to: format(today, "yyyy-MM-dd"),
+        });
+        break;
+      case "all-data":
+        setDateRange({
+          from: "2000-01-01",
+          to: format(today, "yyyy-MM-dd"),
+        });
+        break;
+    }
+  };
   const [videoForms, setVideoForms] = useState<Record<string, VideoForm>>({});
   const [editingUser, setEditingUser] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<{ username: string; display_name: string; email: string; bio: string; avatar: File | null }>({ username: "", display_name: "", email: "", bio: "", avatar: null });
@@ -1590,11 +1624,28 @@ const Admin = () => {
             {/* Date Range Filters */}
             <div className="flex gap-4 items-end">
               <div>
+                <label className="block text-sm font-medium text-foreground mb-2">Time Period</label>
+                <Select value={datePreset} onValueChange={handleDatePresetChange}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Select period" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="this-week">This Week</SelectItem>
+                    <SelectItem value="this-month">This Month</SelectItem>
+                    <SelectItem value="this-year">This Year</SelectItem>
+                    <SelectItem value="all-data">All Data</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-foreground mb-2">From Date</label>
                 <Input
                   type="date"
                   value={dateRange.from}
-                  onChange={(e) => setDateRange({ ...dateRange, from: e.target.value })}
+                  onChange={(e) => {
+                    setDateRange({ ...dateRange, from: e.target.value });
+                    setDatePreset("");
+                  }}
                   className="w-48"
                 />
               </div>
@@ -1603,7 +1654,10 @@ const Admin = () => {
                 <Input
                   type="date"
                   value={dateRange.to}
-                  onChange={(e) => setDateRange({ ...dateRange, to: e.target.value })}
+                  onChange={(e) => {
+                    setDateRange({ ...dateRange, to: e.target.value });
+                    setDatePreset("");
+                  }}
                   className="w-48"
                 />
               </div>
