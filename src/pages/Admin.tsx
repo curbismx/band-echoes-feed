@@ -10,8 +10,11 @@ import { Plus, Upload, ChevronDown, ChevronRight, Trash2, Edit2, Mail, TrendingU
 import { AdminMessageDialog } from "@/components/AdminMessageDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { format, subDays, startOfWeek, startOfMonth, startOfYear } from "date-fns";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { compressVideo, formatFileSize, getVideoSize, type CompressionProgress } from "@/utils/videoCompression";
 
 
 interface VideoInput {
@@ -31,6 +34,9 @@ interface VideoForm {
   uploading: boolean;
   searching: boolean;
   fileInputKey: number;
+  shouldCrop: 'auto' | 'crop' | 'original';
+  compressionProgress: CompressionProgress | null;
+  isCompressing: boolean;
 }
 
 interface UserForm {
@@ -54,6 +60,9 @@ const getDefaultVideoForm = (): VideoForm => ({
   uploading: false,
   searching: false,
   fileInputKey: Date.now(),
+  shouldCrop: 'auto',
+  compressionProgress: null,
+  isCompressing: false,
 });
 
 // Removed initialUsers - start fresh
@@ -641,7 +650,7 @@ const Admin = () => {
   };
   const handleSubmitAddVideo = async (userId: string) => {
     const form = videoForms[userId] || getDefaultVideoForm();
-    if (form.uploading) return;
+    if (form.uploading || form.isCompressing) return;
     try {
       if (!form.file) {
         toast.error("Please choose a video file");
@@ -651,7 +660,39 @@ const Admin = () => {
       // Set uploading state and show loading toast
       setVideoForms((prev) => ({
         ...prev,
-        [userId]: { ...(prev[userId] || getDefaultVideoForm()), ...form, uploading: true },
+        [userId]: { ...(prev[userId] || getDefaultVideoForm()), ...form, isCompressing: true },
+      }));
+
+      let fileToUpload: File | Blob = form.file;
+
+      // Process video with crop settings
+      try {
+        toast.info("Processing video...");
+        fileToUpload = await compressVideo(form.file, form.shouldCrop, (progress) => {
+          setVideoForms((prev) => ({
+            ...prev,
+            [userId]: { ...(prev[userId] || getDefaultVideoForm()), compressionProgress: progress },
+          }));
+        });
+        
+        const originalSize = getVideoSize(form.file);
+        const processedSize = getVideoSize(fileToUpload);
+        
+        toast.success(`Video processed! ${formatFileSize(originalSize)} → ${formatFileSize(processedSize)}`);
+      } catch (compressionError) {
+        console.error("❌ Video processing failed:", compressionError);
+        toast.error(compressionError instanceof Error ? compressionError.message : "Video processing failed");
+        setVideoForms((prev) => ({
+          ...prev,
+          [userId]: { ...(prev[userId] || getDefaultVideoForm()), isCompressing: false, compressionProgress: null },
+        }));
+        return; // Stop if processing fails
+      }
+
+      // Now upload
+      setVideoForms((prev) => ({
+        ...prev,
+        [userId]: { ...(prev[userId] || getDefaultVideoForm()), uploading: true, isCompressing: false },
       }));
       const toastId = (toast as any).loading ? (toast as any).loading("Uploading video...") : null;
 
@@ -660,7 +701,7 @@ const Admin = () => {
       const path = `${userId}/${Date.now()}.${ext}`;
       const { error: uploadError } = await supabase.storage
         .from("videos")
-        .upload(path, form.file);
+        .upload(path, fileToUpload);
       if (uploadError) throw uploadError;
 
       // Get public URL
@@ -705,7 +746,7 @@ const Admin = () => {
         if (current.file === null && current.title === "" && current.description === "" && current.uploading === false) {
           return prev;
         }
-        return { ...prev, [userId]: { ...current, uploading: false } };
+        return { ...prev, [userId]: { ...current, uploading: false, isCompressing: false, compressionProgress: null } };
       });
     }
   };
@@ -1399,7 +1440,7 @@ const Admin = () => {
                                       key={form.fileInputKey}
                                       type="file"
                                       accept="video/*"
-                                      disabled={form.uploading}
+                                      disabled={form.uploading || form.isCompressing}
                                       onChange={(e) => {
                                         const file = e.target.files?.[0] || null;
                                         setVideoForms((prev) => ({
@@ -1413,7 +1454,49 @@ const Admin = () => {
                                       }}
                                       className="block w-full text-xs text-muted-foreground file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
                                     />
+                                    {form.file && form.previewUrl && (
+                                      <video src={form.previewUrl} className="mt-2 w-full max-h-32 rounded object-contain bg-black" />
+                                    )}
                                   </div>
+
+                                  {/* Crop Control */}
+                                  {form.file && (
+                                    <div className="col-span-12">
+                                      <label className="block text-xs text-muted-foreground mb-2">Video Format</label>
+                                      <RadioGroup 
+                                        value={form.shouldCrop} 
+                                        onValueChange={(value) => setVideoForms((prev) => ({
+                                          ...prev,
+                                          [usr.id]: { ...(prev[usr.id] || getDefaultVideoForm()), shouldCrop: value as 'auto' | 'crop' | 'original' },
+                                        }))}
+                                        className="flex flex-wrap gap-4"
+                                      >
+                                        <div className="flex items-center space-x-2">
+                                          <RadioGroupItem value="auto" id={`auto-${usr.id}`} />
+                                          <Label htmlFor={`auto-${usr.id}`} className="text-xs cursor-pointer">
+                                            Auto (crop landscape to square)
+                                          </Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                          <RadioGroupItem value="crop" id={`crop-${usr.id}`} />
+                                          <Label htmlFor={`crop-${usr.id}`} className="text-xs cursor-pointer">
+                                            Force crop to square
+                                          </Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                          <RadioGroupItem value="original" id={`original-${usr.id}`} />
+                                          <Label htmlFor={`original-${usr.id}`} className="text-xs cursor-pointer">
+                                            Keep original format
+                                          </Label>
+                                        </div>
+                                      </RadioGroup>
+                                      {form.isCompressing && form.compressionProgress && (
+                                        <p className="text-xs text-muted-foreground mt-2">
+                                          {form.compressionProgress.status}
+                                        </p>
+                                      )}
+                                    </div>
+                                  )}
 
                                   {/* Title */}
                                   <div className="col-span-12 md:col-span-3">
@@ -1539,8 +1622,8 @@ const Admin = () => {
                                         <p className="mt-1 text-xs text-muted-foreground">Uploading...</p>
                                       </div>
                                     )}
-                                    <Button onClick={() => handleSubmitAddVideo(usr.id)} size="sm" disabled={!form.file || form.uploading}>
-                                      {form.uploading ? "Uploading..." : "Add Video"}
+                                    <Button onClick={() => handleSubmitAddVideo(usr.id)} size="sm" disabled={!form.file || form.uploading || form.isCompressing}>
+                                      {form.isCompressing ? "Processing..." : form.uploading ? "Uploading..." : "Add Video"}
                                     </Button>
                                   </div>
                                 </div>
