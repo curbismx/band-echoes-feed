@@ -11,6 +11,7 @@ import { AdminMessageDialog } from "@/components/AdminMessageDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format, subDays, startOfWeek, startOfMonth, startOfYear } from "date-fns";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 
 interface VideoInput {
@@ -75,6 +76,7 @@ const Admin = () => {
     avgVideosPerUser: number;
     usersWithVideos: number;
   } | null>(null);
+  const [userGrowthData, setUserGrowthData] = useState<Array<{ date: string; users: number }>>([]);
   const [dateRange, setDateRange] = useState({
     from: format(subDays(new Date(), 30), "yyyy-MM-dd"),
     to: format(new Date(), "yyyy-MM-dd"),
@@ -366,6 +368,32 @@ const Admin = () => {
       if (usersWithVideosError) throw usersWithVideosError;
 
       const uniqueUsersWithVideos = new Set(usersWithVideosData?.map(v => v.user_id) || []).size;
+
+      // Fetch user growth data for chart
+      const { data: allProfiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("created_at")
+        .order("created_at", { ascending: true });
+
+      if (profilesError) throw profilesError;
+
+      // Group users by date
+      const usersByDate: Record<string, number> = {};
+      let cumulativeCount = 0;
+
+      allProfiles?.forEach((profile) => {
+        const date = format(new Date(profile.created_at), "yyyy-MM-dd");
+        cumulativeCount++;
+        usersByDate[date] = cumulativeCount;
+      });
+
+      // Convert to array format for chart
+      const chartData = Object.entries(usersByDate).map(([date, users]) => ({
+        date,
+        users,
+      }));
+
+      setUserGrowthData(chartData);
 
       setAnalyticsData({
         totalUsers: totalUsers || 0,
@@ -1666,6 +1694,50 @@ const Admin = () => {
                 Refresh
               </Button>
             </div>
+
+            {/* User Growth Chart */}
+            {userGrowthData.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg font-semibold">User Growth Over Time</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[300px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={userGrowthData}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis 
+                          dataKey="date" 
+                          className="text-xs"
+                          tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                          tickFormatter={(value) => format(new Date(value), "MMM d")}
+                        />
+                        <YAxis 
+                          className="text-xs"
+                          tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                        />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'hsl(var(--card))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                            color: 'hsl(var(--card-foreground))'
+                          }}
+                          labelFormatter={(value) => format(new Date(value), "MMM d, yyyy")}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="users" 
+                          stroke="hsl(var(--primary))" 
+                          strokeWidth={2}
+                          dot={false}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Analytics Cards */}
             {analyticsData ? (
