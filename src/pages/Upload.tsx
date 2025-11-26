@@ -26,6 +26,8 @@ const Upload = () => {
   const [searching, setSearching] = useState(false);
   const [compressionProgress, setCompressionProgress] = useState<CompressionProgress | null>(null);
   const [isCompressing, setIsCompressing] = useState(false);
+  // LANDSCAPE VIDEO SQUARE CROP: Store detected aspect ratio
+  const [aspectRatio, setAspectRatio] = useState<string>("");
 
   // Fetch video data if editing
   useEffect(() => {
@@ -66,6 +68,24 @@ const Upload = () => {
       setSelectedVideo(file);
       const preview = URL.createObjectURL(file);
       setVideoPreview(preview);
+      
+      // LANDSCAPE VIDEO SQUARE CROP: Detect aspect ratio
+      const videoElement = document.createElement('video');
+      videoElement.preload = 'metadata';
+      videoElement.onloadedmetadata = () => {
+        const width = videoElement.videoWidth;
+        const height = videoElement.videoHeight;
+        let ratio = 'square';
+        if (width > height) {
+          ratio = 'landscape';
+        } else if (height > width) {
+          ratio = 'portrait';
+        }
+        setAspectRatio(ratio);
+        URL.revokeObjectURL(videoElement.src);
+      };
+      videoElement.src = preview;
+      
       setStep(2);
     } else {
       toast({
@@ -188,6 +208,7 @@ const Upload = () => {
         .filter(link => isValidUrl(link))
         .map(url => ({ url }));
 
+      // LANDSCAPE VIDEO SQUARE CROP: Save aspect ratio to database
       const { error: dbError } = await supabase
         .from("videos")
         .insert({
@@ -196,6 +217,7 @@ const Upload = () => {
           caption: caption || null,
           title: title || null,
           links: validLinks,
+          aspect_ratio: aspectRatio || null,
         });
 
       if (dbError) throw dbError;

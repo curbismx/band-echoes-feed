@@ -58,7 +58,8 @@ export const VideoFeed = () => {
             artistName: profile?.display_name || profile?.username || "Unknown Artist",
             artistUserId: v.user_id,
             rating: 0,
-            isFollowing: false
+            isFollowing: false,
+            aspectRatio: v.aspect_ratio // LANDSCAPE VIDEO SQUARE CROP: Pass aspect ratio to VideoCard
           };
         });
 

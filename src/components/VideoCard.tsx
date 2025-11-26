@@ -24,6 +24,7 @@ interface Video {
   caption?: string;
   links?: Array<{ url: string }>;
   posterUrl?: string;
+  aspectRatio?: string; // LANDSCAPE VIDEO SQUARE CROP: Add aspect ratio field
 }
 
 interface VideoCardProps {
@@ -165,16 +166,34 @@ export const VideoCard = ({
 
   return (
     <div className="relative h-screen w-screen bg-black">
-      <video
-        ref={videoRef}
-        src={video.videoUrl}
-        poster={video.posterUrl}
-        className="absolute inset-0 w-full h-full object-cover"
-        loop
-        muted
-        playsInline
-        onClick={onUnmute}
-      />
+      {/* LANDSCAPE VIDEO SQUARE CROP: Conditional rendering based on aspect ratio */}
+      {video.aspectRatio === 'landscape' ? (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="aspect-square w-full max-h-screen relative">
+            <video
+              ref={videoRef}
+              src={video.videoUrl}
+              poster={video.posterUrl}
+              className="w-full h-full object-cover"
+              loop
+              muted
+              playsInline
+              onClick={onUnmute}
+            />
+          </div>
+        </div>
+      ) : (
+        <video
+          ref={videoRef}
+          src={video.videoUrl}
+          poster={video.posterUrl}
+          className="absolute inset-0 w-full h-full object-cover"
+          loop
+          muted
+          playsInline
+          onClick={onUnmute}
+        />
+      )}
 
       {/* Tap to unmute */}
       {isMuted && (
