@@ -274,6 +274,16 @@ const Admin = () => {
 
       if (profilesError) throw profilesError;
 
+      // Fetch emails from profiles_private
+      const { data: privateData, error: privateError } = await supabase
+        .from("profiles_private")
+        .select("id, email");
+
+      if (privateError) throw privateError;
+
+      // Create a map of user_id to email
+      const emailMap = new Map(privateData?.map(p => [p.id, p.email]) || []);
+
       // Fetch admin roles for all users
       const { data: roles, error: rolesError } = await supabase
         .from("user_roles")
@@ -286,6 +296,7 @@ const Admin = () => {
 
       const usersWithRoles = profiles?.map(profile => ({
         ...profile,
+        email: emailMap.get(profile.id) || null,
         isAdmin: adminIds.has(profile.id),
       })) || [];
 
