@@ -59,87 +59,99 @@ export const compressVideo = async (
   file: File,
   onProgress?: (progress: CompressionProgress) => void
 ): Promise<Blob> => {
-  const ffmpeg = await loadFFmpeg();
-  
-  // Get video metadata to check if we need to crop
-  const metadata = await getVideoMetadata(file);
-  console.log('Video metadata:', metadata);
-
-  // Set up progress listener
-  ffmpeg.on("progress", ({ progress, time }) => {
-    if (onProgress) {
-      onProgress({
-        progress: Math.round(progress * 100),
-        time,
-        status: metadata.isLandscape 
-          ? `Cropping to square... ${Math.round(progress * 100)}%`
-          : `Compressing... ${Math.round(progress * 100)}%`,
-      });
-    }
-  });
-
-  // Write input file
-  await ffmpeg.writeFile("input.mp4", await fetchFile(file));
-
   try {
-    // Build FFmpeg command based on whether video is landscape
-    const ffmpegArgs = ["-i", "input.mp4"];
+    const ffmpeg = await loadFFmpeg();
+    
+    // Get video metadata to check if we need to crop
+    console.log('Getting video metadata...');
+    const metadata = await getVideoMetadata(file);
+    console.log('Video metadata:', metadata);
     
     if (metadata.isLandscape) {
-      // Crop landscape video to square (centered)
-      // crop=height:height:(width-height)/2:0
-      const cropFilter = `crop=${metadata.height}:${metadata.height}:${(metadata.width - metadata.height) / 2}:0`;
-      ffmpegArgs.push("-vf", cropFilter);
-      console.log('Applying crop filter:', cropFilter);
+      console.log('🎬 LANDSCAPE VIDEO DETECTED - Will crop to square');
     }
+
+    // Set up progress listener
+    ffmpeg.on("progress", ({ progress, time }) => {
+      if (onProgress) {
+        onProgress({
+          progress: Math.round(progress * 100),
+          time,
+          status: metadata.isLandscape 
+            ? `Cropping to square... ${Math.round(progress * 100)}%`
+            : `Compressing... ${Math.round(progress * 100)}%`,
+        });
+      }
+    });
+
+    // Write input file
+    await ffmpeg.writeFile("input.mp4", await fetchFile(file));
+
+    try {
+      // Build FFmpeg command based on whether video is landscape
+      const ffmpegArgs = ["-i", "input.mp4"];
+      
+      if (metadata.isLandscape) {
+        // Crop landscape video to square (centered)
+        const cropFilter = `crop=${metadata.height}:${metadata.height}:${Math.round((metadata.width - metadata.height) / 2)}:0`;
+        ffmpegArgs.push("-vf", cropFilter);
+        console.log('🎬 Applying crop filter:', cropFilter);
+      }
+      
+      // Add compression settings
+      ffmpegArgs.push(
+        "-c:v", "libx264",
+        "-preset", "medium",
+        "-crf", "23",
+        "-c:a", "copy",
+        "-movflags", "+faststart",
+        "-y",
+        "output.mp4"
+      );
+      
+      console.log('Executing FFmpeg with args:', ffmpegArgs.join(' '));
+      await ffmpeg.exec(ffmpegArgs);
+    } catch (error) {
+      console.log("Audio copy failed, retrying with high-quality AAC encoding...");
+      
+      // Fallback: Re-encode audio with high-quality AAC if copy fails
+      const ffmpegArgs = ["-i", "input.mp4"];
+      
+      if (metadata.isLandscape) {
+        const cropFilter = `crop=${metadata.height}:${metadata.height}:${Math.round((metadata.width - metadata.height) / 2)}:0`;
+        ffmpegArgs.push("-vf", cropFilter);
+        console.log('🎬 Applying crop filter (retry):', cropFilter);
+      }
+      
+      ffmpegArgs.push(
+        "-c:v", "libx264",
+        "-preset", "medium",
+        "-crf", "23",
+        "-c:a", "aac",
+        "-b:a", "320k",
+        "-movflags", "+faststart",
+        "-y",
+        "output.mp4"
+      );
+      
+      await ffmpeg.exec(ffmpegArgs);
+    }
+
+    // Read output file
+    const data = await ffmpeg.readFile("output.mp4") as Uint8Array;
     
-    // Add compression settings
-    ffmpegArgs.push(
-      "-c:v", "libx264",
-      "-preset", "medium",
-      "-crf", "23",
-      "-c:a", "copy",
-      "-movflags", "+faststart",
-      "-y",
-      "output.mp4"
-    );
-    
-    await ffmpeg.exec(ffmpegArgs);
+    // Clean up
+    await ffmpeg.deleteFile("input.mp4");
+    await ffmpeg.deleteFile("output.mp4");
+
+    // Convert to standard Uint8Array to avoid SharedArrayBuffer issues
+    const standardArray = new Uint8Array(data);
+    console.log('✅ Video processing complete');
+    return new Blob([standardArray], { type: "video/mp4" });
   } catch (error) {
-    console.log("Audio copy failed, retrying with high-quality AAC encoding...");
-    
-    // Fallback: Re-encode audio with high-quality AAC if copy fails
-    const ffmpegArgs = ["-i", "input.mp4"];
-    
-    if (metadata.isLandscape) {
-      const cropFilter = `crop=${metadata.height}:${metadata.height}:${(metadata.width - metadata.height) / 2}:0`;
-      ffmpegArgs.push("-vf", cropFilter);
-    }
-    
-    ffmpegArgs.push(
-      "-c:v", "libx264",
-      "-preset", "medium",
-      "-crf", "23",
-      "-c:a", "aac",
-      "-b:a", "320k",
-      "-movflags", "+faststart",
-      "-y",
-      "output.mp4"
-    );
-    
-    await ffmpeg.exec(ffmpegArgs);
+    console.error('❌ Video processing failed:', error);
+    throw error;
   }
-
-  // Read output file
-  const data = await ffmpeg.readFile("output.mp4") as Uint8Array;
-  
-  // Clean up
-  await ffmpeg.deleteFile("input.mp4");
-  await ffmpeg.deleteFile("output.mp4");
-
-  // Convert to standard Uint8Array to avoid SharedArrayBuffer issues
-  const standardArray = new Uint8Array(data);
-  return new Blob([standardArray], { type: "video/mp4" });
 };
 
 export const getVideoSize = (file: File | Blob): number => {
