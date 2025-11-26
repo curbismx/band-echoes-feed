@@ -157,13 +157,16 @@ const Upload = () => {
           description: `Size: ${formatFileSize(originalSize)} → ${formatFileSize(compressedSize)} (${savedPercent}% saved)`,
         });
       } catch (compressionError) {
-        console.error("Compression failed:", compressionError);
+        console.error("❌ Video processing failed:", compressionError);
         toast({
-          title: "Compression failed",
-          description: "Uploading original video instead",
+          title: "Video processing failed",
+          description: compressionError instanceof Error ? compressionError.message : "Please try again with a different video",
           variant: "destructive",
         });
-        // Continue with original file if compression fails
+        setIsUploading(false);
+        setIsCompressing(false);
+        setCompressionProgress(null);
+        return; // STOP - don't upload if processing fails
       } finally {
         setIsCompressing(false);
         setCompressionProgress(null);
