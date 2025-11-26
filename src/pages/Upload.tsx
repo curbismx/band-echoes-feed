@@ -91,6 +91,7 @@ const Upload = () => {
         setStep(2); // Proceed anyway if metadata fails to load
       };
       videoElement.src = preview;
+      videoElement.load(); // LANDSCAPE VIDEO SQUARE CROP: Explicitly trigger metadata load
     } else {
       toast({
         title: "Invalid file",
