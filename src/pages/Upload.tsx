@@ -70,8 +70,10 @@ const Upload = () => {
       setVideoPreview(preview);
       
       // LANDSCAPE VIDEO SQUARE CROP: Detect aspect ratio
+      console.log('LANDSCAPE VIDEO SQUARE CROP: Starting aspect ratio detection');
       const videoElement = document.createElement('video');
       videoElement.preload = 'metadata';
+      
       videoElement.onloadedmetadata = () => {
         const width = videoElement.videoWidth;
         const height = videoElement.videoHeight;
@@ -86,12 +88,15 @@ const Upload = () => {
         URL.revokeObjectURL(videoElement.src);
         setStep(2);
       };
-      videoElement.onerror = () => {
-        console.error('LANDSCAPE VIDEO SQUARE CROP: Failed to load video metadata');
+      
+      videoElement.onerror = (e) => {
+        console.error('LANDSCAPE VIDEO SQUARE CROP: Failed to load video metadata', e);
         setStep(2); // Proceed anyway if metadata fails to load
       };
+      
+      console.log('LANDSCAPE VIDEO SQUARE CROP: Setting video src and calling load()');
       videoElement.src = preview;
-      videoElement.load(); // LANDSCAPE VIDEO SQUARE CROP: Explicitly trigger metadata load
+      videoElement.load();
     } else {
       toast({
         title: "Invalid file",
