@@ -41,8 +41,18 @@ export default function EditProfile() {
         setDisplayName(data.display_name || "");
         setBio(data.bio || "");
         setWebsite(data.website || "");
-        setEmail(data.email || "");
         setAvatarPreview(data.avatar_url || "");
+      }
+
+      // Fetch email from profiles_private
+      const { data: privateData } = await supabase
+        .from("profiles_private")
+        .select("email")
+        .eq("id", user.id)
+        .single();
+
+      if (privateData) {
+        setEmail(privateData.email || "");
       }
     };
 
@@ -97,13 +107,22 @@ export default function EditProfile() {
           display_name: displayName,
           bio,
           website,
-          email,
           avatar_url: avatarUrl,
         })
         .eq("id", profile.id);
 
       if (updateError) {
         throw updateError;
+      }
+
+      // Update email in profiles_private
+      const { error: emailError } = await supabase
+        .from("profiles_private")
+        .update({ email })
+        .eq("id", profile.id);
+
+      if (emailError) {
+        throw emailError;
       }
 
       toast({

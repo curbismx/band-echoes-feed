@@ -233,9 +233,7 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           created_at: string
-          created_by: string | null
           display_name: string | null
-          email: string | null
           followers_count: number | null
           following_count: number | null
           id: string
@@ -248,9 +246,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
-          created_by?: string | null
           display_name?: string | null
-          email?: string | null
           followers_count?: number | null
           following_count?: number | null
           id: string
@@ -263,9 +259,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
-          created_by?: string | null
           display_name?: string | null
-          email?: string | null
           followers_count?: number | null
           following_count?: number | null
           id?: string
@@ -273,6 +267,30 @@ export type Database = {
           updated_at?: string
           username?: string | null
           website?: string | null
+        }
+        Relationships: []
+      }
+      profiles_private: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          email: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string
         }
         Relationships: []
       }

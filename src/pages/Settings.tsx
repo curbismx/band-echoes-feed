@@ -188,7 +188,7 @@ const Settings = () => {
     try {
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, username, display_name, email, avatar_url")
+        .select("id, username, display_name, avatar_url")
         .order("created_at", { ascending: false });
 
       if (profilesError) throw profilesError;
@@ -217,11 +217,23 @@ const Settings = () => {
     }
 
     try {
-      // Find user by email
+      // Find user by email from profiles_private
+      const { data: privateProfile, error: privateError } = await supabase
+        .from("profiles_private")
+        .select("id, email")
+        .eq("email", adminEmail.trim())
+        .single();
+
+      if (privateError || !privateProfile) {
+        toast.error("User with this email not found");
+        return;
+      }
+
+      // Get profile data
       const { data: profiles, error: profileError } = await supabase
         .from("profiles")
-        .select("id, email, display_name")
-        .eq("email", adminEmail.trim())
+        .select("id, display_name")
+        .eq("id", privateProfile.id)
         .single();
 
       if (profileError || !profiles) {
@@ -243,7 +255,7 @@ const Settings = () => {
         return;
       }
 
-      toast.success(`Admin role granted to ${profiles.display_name || profiles.email}`);
+      toast.success(`Admin role granted to ${profiles?.display_name || adminEmail}`);
       setAdminEmail("");
       fetchAdmins();
     } catch (error: any) {
