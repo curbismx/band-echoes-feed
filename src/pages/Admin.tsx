@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Plus, Upload, ChevronDown, ChevronRight, Trash2, Edit2, Mail } from "lucide-react";
+import { Plus, Upload, ChevronDown, ChevronRight, Trash2, Edit2, Mail, TrendingUp, Users, Video, Calendar } from "lucide-react";
 import { AdminMessageDialog } from "@/components/AdminMessageDialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { format, subDays } from "date-fns";
 
 
 interface VideoInput {
@@ -63,7 +65,19 @@ const Admin = () => {
   const [createdUsers, setCreatedUsers] = useState<any[]>([]);
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [searchEmail, setSearchEmail] = useState("");
-  const [activeTab, setActiveTab] = useState<"accounts" | "users">("accounts");
+  const [activeTab, setActiveTab] = useState<"accounts" | "users" | "analytics">("accounts");
+  const [analyticsData, setAnalyticsData] = useState<{
+    totalUsers: number;
+    totalVideos: number;
+    newUsersInRange: number;
+    videosInRange: number;
+    avgVideosPerUser: number;
+    usersWithVideos: number;
+  } | null>(null);
+  const [dateRange, setDateRange] = useState({
+    from: format(subDays(new Date(), 30), "yyyy-MM-dd"),
+    to: format(new Date(), "yyyy-MM-dd"),
+  });
   const [videoForms, setVideoForms] = useState<Record<string, VideoForm>>({});
   const [editingUser, setEditingUser] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<{ username: string; display_name: string; email: string; bio: string; avatar: File | null }>({ username: "", display_name: "", email: "", bio: "", avatar: null });
@@ -133,7 +147,10 @@ const Admin = () => {
     if (isAdmin && activeTab === "accounts") {
       fetchCreatedUsers();
     }
-  }, [isAdmin, activeTab]);
+    if (isAdmin && activeTab === "analytics") {
+      fetchAnalyticsData();
+    }
+  }, [isAdmin, activeTab, dateRange]);
 
   const fetchCreatedUsers = async () => {
     if (!user) return;
@@ -270,6 +287,63 @@ const Admin = () => {
     } catch (error: any) {
       console.error("Error toggling admin role:", error);
       toast.error(error.message || "Failed to update admin role");
+    }
+  };
+
+  const fetchAnalyticsData = async () => {
+    try {
+      // Total users
+      const { count: totalUsers, error: usersError } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true });
+
+      if (usersError) throw usersError;
+
+      // Total videos
+      const { count: totalVideos, error: videosError } = await supabase
+        .from("videos")
+        .select("*", { count: "exact", head: true });
+
+      if (videosError) throw videosError;
+
+      // New users in date range
+      const { count: newUsersInRange, error: newUsersError } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .gte("created_at", dateRange.from)
+        .lte("created_at", dateRange.to);
+
+      if (newUsersError) throw newUsersError;
+
+      // Videos uploaded in date range
+      const { count: videosInRange, error: videosRangeError } = await supabase
+        .from("videos")
+        .select("*", { count: "exact", head: true })
+        .gte("created_at", dateRange.from)
+        .lte("created_at", dateRange.to);
+
+      if (videosRangeError) throw videosRangeError;
+
+      // Users with at least one video
+      const { data: usersWithVideosData, error: usersWithVideosError } = await supabase
+        .from("videos")
+        .select("user_id");
+
+      if (usersWithVideosError) throw usersWithVideosError;
+
+      const uniqueUsersWithVideos = new Set(usersWithVideosData?.map(v => v.user_id) || []).size;
+
+      setAnalyticsData({
+        totalUsers: totalUsers || 0,
+        totalVideos: totalVideos || 0,
+        newUsersInRange: newUsersInRange || 0,
+        videosInRange: videosInRange || 0,
+        avgVideosPerUser: totalUsers ? Number((totalVideos! / totalUsers).toFixed(2)) : 0,
+        usersWithVideos: uniqueUsersWithVideos,
+      });
+    } catch (error: any) {
+      console.error("Error fetching analytics:", error);
+      toast.error("Failed to load analytics");
     }
   };
 
@@ -851,6 +925,16 @@ const Admin = () => {
             }`}
           >
             Users
+          </button>
+          <button 
+            onClick={() => setActiveTab("analytics")}
+            className={`text-xl font-normal transition-colors ${
+              activeTab === "analytics"
+                ? "text-primary border-b-2 border-primary pb-1"
+                : "text-foreground hover:text-primary"
+            }`}
+          >
+            Analytics
           </button>
           <button 
             onClick={() => navigate("/settings")}
@@ -1499,6 +1583,183 @@ const Admin = () => {
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {activeTab === "analytics" && (
+          <div className="space-y-6">
+            {/* Date Range Filters */}
+            <div className="flex gap-4 items-end">
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">From Date</label>
+                <Input
+                  type="date"
+                  value={dateRange.from}
+                  onChange={(e) => setDateRange({ ...dateRange, from: e.target.value })}
+                  className="w-48"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">To Date</label>
+                <Input
+                  type="date"
+                  value={dateRange.to}
+                  onChange={(e) => setDateRange({ ...dateRange, to: e.target.value })}
+                  className="w-48"
+                />
+              </div>
+              <Button onClick={fetchAnalyticsData} variant="outline">
+                <Calendar className="w-4 h-4 mr-2" />
+                Refresh
+              </Button>
+            </div>
+
+            {/* Analytics Cards */}
+            {analyticsData ? (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {/* Total Users */}
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{analyticsData.totalUsers}</div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      All registered users
+                    </p>
+                  </CardContent>
+                </Card>
+
+                {/* New Users in Range */}
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">New Users (Selected Period)</CardTitle>
+                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{analyticsData.newUsersInRange}</div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {format(new Date(dateRange.from), "MMM d")} - {format(new Date(dateRange.to), "MMM d, yyyy")}
+                    </p>
+                  </CardContent>
+                </Card>
+
+                {/* Total Videos */}
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Videos</CardTitle>
+                    <Video className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{analyticsData.totalVideos}</div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      All uploaded videos
+                    </p>
+                  </CardContent>
+                </Card>
+
+                {/* Videos in Range */}
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Videos (Selected Period)</CardTitle>
+                    <Video className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{analyticsData.videosInRange}</div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Uploaded in selected range
+                    </p>
+                  </CardContent>
+                </Card>
+
+                {/* Average Videos Per User */}
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Avg Videos Per User</CardTitle>
+                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{analyticsData.avgVideosPerUser}</div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Videos / users ratio
+                    </p>
+                  </CardContent>
+                </Card>
+
+                {/* Users with Videos */}
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Active Content Creators</CardTitle>
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{analyticsData.usersWithVideos}</div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Users with at least 1 video
+                    </p>
+                  </CardContent>
+                </Card>
+
+                {/* User Engagement Rate */}
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Engagement Rate</CardTitle>
+                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      {analyticsData.totalUsers > 0 
+                        ? `${((analyticsData.usersWithVideos / analyticsData.totalUsers) * 100).toFixed(1)}%`
+                        : "0%"}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Users who uploaded content
+                    </p>
+                  </CardContent>
+                </Card>
+
+                {/* User Growth */}
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">User Growth Rate</CardTitle>
+                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      {analyticsData.totalUsers > 0 
+                        ? `${((analyticsData.newUsersInRange / analyticsData.totalUsers) * 100).toFixed(1)}%`
+                        : "0%"}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      New users vs total users
+                    </p>
+                  </CardContent>
+                </Card>
+
+                {/* Content Growth */}
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Content Growth Rate</CardTitle>
+                    <Video className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      {analyticsData.totalVideos > 0 
+                        ? `${((analyticsData.videosInRange / analyticsData.totalVideos) * 100).toFixed(1)}%`
+                        : "0%"}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      New videos vs total videos
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                Loading analytics data...
+              </div>
+            )}
           </div>
         )}
       </div>
