@@ -274,15 +274,22 @@ const Admin = () => {
 
       if (profilesError) throw profilesError;
 
+      console.log("Fetching emails from profiles_private...");
       // Fetch emails from profiles_private
       const { data: privateData, error: privateError } = await supabase
         .from("profiles_private")
         .select("id, email");
 
-      if (privateError) throw privateError;
+      console.log("Private data result:", { privateData, privateError });
+
+      if (privateError) {
+        console.error("Error fetching profiles_private:", privateError);
+        throw privateError;
+      }
 
       // Create a map of user_id to email
       const emailMap = new Map(privateData?.map(p => [p.id, p.email]) || []);
+      console.log("Email map created:", emailMap.size, "entries");
 
       // Fetch admin roles for all users
       const { data: roles, error: rolesError } = await supabase
@@ -621,12 +628,8 @@ const Admin = () => {
         avatar_base64,
         avatar_ext,
         created_by: user?.id,
+        email: useEmail, // Always pass the email that was used to create the auth user
       };
-      
-      // Only include email if user provided one
-      if (emailToSave) {
-        updatePayload.email = emailToSave;
-      }
 
       const { data: updateData, error: updateError } = await supabase.functions.invoke("admin-update-profile", {
         body: updatePayload,

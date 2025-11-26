@@ -142,8 +142,6 @@ serve(async (req) => {
       const insertPayload: Record<string, unknown> = { id: user_id };
       if (typeof username === 'string') insertPayload.username = username;
       if (typeof display_name === 'string') insertPayload.display_name = display_name;
-      if (typeof email === 'string') insertPayload.email = email;
-      if (typeof created_by === 'string') insertPayload.created_by = created_by;
 
       const { error: insErr } = await serviceClient.from('profiles').insert(insertPayload);
       if (insErr) {
@@ -157,14 +155,12 @@ serve(async (req) => {
       }
     }
 
-    // Update remaining fields
+    // Update profiles table fields
     const updatePayload: Record<string, unknown> = {};
     if (typeof bio === 'string') updatePayload.bio = bio;
     if (avatar_url !== undefined) updatePayload.avatar_url = avatar_url;
     if (typeof username === 'string') updatePayload.username = username;
     if (typeof display_name === 'string') updatePayload.display_name = display_name;
-    if (typeof email === 'string') updatePayload.email = email;
-    if (typeof created_by === 'string') updatePayload.created_by = created_by;
 
     if (Object.keys(updatePayload).length > 0) {
       const { error: profileError } = await serviceClient
@@ -176,6 +172,45 @@ serve(async (req) => {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
+      }
+    }
+
+    // Update profiles_private table with email and created_by
+    const privatePayload: Record<string, unknown> = {};
+    if (typeof email === 'string') privatePayload.email = email;
+    if (typeof created_by === 'string') privatePayload.created_by = created_by;
+
+    if (Object.keys(privatePayload).length > 0) {
+      // Ensure profiles_private row exists first
+      const { data: existingPrivate } = await serviceClient
+        .from('profiles_private')
+        .select('id')
+        .eq('id', user_id)
+        .maybeSingle();
+
+      if (!existingPrivate) {
+        // Insert if doesn't exist
+        const { error: insPrivErr } = await serviceClient
+          .from('profiles_private')
+          .insert({ id: user_id, ...privatePayload });
+        if (insPrivErr && (!('code' in insPrivErr) || insPrivErr.code !== '23505')) {
+          return new Response(JSON.stringify({ error: insPrivErr.message }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      } else {
+        // Update if exists
+        const { error: privateError } = await serviceClient
+          .from('profiles_private')
+          .update(privatePayload)
+          .eq('id', user_id);
+        if (privateError) {
+          return new Response(JSON.stringify({ error: privateError.message }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
       }
     }
 
