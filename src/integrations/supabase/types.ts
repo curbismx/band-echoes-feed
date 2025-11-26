@@ -412,7 +412,6 @@ export type Database = {
       }
       videos: {
         Row: {
-          aspect_ratio: string | null
           caption: string | null
           created_at: string
           id: string
@@ -426,7 +425,6 @@ export type Database = {
           views_count: number | null
         }
         Insert: {
-          aspect_ratio?: string | null
           caption?: string | null
           created_at?: string
           id?: string
@@ -440,7 +438,6 @@ export type Database = {
           views_count?: number | null
         }
         Update: {
-          aspect_ratio?: string | null
           caption?: string | null
           created_at?: string
           id?: string
