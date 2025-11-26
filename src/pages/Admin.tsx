@@ -140,7 +140,7 @@ const Admin = () => {
     try {
       const { data: profiles, error } = await supabase
         .from("profiles")
-        .select("id, username, display_name, email, avatar_url, bio, created_at")
+        .select("id, username, display_name, avatar_url, bio, created_at")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -216,7 +216,7 @@ const Admin = () => {
     try {
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, username, display_name, email, avatar_url")
+        .select("id, username, display_name, avatar_url")
         .order("created_at", { ascending: false });
 
       if (profilesError) throw profilesError;
