@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
+import { Share } from "@capacitor/share";
 import starIcon from "@/assets/star.png";
 import starOnIcon from "@/assets/star-on.png";
 import starSingleIcon from "@/assets/star-single.png";
@@ -168,52 +169,52 @@ export const ActionButtons = ({
     onLike();
   };
 
+  const fallbackToClipboard = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({
+        title: "Link copied!",
+        description: "Video link copied to clipboard",
+      });
+    } catch (err) {
+      toast({
+        title: "Share failed",
+        description: "Unable to share or copy link",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleShare = async () => {
     triggerHaptic();
 
-    const url = window.location.href;
-    const shareData = {
-      title: videoTitle,
-      text: artistName ? `${videoTitle} by ${artistName}` : videoTitle,
-      url: url
-    };
+    const shareUrl = `${window.location.origin}/video/${videoId}`;
+    const shareText = artistName ? `${videoTitle} by ${artistName}` : videoTitle;
 
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-      } catch (err) {
-        // User cancelled or share failed
-        if (err instanceof Error && err.name !== 'AbortError') {
-          // Share failed, copy to clipboard
-          try {
-            await navigator.clipboard.writeText(url);
-            toast({
-              title: "Link copied!",
-              description: "Video link copied to clipboard",
-            });
-          } catch (clipboardErr) {
-            toast({
-              title: "Share failed",
-              description: "Unable to share or copy link",
-              variant: "destructive",
-            });
+    try {
+      // Try native share first (Capacitor)
+      await Share.share({
+        title: videoTitle,
+        text: shareText,
+        url: shareUrl,
+        dialogTitle: 'Share this video',
+      });
+    } catch (err) {
+      // Fallback to Web Share API
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: videoTitle,
+            text: shareText,
+            url: shareUrl,
+          });
+        } catch (webErr) {
+          if (webErr instanceof Error && webErr.name !== 'AbortError') {
+            fallbackToClipboard(shareUrl);
           }
         }
-      }
-    } else {
-      // Fallback for browsers that don't support Web Share API
-      try {
-        await navigator.clipboard.writeText(url);
-        toast({
-          title: "Link copied!",
-          description: "Video link copied to clipboard",
-        });
-      } catch (err) {
-        toast({
-          title: "Copy failed",
-          description: "Unable to copy link to clipboard",
-          variant: "destructive",
-        });
+      } else {
+        fallbackToClipboard(shareUrl);
       }
     }
   };
