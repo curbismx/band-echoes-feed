@@ -204,8 +204,8 @@ export const VideoCard = ({
           {video.artistName}
         </button>
         {video.title && <div className="font-medium text-white drop-shadow-lg mb-1 line-clamp-2">{video.title}</div>}
-        {video.caption && <div className="text-white drop-shadow-lg text-sm mb-3 line-clamp-2">{video.caption}</div>}
-        <div className="flex gap-8 items-center">
+        {video.caption && <div className="text-white drop-shadow-lg text-sm line-clamp-2">{video.caption}</div>}
+        <div className="flex gap-8 items-center mt-3">
           <button onClick={(e) => { e.stopPropagation(); handleFollow(); }}>
             <img src={isFollowing ? followedIcon : infoFollowIcon} alt="" className="h-8 w-auto" />
           </button>
