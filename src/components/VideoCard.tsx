@@ -15,6 +15,7 @@ import { VolumeX } from "lucide-react";
 interface Video {
   id: string;
   artistName: string;
+  artistAvatar?: string | null;
   artistUserId: string;
   videoUrl: string;
   likes: number;
@@ -46,7 +47,7 @@ export const VideoCard = ({
   const [isFollowing, setIsFollowing] = useState(video.isFollowing);
   const [isLiked, setIsLiked] = useState(false);
   const [likes, setLikes] = useState(video.likes);
-  const [artistAvatar, setArtistAvatar] = useState<string>("");
+  const [artistAvatar, setArtistAvatar] = useState<string>(video.artistAvatar || "");
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
 
@@ -75,21 +76,10 @@ export const VideoCard = ({
     checkFavorite();
   }, [video.id]);
 
-  // Fetch artist profile avatar
+  // Sync artist avatar with video prop
   useEffect(() => {
-    if (!video.artistUserId) return;
-    const fetchArtistProfile = async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("avatar_url")
-        .eq("id", video.artistUserId)
-        .maybeSingle();
-      if (data?.avatar_url) {
-        setArtistAvatar(data.avatar_url);
-      }
-    };
-    fetchArtistProfile();
-  }, [video.artistUserId]);
+    setArtistAvatar(video.artistAvatar || "");
+  }, [video.artistAvatar]);
 
   // Check follow status
   useEffect(() => {
@@ -195,7 +185,7 @@ export const VideoCard = ({
       >
         <button onClick={(e) => { e.stopPropagation(); navigate(`/user/${video.artistUserId}`); }} className="block bg-transparent border-0 p-0 m-0">
           <img 
-            src={artistAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(video.artistName)}&background=random&color=fff&size=64`} 
+            src={artistAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(video.artistName)}&background=${video.artistUserId.slice(0, 6)}&color=fff&size=64`} 
             alt="" 
             className="w-8 h-8 rounded-full object-cover mb-2 border-2 border-white" 
           />

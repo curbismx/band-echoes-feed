@@ -43,7 +43,7 @@ export const VideoFeed = () => {
         const userIds = [...new Set(videosData.map(v => v.user_id))];
         const { data: profilesData } = await supabase
           .from("profiles")
-          .select("id, display_name, username")
+          .select("id, display_name, username, avatar_url")
           .in("id", userIds);
 
         const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
@@ -56,6 +56,7 @@ export const VideoFeed = () => {
             videoUrl: v.video_url,
             likes: v.likes_count || 0,
             artistName: profile?.display_name || profile?.username || "Unknown Artist",
+            artistAvatar: profile?.avatar_url || null,
             artistUserId: v.user_id,
             rating: 0,
             isFollowing: false
