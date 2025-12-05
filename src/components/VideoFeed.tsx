@@ -2,6 +2,41 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { VideoCard } from "./VideoCard";
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { Preferences } from '@capacitor/preferences';
+
+// Storage keys for persistent progress tracking
+const STORAGE_KEYS = {
+  CURRENT_INDEX: 'video_feed_current_index',
+  WATCHED_IDS: 'video_feed_watched_ids',
+  LAST_VIDEO_ID: 'video_feed_last_video_id',
+};
+
+const saveProgress = async (index: number, videoId: string, watchedIds: string[]) => {
+  try {
+    await Preferences.set({ key: STORAGE_KEYS.CURRENT_INDEX, value: index.toString() });
+    await Preferences.set({ key: STORAGE_KEYS.LAST_VIDEO_ID, value: videoId });
+    await Preferences.set({ key: STORAGE_KEYS.WATCHED_IDS, value: JSON.stringify(watchedIds) });
+  } catch (e) {
+    console.error('Failed to save progress:', e);
+  }
+};
+
+const loadProgress = async (): Promise<{ lastIndex: number; lastVideoId: string | null; watchedIds: string[] }> => {
+  try {
+    const indexResult = await Preferences.get({ key: STORAGE_KEYS.CURRENT_INDEX });
+    const videoIdResult = await Preferences.get({ key: STORAGE_KEYS.LAST_VIDEO_ID });
+    const watchedResult = await Preferences.get({ key: STORAGE_KEYS.WATCHED_IDS });
+    
+    return {
+      lastIndex: indexResult.value ? parseInt(indexResult.value, 10) : 0,
+      lastVideoId: videoIdResult.value || null,
+      watchedIds: watchedResult.value ? JSON.parse(watchedResult.value) : [],
+    };
+  } catch (e) {
+    console.error('Failed to load progress:', e);
+    return { lastIndex: 0, lastVideoId: null, watchedIds: [] };
+  }
+};
 
 export const VideoFeed = () => {
   const location = useLocation();
@@ -11,6 +46,8 @@ export const VideoFeed = () => {
   const [isAnyDrawerOpen, setIsAnyDrawerOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [watchedIds, setWatchedIds] = useState<string[]>([]);
+  const [progressLoaded, setProgressLoaded] = useState(false);
   
   const containerRef = useRef<HTMLDivElement>(null);
   const isScrolling = useRef(false);
@@ -21,6 +58,10 @@ export const VideoFeed = () => {
       try {
         setLoading(true);
         setError(null);
+        
+        // Load saved progress first
+        const { lastIndex, lastVideoId, watchedIds: savedWatchedIds } = await loadProgress();
+        setWatchedIds(savedWatchedIds);
         
         const { data: videosData, error: videosError } = await supabase
           .from("videos")
@@ -67,18 +108,34 @@ export const VideoFeed = () => {
 
         setVideos(formatted);
         setLoading(false);
+        setProgressLoaded(true);
 
-        // Handle navigation from other pages
+        // Handle navigation from other pages (takes priority)
         if (location.state?.videoId) {
           const idx = formatted.findIndex(v => v.id === location.state.videoId);
           if (idx !== -1) {
             setCurrentIndex(idx);
-            // Scroll to that video after render
             setTimeout(() => {
               containerRef.current?.scrollTo({ top: idx * window.innerHeight, behavior: 'auto' });
             }, 0);
           }
           window.history.replaceState({}, document.title);
+        } 
+        // Otherwise restore saved position
+        else if (lastVideoId) {
+          const idx = formatted.findIndex(v => v.id === lastVideoId);
+          if (idx !== -1) {
+            setCurrentIndex(idx);
+            setTimeout(() => {
+              containerRef.current?.scrollTo({ top: idx * window.innerHeight, behavior: 'auto' });
+            }, 0);
+          } else if (lastIndex < formatted.length) {
+            // Video was deleted, go to saved index or start
+            setCurrentIndex(lastIndex);
+            setTimeout(() => {
+              containerRef.current?.scrollTo({ top: lastIndex * window.innerHeight, behavior: 'auto' });
+            }, 0);
+          }
         }
       } catch (err) {
         console.error("Unexpected error fetching videos:", err);
@@ -89,6 +146,27 @@ export const VideoFeed = () => {
 
     fetchVideos();
   }, [location.state]);
+
+  // Save progress when video changes
+  useEffect(() => {
+    if (!progressLoaded || videos.length === 0) return;
+    
+    const currentVideo = videos[currentIndex];
+    if (!currentVideo) return;
+    
+    // Add to watched list if not already there
+    const newWatchedIds = watchedIds.includes(currentVideo.id) 
+      ? watchedIds 
+      : [...watchedIds, currentVideo.id];
+    
+    if (!watchedIds.includes(currentVideo.id)) {
+      setWatchedIds(newWatchedIds);
+    }
+    
+    // Save progress to device storage
+    saveProgress(currentIndex, currentVideo.id, newWatchedIds);
+    
+  }, [currentIndex, videos, progressLoaded]);
 
   // Detect which video is currently visible
   const handleScroll = useCallback(() => {
@@ -220,19 +298,23 @@ export const VideoFeed = () => {
     <div
       ref={containerRef}
       onScroll={handleScroll}
-      className="h-screen w-screen overflow-y-scroll overflow-x-hidden bg-black"
+      className="h-screen w-screen overflow-y-scroll overflow-x-hidden bg-black video-feed-container"
       style={{
         scrollSnapType: isAnyDrawerOpen ? 'none' : 'y mandatory',
         WebkitOverflowScrolling: 'touch',
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
       }}
     >
       <style>{`
         .video-feed-container::-webkit-scrollbar {
-          display: none;
+          display: none !important;
+          width: 0 !important;
+          height: 0 !important;
         }
         .video-feed-container {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
+          -ms-overflow-style: none !important;
+          scrollbar-width: none !important;
         }
       `}</style>
       
