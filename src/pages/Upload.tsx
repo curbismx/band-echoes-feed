@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { detectPlatform, isValidUrl } from "@/utils/platformDetection";
 import { getPlatformIcon } from "@/components/PlatformIcons";
-import { compressVideo, formatFileSize, getVideoSize, type CompressionProgress } from "@/utils/videoCompression";
+import { compressVideo, formatFileSize, getVideoSize, isCompressionSupported, type CompressionProgress } from "@/utils/videoCompression";
 
 const Upload = () => {
   const navigate = useNavigate();
@@ -107,18 +107,22 @@ const Upload = () => {
 
       let fileToUpload: File | Blob = selectedVideo;
 
-      // Compress video before uploading
-      setIsCompressing(true);
-      try {
-        fileToUpload = await compressVideo(selectedVideo, (progress) => {
-          setCompressionProgress(progress);
-        });
-      } catch (compressionError) {
-        console.error("Compression failed:", compressionError);
-        // Continue with original file if compression fails
-      } finally {
-        setIsCompressing(false);
-        setCompressionProgress(null);
+      // Only compress if SharedArrayBuffer is available (not on iOS Safari/WKWebView)
+      if (isCompressionSupported()) {
+        setIsCompressing(true);
+        try {
+          fileToUpload = await compressVideo(selectedVideo, (progress) => {
+            setCompressionProgress(progress);
+          });
+        } catch (compressionError) {
+          console.error("Compression failed:", compressionError);
+          // Continue with original file if compression fails
+        } finally {
+          setIsCompressing(false);
+          setCompressionProgress(null);
+        }
+      } else {
+        console.log("Video compression not supported on this device, uploading original file");
       }
 
       // Upload video to storage

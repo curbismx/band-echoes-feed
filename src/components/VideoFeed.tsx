@@ -3,6 +3,7 @@ import { VideoCard } from "./VideoCard";
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Preferences } from '@capacitor/preferences';
+import { App } from '@capacitor/app';
 
 // Storage keys for persistent progress tracking
 const STORAGE_KEYS = {
@@ -168,6 +169,33 @@ export const VideoFeed = () => {
     
   }, [currentIndex, videos, progressLoaded]);
 
+  // Handle app state changes (pause video when app goes to background)
+  useEffect(() => {
+    let listenerHandle: { remove: () => Promise<void> } | null = null;
+
+    const setupListener = async () => {
+      listenerHandle = await App.addListener('appStateChange', ({ isActive }) => {
+        const videoElements = document.querySelectorAll('video');
+        if (!isActive) {
+          // App went to background - pause all videos
+          videoElements.forEach(v => v.pause());
+        } else {
+          // App came to foreground - resume current video
+          const currentVideoEl = containerRef.current?.querySelector(`[data-index="${currentIndex}"] video`) as HTMLVideoElement;
+          if (currentVideoEl) {
+            currentVideoEl.play().catch(() => {});
+          }
+        }
+      });
+    };
+
+    setupListener();
+
+    return () => {
+      listenerHandle?.remove();
+    };
+  }, [currentIndex]);
+
   // Detect which video is currently visible
   const handleScroll = useCallback(() => {
     if (!containerRef.current || isAnyDrawerOpen) return;
@@ -321,6 +349,7 @@ export const VideoFeed = () => {
       {videos.map((video, index) => (
         <div
           key={video.id}
+          data-index={index}
           style={{
             height: '100vh',
             width: '100vw',
