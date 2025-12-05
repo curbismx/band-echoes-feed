@@ -465,7 +465,7 @@ const Settings = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Top Gutter for Mobile Status Bar */}
-      <div className="h-[25px] flex-shrink-0 bg-background" />
+      <div className="safe-area-top flex-shrink-0 bg-background" />
       
       <div className="p-8">
         <div className="max-w-7xl mx-auto pb-20">
