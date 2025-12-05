@@ -57,6 +57,7 @@ export const VideoCard = ({
   const [infoOpen, setInfoOpen] = useState(false);
   const [videoError, setVideoError] = useState(false);
   const [isBuffering, setIsBuffering] = useState(true);
+  const [canPlay, setCanPlay] = useState(false);
 
   const { averageRating, userRating, submitRating } = useVideoRatings(video.id);
   const isDrawerOpen = commentsOpen || infoOpen;
@@ -117,28 +118,39 @@ export const VideoCard = ({
     }
   }, []);
 
-  // VIDEO PLAYBACK - Simple as possible
+  // VIDEO PLAYBACK - Only play when active AND video is ready
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
+    const videoEl = videoRef.current;
+    if (!videoEl) return;
 
-    if (isActive) {
-      video.play().catch(() => {
-        // Silently fail - user will tap to unmute anyway
-      });
-    } else {
-      video.pause();
-      video.currentTime = 0;
+    if (isActive && canPlay) {
+      const playPromise = videoEl.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((error) => {
+          console.log('Autoplay prevented:', error);
+          // Don't set error - this is normal on iOS, user will tap
+        });
+      }
+    } else if (!isActive) {
+      videoEl.pause();
+      // Only reset if video has actually loaded to avoid issues
+      if (canPlay) {
+        videoEl.currentTime = 0;
+      }
     }
-  }, [isActive]);
+  }, [isActive, canPlay]);
 
-  // Handle mute separately
+  // Reset state when video URL changes (component reused for different video)
   useEffect(() => {
-    const video = videoRef.current;
-    if (video) {
-      video.muted = isMuted;
-    }
-  }, [isMuted]);
+    const videoEl = videoRef.current;
+    if (!videoEl) return;
+
+    setIsBuffering(true);
+    setVideoError(false);
+    setCanPlay(false);
+
+    videoEl.load();
+  }, [video.videoUrl]);
 
   const handleFollow = async () => {
     const next = !isFollowing;
@@ -187,15 +199,25 @@ export const VideoCard = ({
         poster={video.posterUrl}
         className="absolute inset-0 w-full h-full object-cover"
         loop
-        muted
+        muted={isMuted}
         playsInline
         preload="auto"
         onClick={onUnmute}
-        onError={() => setVideoError(true)}
-        onLoadStart={() => setVideoError(false)}
+        onLoadStart={() => {
+          setIsBuffering(true);
+          setVideoError(false);
+        }}
+        onCanPlay={() => {
+          setIsBuffering(false);
+          setCanPlay(true);
+        }}
         onWaiting={() => setIsBuffering(true)}
         onPlaying={() => setIsBuffering(false)}
-        onCanPlay={() => setIsBuffering(false)}
+        onError={(e) => {
+          console.error('Video error:', e);
+          setVideoError(true);
+          setIsBuffering(false);
+        }}
       />
 
       {/* Loading indicator */}
