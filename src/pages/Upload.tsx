@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, X, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { detectPlatform, isValidUrl } from "@/utils/platformDetection";
 import { getPlatformIcon } from "@/components/PlatformIcons";
@@ -11,7 +10,6 @@ import { compressVideo, formatFileSize, getVideoSize, type CompressionProgress }
 
 const Upload = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const editVideoId = searchParams.get("edit");
   const [step, setStep] = useState(editVideoId ? 2 : 1);
@@ -48,17 +46,12 @@ const Upload = () => {
             setLinks(data.links.map((l: any) => l.url || ""));
           }
         } else {
-          toast({
-            title: "Error",
-            description: "Could not load video data",
-            variant: "destructive",
-          });
           navigate("/profile");
         }
       };
       fetchVideo();
     }
-  }, [editVideoId, navigate, toast]);
+  }, [editVideoId, navigate]);
 
   const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -67,12 +60,6 @@ const Upload = () => {
       const preview = URL.createObjectURL(file);
       setVideoPreview(preview);
       setStep(2);
-    } else {
-      toast({
-        title: "Invalid file",
-        description: "Please select a video file",
-        variant: "destructive",
-      });
     }
   };
 
@@ -98,19 +85,9 @@ const Upload = () => {
 
         if (dbError) throw dbError;
 
-        toast({
-          title: "Video updated!",
-          description: "Your video has been updated successfully",
-        });
-
         navigate("/profile");
       } catch (error) {
         console.error("Update error:", error);
-        toast({
-          title: "Update failed",
-          description: "Unable to update video. Please try again.",
-          variant: "destructive",
-        });
       } finally {
         setIsUploading(false);
       }
@@ -124,11 +101,6 @@ const Upload = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        toast({
-          title: "Authentication required",
-          description: "Please sign in to upload videos",
-          variant: "destructive",
-        });
         navigate("/auth");
         return;
       }
@@ -136,32 +108,13 @@ const Upload = () => {
       let fileToUpload: File | Blob = selectedVideo;
 
       // Compress video before uploading
-      const originalSize = getVideoSize(selectedVideo);
-      toast({
-        title: "Compressing video...",
-        description: `Original size: ${formatFileSize(originalSize)}`,
-      });
-
       setIsCompressing(true);
       try {
         fileToUpload = await compressVideo(selectedVideo, (progress) => {
           setCompressionProgress(progress);
         });
-        
-        const compressedSize = getVideoSize(fileToUpload);
-        const savedPercent = Math.round((1 - compressedSize / originalSize) * 100);
-        
-        toast({
-          title: "Compression complete!",
-          description: `Saved ${savedPercent}% (${formatFileSize(originalSize)} → ${formatFileSize(compressedSize)})`,
-        });
       } catch (compressionError) {
         console.error("Compression failed:", compressionError);
-        toast({
-          title: "Compression failed",
-          description: "Uploading original video instead",
-          variant: "destructive",
-        });
         // Continue with original file if compression fails
       } finally {
         setIsCompressing(false);
@@ -200,19 +153,9 @@ const Upload = () => {
 
       if (dbError) throw dbError;
 
-      toast({
-        title: "Video uploaded!",
-        description: "Your video has been shared successfully",
-      });
-
       navigate("/profile");
     } catch (error) {
       console.error("Upload error:", error);
-      toast({
-        title: "Upload failed",
-        description: "Unable to upload video. Please try again.",
-        variant: "destructive",
-      });
     } finally {
       setIsUploading(false);
     }
@@ -220,11 +163,6 @@ const Upload = () => {
 
   const handleFindLinks = async () => {
     if (!title.trim()) {
-      toast({
-        title: "Title required",
-        description: "Please add a title first to search for music links",
-        variant: "destructive",
-      });
       return;
     }
 
@@ -245,25 +183,9 @@ const Upload = () => {
         ].filter(link => link && link.trim() !== "");
 
         setLinks(foundLinks.length > 0 ? foundLinks : ["", ""]);
-        
-        toast({
-          title: "Links found!",
-          description: `Found ${foundLinks.length} streaming platform${foundLinks.length !== 1 ? 's' : ''}`,
-        });
-      } else {
-        toast({
-          title: "No links found",
-          description: "Try adding artist name to the title",
-          variant: "destructive",
-        });
       }
     } catch (error) {
       console.error("Find links error:", error);
-      toast({
-        title: "Search failed",
-        description: "Unable to find music links. Please try again.",
-        variant: "destructive",
-      });
     } finally {
       setSearching(false);
     }

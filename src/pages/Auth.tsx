@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -12,7 +11,6 @@ export default function Auth() {
   const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/";
 
@@ -29,20 +27,10 @@ export default function Auth() {
     e.preventDefault();
     
     if (!email || !password) {
-      toast({
-        title: "Error",
-        description: "Please fill in all fields",
-        variant: "destructive",
-      });
       return;
     }
 
     if (!isLogin && !username) {
-      toast({
-        title: "Error",
-        description: "Please enter a username",
-        variant: "destructive",
-      });
       return;
     }
 
@@ -55,13 +43,7 @@ export default function Auth() {
           password,
         });
 
-        if (error) {
-          toast({
-            title: "Login Failed",
-            description: error.message,
-            variant: "destructive",
-          });
-        } else {
+        if (!error) {
           navigate(redirectTo);
         }
       } else {
@@ -77,26 +59,12 @@ export default function Auth() {
           },
         });
 
-        if (error) {
-          toast({
-            title: "Signup Failed",
-            description: error.message,
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Success!",
-            description: "Account created! Please check your email to verify.",
-          });
+        if (!error) {
           setIsLogin(true);
         }
       }
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "An unexpected error occurred",
-        variant: "destructive",
-      });
+      console.error("Auth error:", error);
     } finally {
       setLoading(false);
     }

@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
 import logoImage from "@/assets/onboarding-logo.png";
 
 export default function SetupAccount() {
@@ -13,7 +12,6 @@ export default function SetupAccount() {
   const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   useEffect(() => {
     // Check if already logged in
@@ -28,20 +26,10 @@ export default function SetupAccount() {
     e.preventDefault();
     
     if (!email || !password || !repeatPassword || !username) {
-      toast({
-        title: "Error",
-        description: "Please fill in all fields",
-        variant: "destructive",
-      });
       return;
     }
 
     if (password !== repeatPassword) {
-      toast({
-        title: "Error",
-        description: "Passwords do not match",
-        variant: "destructive",
-      });
       return;
     }
 
@@ -59,25 +47,11 @@ export default function SetupAccount() {
         },
       });
 
-      if (error) {
-        toast({
-          title: "Signup Failed",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Success!",
-          description: "Account created successfully!",
-        });
+      if (!error) {
         navigate("/");
       }
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "An unexpected error occurred",
-        variant: "destructive",
-      });
+      console.error("Signup error:", error);
     } finally {
       setLoading(false);
     }

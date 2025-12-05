@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
@@ -48,7 +47,6 @@ export const ActionButtons = ({
   onOpenComments,
 }: ActionButtonsProps) => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { user } = useAuth();
   const [showRating, setShowRating] = useState(false);
   const [selectedStar, setSelectedStar] = useState<number | null>(null);
@@ -102,10 +100,6 @@ export const ActionButtons = ({
             follower_id: user.id,
             followed_id: artistUserId,
           });
-        toast({
-          title: "Following",
-          description: `You are now following ${artistName}`,
-        });
       } else {
         // Unfollow
         await supabase
@@ -113,19 +107,10 @@ export const ActionButtons = ({
           .delete()
           .eq("follower_id", user.id)
           .eq("followed_id", artistUserId);
-        toast({
-          title: "Unfollowed",
-          description: `You unfollowed ${artistName}`,
-        });
       }
     } catch (error) {
       // Revert on failure
       setIsFollowing(!next);
-      toast({
-        title: "Error",
-        description: "Failed to update follow status",
-        variant: "destructive",
-      });
     } finally {
       setFollowLoading(false);
     }
@@ -172,16 +157,8 @@ export const ActionButtons = ({
   const fallbackToClipboard = async (url: string) => {
     try {
       await navigator.clipboard.writeText(url);
-      toast({
-        title: "Link copied!",
-        description: "Video link copied to clipboard",
-      });
     } catch (err) {
-      toast({
-        title: "Share failed",
-        description: "Unable to share or copy link",
-        variant: "destructive",
-      });
+      // Silent fail for iOS app
     }
   };
 

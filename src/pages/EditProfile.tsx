@@ -4,7 +4,6 @@ import { ChevronLeft, Camera } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { getAvatarUrl } from "@/utils/avatarUrl";
@@ -12,7 +11,6 @@ import { getAvatarUrl } from "@/utils/avatarUrl";
 export default function EditProfile() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { toast } = useToast();
   const [profile, setProfile] = useState<any>(null);
   const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -126,18 +124,9 @@ export default function EditProfile() {
         throw emailError;
       }
 
-      toast({
-        title: "Success",
-        description: "Profile updated successfully",
-      });
-
       navigate("/profile");
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update profile",
-        variant: "destructive",
-      });
+      console.error("Profile update error:", error);
     } finally {
       setLoading(false);
     }

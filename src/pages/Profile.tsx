@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { ChevronLeft, MoreVertical, Trash2, Edit } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { getAvatarUrl } from "@/utils/avatarUrl";
 import {
@@ -33,7 +32,6 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [videoToDelete, setVideoToDelete] = useState<string | null>(null);
-  const { toast } = useToast();
 
   const triggerHaptic = async () => {
     try {
@@ -124,16 +122,8 @@ export default function Profile() {
     const profileUrl = `${window.location.origin}/profile`;
     try {
       await navigator.clipboard.writeText(profileUrl);
-      toast({
-        title: "Link copied!",
-        description: "Profile link copied to clipboard",
-      });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to copy link",
-        variant: "destructive",
-      });
+      // Silent fail for iOS app
     }
   };
 
@@ -152,18 +142,8 @@ export default function Profile() {
 
       // Remove from local state
       setVideos(videos.filter(v => v.id !== videoToDelete));
-
-      toast({
-        title: "Video deleted",
-        description: "Your video has been deleted successfully",
-      });
     } catch (error) {
       console.error("Error deleting video:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete video",
-        variant: "destructive",
-      });
     } finally {
       setDeleteDialogOpen(false);
       setVideoToDelete(null);
