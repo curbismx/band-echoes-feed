@@ -47,7 +47,11 @@ export const VideoCard = ({
   const [isFollowing, setIsFollowing] = useState(video.isFollowing);
   const [isLiked, setIsLiked] = useState(false);
   const [likes, setLikes] = useState(video.likes);
-  const [artistAvatar, setArtistAvatar] = useState<string>(video.artistAvatar || "");
+  const [artistAvatar, setArtistAvatar] = useState<string>(() => {
+    const avatar = video.artistAvatar;
+    return (avatar && typeof avatar === 'string' && avatar.trim() !== '') ? avatar : '';
+  });
+  const [avatarError, setAvatarError] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
 
@@ -76,10 +80,12 @@ export const VideoCard = ({
     checkFavorite();
   }, [video.id]);
 
-  // Sync artist avatar with video prop
+  // Sync artist avatar with video prop and reset error state
   useEffect(() => {
-    setArtistAvatar(video.artistAvatar || "");
-  }, [video.artistAvatar]);
+    setAvatarError(false);
+    const avatar = video.artistAvatar;
+    setArtistAvatar((avatar && typeof avatar === 'string' && avatar.trim() !== '') ? avatar : '');
+  }, [video.artistAvatar, video.id]);
 
   // Check follow status
   useEffect(() => {
@@ -185,9 +191,12 @@ export const VideoCard = ({
       >
         <button onClick={(e) => { e.stopPropagation(); navigate(`/user/${video.artistUserId}`); }} className="block bg-transparent border-0 p-0 m-0">
           <img 
-            src={getAvatarUrl(artistAvatar, video.artistName, video.artistUserId)} 
+            src={avatarError 
+              ? `https://ui-avatars.com/api/?name=${encodeURIComponent(video.artistName)}&background=${video.artistUserId.substring(0, 6).replace(/-/g, '')}&color=fff&size=64`
+              : getAvatarUrl(artistAvatar, video.artistName, video.artistUserId)} 
             alt="" 
-            className="w-8 h-8 rounded-full object-cover mb-2 border-2 border-white" 
+            className="w-8 h-8 rounded-full object-cover mb-2 border-2 border-white"
+            onError={() => setAvatarError(true)}
           />
         </button>
         <button onClick={(e) => { e.stopPropagation(); navigate(`/user/${video.artistUserId}`); }} className="font-bold text-white drop-shadow-lg mb-1 hover:underline text-left bg-transparent border-0 p-0">
