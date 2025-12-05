@@ -47,9 +47,11 @@ export const VideoFeed = () => {
           .in("id", userIds);
 
         const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
+        console.log('📸 Profiles loaded:', profilesData?.length, 'profiles');
 
-        const formatted = videosData.map(v => {
+        const formatted = videosData.map((v, index) => {
           const profile = profilesMap.get(v.user_id);
+          console.log(`Video ${index}: user_id=${v.user_id}, profile_found=${!!profile}, avatar=${profile?.avatar_url || 'null'}`);
           return {
             ...v,
             posterUrl: v.thumbnail_url,

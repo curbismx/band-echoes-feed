@@ -6,10 +6,12 @@ export const getAvatarUrl = (
   userName: string,
   userId?: string
 ): string => {
-  if (avatarUrl && avatarUrl.trim() !== '') {
-    // Add cache-busting for Supabase storage URLs
+  // Handle null, undefined, or empty strings
+  if (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.trim() !== '') {
+    // Use hourly cache-bust instead of per-render to prevent flickering
+    const cacheBust = Math.floor(Date.now() / 3600000);
     const separator = avatarUrl.includes('?') ? '&' : '?';
-    return `${avatarUrl}${separator}v=${Date.now()}`;
+    return `${avatarUrl}${separator}v=${cacheBust}`;
   }
   // Fallback to UI Avatars with deterministic color based on userId
   const colorSeed = userId ? userId.substring(0, 6).replace(/-/g, '') : '888888';
