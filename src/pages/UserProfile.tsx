@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { ChevronLeft } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { getAvatarUrl } from "@/utils/avatarUrl";
 
 export default function UserProfile() {
@@ -14,7 +13,6 @@ export default function UserProfile() {
   const [videos, setVideos] = useState<any[]>([]);
   const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
     if (!userId) {
@@ -79,11 +77,6 @@ export default function UserProfile() {
       
       if (error) {
         setIsFollowing(!next);
-        toast({
-          title: "Error",
-          description: "Failed to follow user",
-          variant: "destructive",
-        });
       }
     } else {
       const { error } = await supabase
@@ -94,11 +87,6 @@ export default function UserProfile() {
       
       if (error) {
         setIsFollowing(!next);
-        toast({
-          title: "Error",
-          description: "Failed to unfollow user",
-          variant: "destructive",
-        });
       }
     }
   };
@@ -107,16 +95,8 @@ export default function UserProfile() {
     const profileUrl = `${window.location.origin}/user/${userId}`;
     try {
       await navigator.clipboard.writeText(profileUrl);
-      toast({
-        title: "Link copied!",
-        description: "Profile link copied to clipboard",
-      });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to copy link",
-        variant: "destructive",
-      });
+      // Silent fail for iOS app
     }
   };
 

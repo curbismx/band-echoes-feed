@@ -5,7 +5,6 @@ import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 interface InfoDrawerProps {
   isOpen: boolean;
@@ -167,28 +166,15 @@ export const InfoDrawer = ({
               
               if (saveError) {
                 console.error("Failed to save links:", saveError);
-                toast.error("Found links, but couldn't save them");
-              } else {
-                toast.success("Links found and saved!");
               }
-            } else {
-              // User doesn't own this video, just show the links without saving
-              toast.success("Links found! (View only - not your video)");
             }
           } catch (saveErr) {
             console.error("Save error:", saveErr);
-            // Still show the links even if save fails
-            toast.success("Links found! (Unable to save)");
           }
-        } else {
-          toast.success("Links found!");
         }
-      } else {
-        toast.error("No links found. Try a different title format.");
       }
     } catch (e) {
       console.error('Find links (InfoDrawer) error:', e);
-      toast.error("Failed to search for links");
     } finally {
       setSearching(false);
     }

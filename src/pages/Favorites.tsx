@@ -4,7 +4,6 @@ import { ChevronLeft } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import heartRedIcon from "@/assets/heart-red.png";
-import { toast } from "@/hooks/use-toast";
 
 export default function Favorites() {
   const navigate = useNavigate();
@@ -95,18 +94,8 @@ export default function Favorites() {
       .eq("user_id", user.id)
       .eq("video_id", videoId);
 
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to remove favorite",
-        variant: "destructive",
-      });
-    } else {
+    if (!error) {
       setFavoriteVideos(prev => prev.filter(v => v.id !== videoId));
-      toast({
-        title: "Removed",
-        description: "Video removed from favorites",
-      });
     }
   };
 

@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
@@ -29,7 +28,6 @@ interface CommentsDrawerProps {
 
 export const CommentsDrawer = ({ videoId, isOpen, onClose }: CommentsDrawerProps) => {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(false);
@@ -132,11 +130,7 @@ export const CommentsDrawer = ({ videoId, isOpen, onClose }: CommentsDrawerProps
 
   const handleSubmitComment = async () => {
     if (!user) {
-      toast({
-        title: "Please sign in",
-        description: "You need to be signed in to comment",
-        variant: "destructive",
-      });
+      // User not signed in - silent fail for iOS
       return;
     }
 
@@ -151,11 +145,6 @@ export const CommentsDrawer = ({ videoId, isOpen, onClose }: CommentsDrawerProps
 
     if (error) {
       console.error("Comment insert error:", error);
-      toast({
-        title: "Error",
-        description: "Failed to post comment",
-        variant: "destructive",
-      });
     } else {
       setNewComment("");
       inputRef.current?.blur();
