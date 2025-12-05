@@ -145,7 +145,7 @@ export default function EditProfile() {
   return (
     <div className="min-h-screen text-white" style={{ backgroundColor: "#252525" }}>
       {/* Top Gutter for Mobile Status Bar */}
-      <div className="h-[25px] flex-shrink-0" style={{ backgroundColor: "#252525" }} />
+      <div className="safe-area-top flex-shrink-0" style={{ backgroundColor: "#252525" }} />
       
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-white/10">

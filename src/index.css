@@ -73,3 +73,12 @@ All colors MUST be HSL.
     @apply transition-transform duration-200 active:scale-90;
   }
 }
+
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 20px);
+}
+
+.safe-area-top-bg {
+  padding-top: env(safe-area-inset-top, 20px);
+  background-color: inherit;
+}

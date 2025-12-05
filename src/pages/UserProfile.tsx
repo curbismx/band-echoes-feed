@@ -149,7 +149,7 @@ export default function UserProfile() {
   return (
     <div className="h-screen flex flex-col text-white overflow-hidden" style={{ backgroundColor: "#252525" }}>
       {/* Top Gutter for Mobile Status Bar */}
-      <div className="h-[25px] flex-shrink-0" style={{ backgroundColor: "#252525" }} />
+      <div className="safe-area-top flex-shrink-0" style={{ backgroundColor: "#252525" }} />
       
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-white/10 flex-shrink-0">
