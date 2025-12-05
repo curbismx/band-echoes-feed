@@ -4,6 +4,7 @@ import { ChevronLeft } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { getAvatarUrl } from "@/utils/avatarUrl";
 
 export default function UserProfile() {
   const navigate = useNavigate();
@@ -167,7 +168,7 @@ export default function UserProfile() {
           {/* Profile Picture and Stats */}
           <div className="flex items-center gap-6 mb-4">
             <img
-              src={profile.avatar_url || "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200&h=200&fit=crop"}
+              src={getAvatarUrl(profile.avatar_url, profile.display_name || profile.username, profile.id)}
               alt="Profile"
               className="w-20 h-20 rounded-full object-cover"
             />

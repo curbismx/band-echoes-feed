@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { createPortal } from "react-dom";
+import { getAvatarUrl } from "@/utils/avatarUrl";
 
 interface Comment {
   id: string;
@@ -228,7 +229,7 @@ export const CommentsDrawer = ({ videoId, isOpen, onClose }: CommentsDrawerProps
             comments.map((comment) => (
               <div key={comment.id} className="flex gap-3">
                 <Avatar className="h-10 w-10 flex-shrink-0">
-                  <AvatarImage src={comment.profiles.avatar_url || undefined} />
+                  <AvatarImage src={getAvatarUrl(comment.profiles.avatar_url, comment.profiles.username || 'User', comment.user_id)} />
                   <AvatarFallback className="bg-white/20 text-white">
                     {comment.profiles.username?.charAt(0).toUpperCase() || "U"}
                   </AvatarFallback>
@@ -275,7 +276,7 @@ export const CommentsDrawer = ({ videoId, isOpen, onClose }: CommentsDrawerProps
         >
           <div className="flex gap-3 items-center">
             <Avatar className="h-8 w-8 flex-shrink-0">
-              <AvatarImage src={userAvatar || undefined} />
+              <AvatarImage src={getAvatarUrl(userAvatar, user?.email || 'User', user?.id)} />
               <AvatarFallback className="bg-white/20 text-white text-sm">
                 {user?.email?.charAt(0).toUpperCase() || "U"}
               </AvatarFallback>

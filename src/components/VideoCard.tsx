@@ -5,13 +5,13 @@ import { useVideoRatings } from "@/hooks/useVideoRatings";
 import { supabase } from "@/integrations/supabase/client";
 import { CommentsDrawer } from "./CommentsDrawer";
 import { InfoDrawer } from "./InfoDrawer";
+import { getAvatarUrl } from "@/utils/avatarUrl";
 import followOffIcon from "@/assets/follow_OFF.png";
 import followOnIcon from "@/assets/follow_ON.png";
 import followedIcon from "@/assets/followed.png";
 import infoIcon from "@/assets/info.png";
 import infoFollowIcon from "@/assets/info-follow.png";
 import { VolumeX } from "lucide-react";
-
 interface Video {
   id: string;
   artistName: string;
@@ -185,7 +185,7 @@ export const VideoCard = ({
       >
         <button onClick={(e) => { e.stopPropagation(); navigate(`/user/${video.artistUserId}`); }} className="block bg-transparent border-0 p-0 m-0">
           <img 
-            src={artistAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(video.artistName)}&background=${video.artistUserId.slice(0, 6)}&color=fff&size=64`} 
+            src={getAvatarUrl(artistAvatar, video.artistName, video.artistUserId)} 
             alt="" 
             className="w-8 h-8 rounded-full object-cover mb-2 border-2 border-white" 
           />
