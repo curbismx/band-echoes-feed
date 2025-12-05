@@ -101,26 +101,78 @@ export const VideoFeed = () => {
     if (newIndex !== currentIndex && newIndex >= 0 && newIndex < videos.length) {
       setCurrentIndex(newIndex);
     }
+    
+    // Loop back to start when scrolling past last video
+    if (scrollTop >= videos.length * videoHeight) {
+      containerRef.current.scrollTo({ top: 0, behavior: 'auto' });
+      setCurrentIndex(0);
+    }
   }, [currentIndex, videos.length, isAnyDrawerOpen]);
 
-  // Keyboard navigation
+  // Keyboard navigation with loop
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (isAnyDrawerOpen) return;
-      if (e.key === "ArrowDown" && currentIndex < videos.length - 1) {
+      if (isAnyDrawerOpen || videos.length === 0) return;
+      
+      if (e.key === "ArrowDown") {
+        const nextIndex = currentIndex >= videos.length - 1 ? 0 : currentIndex + 1;
         containerRef.current?.scrollTo({ 
-          top: (currentIndex + 1) * window.innerHeight, 
-          behavior: 'smooth' 
+          top: nextIndex * window.innerHeight, 
+          behavior: nextIndex === 0 ? 'auto' : 'smooth' 
         });
-      } else if (e.key === "ArrowUp" && currentIndex > 0) {
+        setCurrentIndex(nextIndex);
+      } else if (e.key === "ArrowUp") {
+        const prevIndex = currentIndex <= 0 ? videos.length - 1 : currentIndex - 1;
         containerRef.current?.scrollTo({ 
-          top: (currentIndex - 1) * window.innerHeight, 
-          behavior: 'smooth' 
+          top: prevIndex * window.innerHeight, 
+          behavior: prevIndex === videos.length - 1 ? 'auto' : 'smooth' 
         });
+        setCurrentIndex(prevIndex);
       }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
+  }, [currentIndex, videos.length, isAnyDrawerOpen]);
+
+  // Handle loop on mobile swipe past last video
+  useEffect(() => {
+    if (!containerRef.current || videos.length === 0) return;
+    
+    let touchStartY = 0;
+    
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartY = e.touches[0].clientY;
+    };
+    
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (isAnyDrawerOpen) return;
+      
+      const touchEndY = e.changedTouches[0].clientY;
+      const diff = touchStartY - touchEndY;
+      const container = containerRef.current;
+      if (!container) return;
+      
+      // Swiped up (trying to go to next video) while on last video
+      if (diff > 50 && currentIndex >= videos.length - 1) {
+        container.scrollTo({ top: 0, behavior: 'auto' });
+        setCurrentIndex(0);
+      }
+      
+      // Swiped down (trying to go to previous video) while on first video
+      if (diff < -50 && currentIndex <= 0) {
+        container.scrollTo({ top: (videos.length - 1) * window.innerHeight, behavior: 'auto' });
+        setCurrentIndex(videos.length - 1);
+      }
+    };
+    
+    const container = containerRef.current;
+    container.addEventListener('touchstart', handleTouchStart, { passive: true });
+    container.addEventListener('touchend', handleTouchEnd, { passive: true });
+    
+    return () => {
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchend', handleTouchEnd);
+    };
   }, [currentIndex, videos.length, isAnyDrawerOpen]);
 
   // Loading state
