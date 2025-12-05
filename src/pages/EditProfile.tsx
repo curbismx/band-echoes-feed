@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { getAvatarUrl } from "@/utils/avatarUrl";
 
 export default function EditProfile() {
   const navigate = useNavigate();
@@ -161,7 +162,7 @@ export default function EditProfile() {
         <div className="flex flex-col items-center gap-3">
           <div className="relative">
             <img
-              src={avatarPreview || "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200&h=200&fit=crop"}
+              src={avatarPreview || getAvatarUrl(profile?.avatar_url, profile?.display_name || profile?.username, profile?.id)}
               alt="Profile"
               className="w-32 h-32 rounded-full object-cover"
             />

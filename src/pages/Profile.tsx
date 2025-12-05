@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
+import { getAvatarUrl } from "@/utils/avatarUrl";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -216,7 +217,7 @@ export default function Profile() {
         <div className="flex items-center gap-6 mb-4">
           <div className="flex flex-col items-center gap-2">
             <img
-              src={profile.avatar_url || "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200&h=200&fit=crop"}
+              src={getAvatarUrl(profile.avatar_url, profile.display_name || profile.username, profile.id)}
               alt="Profile"
               className="w-20 h-20 rounded-full object-cover"
             />
@@ -310,7 +311,7 @@ export default function Profile() {
             {followers.map((follower) => (
               <div key={follower.id} className="flex items-center gap-3">
                 <img
-                  src={follower.avatar_url || "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=80&h=80&fit=crop"}
+                  src={getAvatarUrl(follower.avatar_url, follower.display_name || follower.username, follower.id)}
                   alt={follower.username}
                   className="w-12 h-12 rounded-full object-cover"
                 />
@@ -332,7 +333,7 @@ export default function Profile() {
             {following.map((followedUser) => (
               <div key={followedUser.id} className="flex items-center gap-3">
                 <img
-                  src={followedUser.avatar_url || "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=80&h=80&fit=crop"}
+                  src={getAvatarUrl(followedUser.avatar_url, followedUser.display_name || followedUser.username, followedUser.id)}
                   alt={followedUser.username}
                   className="w-12 h-12 rounded-full object-cover"
                 />
