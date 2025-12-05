@@ -198,15 +198,12 @@ export default function Profile() {
       <div className="safe-area-top flex-shrink-0" style={{ backgroundColor: "#0A1014" }} />
       
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-white/10 flex-shrink-0">
-        <button 
-          onClick={() => navigate("/")}
-          className="p-2 -ml-2"
-        >
+      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 flex-shrink-0">
+        <button onClick={() => navigate("/")} className="flex items-center justify-center w-10 h-10">
           <ChevronLeft className="w-6 h-6" />
         </button>
-        <div className="w-6" />
-        <button className="px-3 py-1 text-sm font-semibold" onClick={handleSignOut}>
+        <span className="font-semibold text-lg">Profile</span>
+        <button className="w-10 h-10 flex items-center justify-center text-sm font-semibold" onClick={handleSignOut}>
           Logout
         </button>
       </div>
