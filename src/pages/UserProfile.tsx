@@ -152,11 +152,8 @@ export default function UserProfile() {
       <div className="safe-area-top flex-shrink-0" style={{ backgroundColor: "#252525" }} />
       
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-white/10 flex-shrink-0">
-        <button 
-          onClick={() => navigate(-1)}
-          className="p-2 -ml-2"
-        >
+      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 flex-shrink-0">
+        <button onClick={() => navigate(-1)} className="flex items-center justify-center w-10 h-10">
           <ChevronLeft className="w-6 h-6" />
         </button>
         <span className="font-semibold text-lg">{profile.username || "user"}</span>

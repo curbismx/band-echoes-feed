@@ -148,11 +148,8 @@ export default function EditProfile() {
       <div className="safe-area-top flex-shrink-0" style={{ backgroundColor: "#252525" }} />
       
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-white/10">
-        <button 
-          onClick={() => navigate("/profile")}
-          className="p-2 -ml-2"
-        >
+      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+        <button onClick={() => navigate("/profile")} className="flex items-center justify-center w-10 h-10">
           <ChevronLeft className="w-6 h-6" />
         </button>
         <span className="font-semibold text-lg">Edit Profile</span>
