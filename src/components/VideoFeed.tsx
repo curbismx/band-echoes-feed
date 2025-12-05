@@ -346,26 +346,45 @@ export const VideoFeed = () => {
         }
       `}</style>
       
-      {videos.map((video, index) => (
-        <div
-          key={video.id}
-          data-index={index}
-          style={{
-            height: '100vh',
-            width: '100vw',
-            scrollSnapAlign: 'start',
-            scrollSnapStop: 'always',
-          }}
-        >
-          <VideoCard
-            video={video}
-            isActive={index === currentIndex}
-            isMuted={isMuted}
-            onUnmute={() => setIsMuted(false)}
-            onDrawerStateChange={setIsAnyDrawerOpen}
-          />
-        </div>
-      ))}
+      {videos.map((video, index) => {
+        // Only render VideoCard for videos within 1 position of current (virtualization)
+        const shouldRender = Math.abs(index - currentIndex) <= 1;
+        
+        return (
+          <div
+            key={video.id}
+            data-index={index}
+            style={{
+              height: '100vh',
+              width: '100vw',
+              scrollSnapAlign: 'start',
+              scrollSnapStop: 'always',
+            }}
+          >
+            {shouldRender ? (
+              <VideoCard
+                video={video}
+                isActive={index === currentIndex}
+                isMuted={isMuted}
+                onUnmute={() => setIsMuted(false)}
+                onDrawerStateChange={setIsAnyDrawerOpen}
+              />
+            ) : (
+              // Placeholder for distant videos - just show poster image
+              <div className="relative h-full w-full bg-black">
+                {video.posterUrl && (
+                  <img 
+                    src={video.posterUrl} 
+                    alt="" 
+                    className="absolute inset-0 w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 };
