@@ -9,6 +9,11 @@ export interface CompressionProgress {
   status: string;
 }
 
+// Check if FFmpeg WASM compression is supported (requires SharedArrayBuffer)
+export const isCompressionSupported = (): boolean => {
+  return typeof SharedArrayBuffer !== 'undefined';
+};
+
 export const loadFFmpeg = async (): Promise<FFmpeg> => {
   if (ffmpeg) return ffmpeg;
 

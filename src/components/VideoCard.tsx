@@ -12,6 +12,7 @@ import followedIcon from "@/assets/followed.png";
 import infoIcon from "@/assets/info.png";
 import infoFollowIcon from "@/assets/info-follow.png";
 import { VolumeX } from "lucide-react";
+
 interface Video {
   id: string;
   artistName: string;
@@ -54,6 +55,8 @@ export const VideoCard = ({
   const [avatarError, setAvatarError] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
+  const [videoError, setVideoError] = useState(false);
+  const [isBuffering, setIsBuffering] = useState(true);
 
   const { averageRating, userRating, submitRating } = useVideoRatings(video.id);
   const isDrawerOpen = commentsOpen || infoOpen;
@@ -104,6 +107,15 @@ export const VideoCard = ({
     };
     checkFollowStatus();
   }, [video.artistUserId]);
+
+  // Set webkit-playsinline for older iOS versions
+  useEffect(() => {
+    const videoEl = videoRef.current;
+    if (videoEl) {
+      videoEl.setAttribute('webkit-playsinline', 'true');
+      videoEl.setAttribute('x-webkit-airplay', 'allow');
+    }
+  }, []);
 
   // VIDEO PLAYBACK - Simple as possible
   useEffect(() => {
@@ -159,6 +171,14 @@ export const VideoCard = ({
     onDrawerStateChange?.(isDrawerOpen);
   }, [isDrawerOpen, onDrawerStateChange]);
 
+  const handleRetry = () => {
+    setVideoError(false);
+    if (videoRef.current) {
+      videoRef.current.load();
+      videoRef.current.play().catch(() => {});
+    }
+  };
+
   return (
     <div className="relative h-screen w-screen bg-black">
       <video
@@ -169,11 +189,39 @@ export const VideoCard = ({
         loop
         muted
         playsInline
+        preload="auto"
         onClick={onUnmute}
+        onError={() => setVideoError(true)}
+        onLoadStart={() => setVideoError(false)}
+        onWaiting={() => setIsBuffering(true)}
+        onPlaying={() => setIsBuffering(false)}
+        onCanPlay={() => setIsBuffering(false)}
       />
 
+      {/* Loading indicator */}
+      {isBuffering && !videoError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none">
+          <div className="w-10 h-10 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        </div>
+      )}
+
+      {/* Error UI */}
+      {videoError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black">
+          <div className="text-center text-white/60">
+            <p className="mb-2">Unable to load video</p>
+            <button 
+              onClick={handleRetry}
+              className="px-4 py-2 bg-white/10 rounded-lg text-sm"
+            >
+              Tap to retry
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Tap to unmute */}
-      {isMuted && (
+      {isMuted && !videoError && (
         <div 
           className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none flex flex-col items-center gap-2 animate-pulse"
         >
